@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Event {
+  id             String   @id
+  track          String
+  date           DateTime
+  resultsJsonUrl String   @unique
+  server         String
+  processed      Boolean  @default(false)
+  
+  // Relacje
+  eloHistory     EloHistory[]
+}
+
+// 2. Tabela Kierowców (Graczy)
+model Driver {
+  guid       String   @id // Steam GUID jest unikalny i stały
+  mainName   String   // Główna/aktualna nazwa
+  altNames   String?  // Nazwy oddzielone przecinkami (można parsować w kodzie)
+  currentElo Float    @default(1200.0) // Startowe ELO
+  
+  eloHistory EloHistory[]
+}
+
+// 3. Tabela Historycznego ELO (Cross Table)
+model EloHistory {
+  id        Int      @id @default(autoincrement())
+  
+  // Relacja do Eventu
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  
+  // Relacja do Kierowcy
+  driverGuid String
+  driver     Driver   @relation(fields: [driverGuid], references: [guid])
+  
+  eloBefore  Float    // ELO przed wyścigiem
+  eloAfter   Float    // ELO po wyścigu
+  eloChange  Float    // Różnica (np. +15, -10)
+  position   Int      // Zajęte miejsce w tym konkretnym wyścigu
+  
+  createdAt  DateTime @default(now())
+
+  @@index([driverGuid])
+  @@index([eventId])
+}
