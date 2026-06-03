@@ -1,9 +1,9 @@
 "use client";
 import React from 'react';
 import { TableRow, TableCell, Box, Tooltip } from '@mui/material';
-import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'; // 🟢 Ikonka ognia dla combo
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { RaceResultExtended } from '../page';
+import ComboBadge from '@/app/_components/ComboBadge';
 
 interface ResultListItemProps {
   row: RaceResultExtended;
@@ -19,63 +19,87 @@ export default function ResultListItem({ row }: ResultListItemProps) {
 
   const isGain = row.eloChange >= 0;
 
+  const getPositionStyles = (pos: number) => {
+    if (pos === 1) return "!text-brand-yellow font-black bg-brand-yellow/10 dark:bg-brand-yellow/5";
+    if (pos === 2) return "!text-race-silver font-bold bg-brand-navy-light/50";
+    if (pos === 3) return "!text-race-bronze font-bold bg-race-bronze/10";
+    return "!text-brand-muted font-medium";
+  };
+
   return (
-    <TableRow hover>
-      <TableCell sx={{ fontWeight: 700 }}>{row.pos}</TableCell>
-      <TableCell sx={{ fontWeight: 500 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <span>{row.name}</span>
-          {/* 🟢 Jeśli gracz miał combo w tym wyścigu, pokazujemy płomień przy nicku */}
+    <TableRow 
+      sx={{ 
+        '&:hover': { 
+          backgroundColor: 'var(--color-brand-navy-light) !important' 
+        },
+        transition: 'background-color 0.15s ease',
+      }}
+      className="group bg-brand-navy-dark border-b border-brand-navy-light"
+    >
+      {/* POZYCJA */}
+      <TableCell className={`text-center w-16 ${getPositionStyles(row.pos)}`}>
+        <span className="text-lg tabular-nums">{row.pos}</span>
+      </TableCell>
+
+      {/* KIEROWCA + COMBO */}
+      <TableCell className="py-4">
+        <Box className="flex items-center gap-2">
+          {/* Dodano wykrzyknik, aby zbić domyślny kolor z MUI */}
+          <span className="font-semibold tracking-wide !text-brand-muted group-hover:!text-brand-yellow transition-colors">
+            {row.name}
+          </span>
+          
           {row.combo > 0 && (
-            <Tooltip title={`Aktywne combo wyścigów: x${row.combo} (+${row.combo * 10}% do zysków ELO)`} arrow>
-              <Box sx={{ display: 'flex', alignItems: 'center', color: 'orange', fontSize: '0.85rem', fontWeight: 700 }}>
-                <LocalFireDepartmentIcon fontSize="small" sx={{ color: '#ff6d00' }} />
-                <span>{row.combo}</span>
-              </Box>
-            </Tooltip>
+            <ComboBadge combo={row.combo} />
           )}
         </Box>
       </TableCell>
       
+      {/* ZMIANA ELO */}
       <TableCell>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 1, 
-          fontWeight: 600,
-          fontFamily: 'monospace',
-          fontSize: '0.95rem'
-        }}>
-          <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-            {row.eloBefore}
-          </Box>
+        <Box className="flex items-center gap-2 font-mono text-sm">
+          {/* Dodano wykrzyknik, aby przebić style MUI */}
+          <span className="!text-brand-muted font-medium">{row.eloAfter}</span>
           
-          <ArrowRightAltIcon sx={{ color: 'text.disabled', fontSize: '1.2rem' }} />
-          
-          <Box component="span" sx={{ color: 'text.primary' }}>
-            {row.eloAfter}
-          </Box>
-          
-          <Box 
-            component="span" 
-            sx={{ 
-              color: isGain ? 'success.main' : 'error.main',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              ml: 0.5
-            }}
-          >
-            ({isGain ? `+${row.eloChange}` : row.eloChange})
-          </Box>
+          <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-bold border ${
+            isGain 
+              ? 'bg-elo-gain/10 !text-elo-gain border-elo-gain/20' 
+              : 'bg-elo-loss/10 !text-elo-loss border-elo-loss/20'
+          }`}>
+            {isGain ? `+${row.eloChange}` : row.eloChange}
+          </span>
         </Box>
       </TableCell>
 
-      <TableCell sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+      {/* SAMOCHÓD */}
+      {/* Dodano wykrzyknik: !text-brand-muted/80 */}
+      <TableCell className="!text-brand-muted/80 font-medium text-xs tracking-wide uppercase">
         {row.car}
       </TableCell>
-      <TableCell>{row.laps}</TableCell>
-      <TableCell>{formatTime(row.totalTime)}</TableCell>
-      <TableCell>{row.gap}</TableCell>
+
+      {/* OKRĄŻENIA */}
+      {/* Dodano wykrzyknik: !text-brand-muted */}
+      <TableCell className="!text-brand-muted font-mono text-center">
+        {row.laps}
+      </TableCell>
+
+      {/* CZAS ŁĄCZNY */}
+      {/* Dodano wykrzyknik: !text-brand-muted */}
+      <TableCell className="!text-brand-muted font-mono font-medium">
+        {formatTime(row.totalTime)}
+      </TableCell>
+
+      {/* STRATA (GAP) */}
+      {/* Dodano wykrzyknik: !text-brand-muted */}
+      <TableCell className="!text-brand-muted font-mono text-xs">
+        {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
+          <span className="!text-brand-yellow font-semibold text-[10px] uppercase tracking-wider bg-brand-yellow/10 px-1.5 py-0.5 rounded border border-brand-yellow/20">
+            Winner
+          </span>
+        ) : (
+          `${row.gap}`
+        )}
+      </TableCell>
     </TableRow>
   );
 }

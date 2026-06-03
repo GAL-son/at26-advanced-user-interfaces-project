@@ -1,13 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  Container,
-  Button,
-  Typography,
-  Box,
-  CircularProgress,
-} from "@mui/material";
+import { Container, Button, Typography, Box, CircularProgress } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
 import RaceInfo from "./RaceInfo";
@@ -76,56 +70,68 @@ export default function EventResultsPage() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Błąd ładowania danych wyścigu:", err);
+        console.error("Error loading race data:", err);
         setLoading(false);
       });
   }, [id]);
 
+  // STAN ŁADOWANIA (Loader dopasowany do kolorystyki)
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "50vh",
-        }}
-      >
-        <CircularProgress aria-label="Ładowanie wyników wyścigu" />
+      <Box className="flex justify-center items-center h-screen bg-brand-navy">
+        <CircularProgress 
+          aria-label="Loading race results" 
+          sx={{ color: '#fff200' }} // Nasz jaskrawy żółty akcent
+        />
       </Box>
     );
   }
 
+  // STAN BŁĘDU / BRAKU DANYCH
   if (!raceInfo || results.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h6" color="error">
-          Nie znaleziono szczegółów tego wyścigu.
-        </Typography>
-        <Button
-          component={Link}
-          href="/events"
-          startIcon={<ArrowBackIcon />}
-          sx={{ mt: 2 }}
-        >
-          Powrót do listy
-        </Button>
-      </Container>
+      <Box className="min-h-screen bg-brand-navy text-slate-100 flex items-center justify-center p-4">
+        <Container maxWidth="md" className="bg-brand-navy-dark border border-brand-navy-light/40 rounded-xl p-8 text-center shadow-xl">
+          <Typography variant="h6" className="!text-rose-400 !font-bold mb-4">
+            Race details could not be found.
+          </Typography>
+          <Button
+            component={Link}
+            href="/events"
+            startIcon={<ArrowBackIcon />}
+            className="!bg-brand-navy-light !text-slate-200 hover:!text-brand-yellow border border-brand-navy-light/60 transition-colors"
+          >
+            Back to events
+          </Button>
+        </Container>
+      </Box>
     );
   }
 
+  // WŁAŚCIWY LAYOUT STRONY
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }} component="main">
-      <Button
-        startIcon={<ArrowBackIcon />}
-        component={Link}
-        href="/events"
-        sx={{ mb: 4 }}
-      >
-        Powrót do listy
-      </Button>
-      <RaceInfo info={raceInfo} />
-      <ResultList results={results} />
-    </Container>
+    <Box className="min-h-screen bg-brand-navy text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+      <Container maxWidth="lg" component="main" className="p-0!">
+        
+        {/* Przycisk powrotu w stylu HUD */}
+        <Box className="mb-6">
+          <Button
+            startIcon={<ArrowBackIcon />}
+            component={Link}
+            href="/events"
+            className="!text-slate-400 hover:!text-brand-yellow !font-mono text-xs uppercase tracking-wider transition-colors"
+          >
+            Back to events
+          </Button>
+        </Box>
+
+        {/* Sekcja informacji o wyścigu */}
+        <RaceInfo info={raceInfo} />
+
+        {/* Tabela z wynikami */}
+        <ResultList results={results} />
+
+      </Container>
+    </Box>
   );
 }

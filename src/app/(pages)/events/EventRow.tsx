@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { Box, Typography, Paper, ButtonBase } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
@@ -6,7 +7,7 @@ import SpeedIcon from '@mui/icons-material/Speed';
 
 interface EventRowProps {
   event: {
-    id: string; // Nasz hash / unikalne ID wyścigu
+    id: string;
     server: string;
     track: string;
     date: string;
@@ -22,7 +23,6 @@ export default function EventRow({ event }: EventRowProps) {
     timeStyle: 'short'
   });
 
-  // ZMIANA: Kierujemy bezpośrednio na dynamiczny routing /event/[id]
   const targetUrl = `/event/${event.id}`;
 
   return (
@@ -31,101 +31,70 @@ export default function EventRow({ event }: EventRowProps) {
       role="listitem"
       elevation={0}
       sx={{
-        mb: 1,
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 1.5,
-        overflow: 'hidden',
+        p: 0,
+        mb: 1.5,
+        backgroundImage: 'none',
+        backgroundColor: 'transparent', // Pełne sterowanie oddane do Tailwind
       }}
+      className="bg-brand-navy-dark border border-brand-navy-light rounded-xl overflow-hidden shadow-sm transition-shadow hover:shadow-md"
     >
       <ButtonBase
         component="a"
         href={targetUrl}
-        aria-label={`Wyścig na torze ${readableTrack}, data: ${formattedDate}, serwer: ${cleanServer}. Zobacz szczegółowe wyniki.`}
+        aria-label={`Race at ${readableTrack}, date: ${formattedDate}, server: ${cleanServer}. View detailed results.`}
         sx={{
           width: '100%',
-          p: 1.5,
+          p: 2.5,
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: { xs: 'flex-start', sm: 'center' },
           justifyContent: 'space-between',
-          gap: { xs: 1, sm: 4 },
+          gap: { xs: 2, sm: 4 },
           textAlign: 'left',
-          transition: 'background-color 0.2s, box-shadow 0.2s',
+          transition: 'background-color 0.15s ease',
           '&:hover': {
-            backgroundColor: 'action.hover',
+            backgroundColor: 'var(--color-brand-navy-light) !important',
           },
           '&:focus-visible': {
-            outline: '2px solid',
-            outlineColor: 'primary.main',
+            outline: '2px solid var(--color-brand-yellow)',
             outlineOffset: '-2px',
           },
         }}
+        className="group"
       >
         {/* Lewa strona: Tor oraz Czas wyścigu */}
         <Box 
-          sx={{ 
-            display: 'flex', 
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'flex-start', md: 'center' }, 
-            gap: { xs: 0.5, md: 3 },
-            flexGrow: 1,
-            minWidth: 0 
-          }}
+          className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-6 flex-grow min-w-0"
         >
           <Typography 
             variant="body1" 
             component="h2" 
-            sx={{ 
-              fontWeight: 700, 
-              textTransform: 'capitalize',
-              color: 'text.primary',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}
+            className="!font-black tracking-wide uppercase !text-brand-muted group-hover:!text-brand-yellow transition-colors flex items-center gap-2 text-base sm:text-lg whiteSpace-nowrap overflow-hidden text-ellipsis"
           >
-            <SpeedIcon color="action" fontSize="small" aria-hidden="true" />
+            <SpeedIcon className="!text-brand-yellow/80" fontSize="small" aria-hidden="true" />
             {readableTrack}
           </Typography>
 
           <Typography 
             variant="body2" 
-            color="text.secondary" 
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap' }}
+            className="!text-brand-muted/70 font-mono text-sm flex items-center gap-1.5 whiteSpace-nowrap"
           >
-            <EventIcon fontSize="small" aria-hidden="true" />
-            <Box component="span" sx={{ display: 'none' }}>Data wyścigu: </Box>
+            <EventIcon sx={{ fontSize: '1.1rem' }} aria-hidden="true" />
+            <Box component="span" className="hidden">Race date: </Box>
             {formattedDate}
           </Typography>
         </Box>
 
-        {/* Prawa strona: Serwer */}
+        {/* Prawa strona: Serwer (zmień styl z czystego linku na esportowy tag) */}
         <Box 
-          sx={{ 
-            alignSelf: { xs: 'flex-start', sm: 'center' },
-            ml: { sm: 'auto' },
-            flexShrink: 0
-          }}
+          className="self-start sm:self-center sm:ml-auto flex-shrink-0"
         >
           <Typography 
             variant="body2" 
-            color="primary.main"
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.5,
-              fontWeight: 500,
-              px: 1,
-              py: 0.5,
-              borderRadius: 1
-            }}
+            className="!text-brand-muted/80 bg-brand-navy/60 border border-brand-navy-light/80 font-mono text-xs font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5"
           >
-            <StorageIcon fontSize="small" aria-hidden="true" />
-            <Box component="span" sx={{ display: 'none' }}>Serwer: </Box>
+            <StorageIcon sx={{ fontSize: '1rem' }} aria-hidden="true" />
+            <Box component="span" className="hidden">Server: </Box>
             {cleanServer}
           </Typography>
         </Box>

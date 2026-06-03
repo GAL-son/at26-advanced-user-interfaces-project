@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Alert, Skeleton } from "@mui/material";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Box, Typography, Alert } from "@mui/material";
 import EventRow from "./EventRow";
 import EventRowSkeleton from "./EventRowSkeleton";
 
@@ -28,10 +28,10 @@ export default function InfiniteEventList({
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Referencja do elementu na dole strony, który będziemy obserwować
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const loadMoreEvents = async () => {
+  // Zamknięcie funkcji w useCallback zapobiega re-kreacji przy każdym renderze
+  const loadMoreEvents = useCallback(async () => {
     if (loadingMore || !nextCursor) return;
 
     try {
@@ -40,7 +40,7 @@ export default function InfiniteEventList({
 
       const res = await fetch(`/api/events?limit=10&cursor=${nextCursor}`);
       if (!res.ok)
-        throw new Error("Nie udało się załadować kolejnych wyścigów.");
+        throw new Error("Failed to load more race events.");
 
       const json = await res.json();
 
@@ -48,28 +48,27 @@ export default function InfiniteEventList({
         setEvents((prev) => [...prev, ...json.data]);
         setNextCursor(json.nextCursor);
       } else {
-        throw new Error(json.error || "Błąd struktury danych API.");
+        throw new Error(json.error || "API data structure error.");
       }
     } catch (err: any) {
-      setError(err.message || "Błąd połączenia sieciowego.");
+      setError(err.message || "Network connection error.");
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [nextCursor, loadingMore]);
 
-  // Konfiguracja Intersection Observer do wykrywania scrollowania do dołu
+  // Konfiguracja Intersection Observer
   useEffect(() => {
     const currentLoader = loaderRef.current;
     if (!currentLoader || !nextCursor) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Jeśli element dolny jest widoczny w 10% na ekranie, ładuj dane
         if (entries[0].isIntersecting) {
           loadMoreEvents();
         }
       },
-      { rootMargin: "100px" }, // Zapobiegawcze ładowanie 100px przed końcem ekranu
+      { rootMargin: "100px" },
     );
 
     observer.observe(currentLoader);
@@ -77,25 +76,26 @@ export default function InfiniteEventList({
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [nextCursor, loadingMore]); // Reagujemy na zmianę kursora
+  }, [nextCursor, loadMoreEvents]);
 
+  // Stan pusty (Brak wyścigów)
   if (events.length === 0) {
     return (
       <Typography
         variant="body1"
-        color="text.secondary"
-        sx={{ textAlign: "center", py: 4 }}
+        className="!text-brand-muted text-center py-8 font-medium"
       >
-        Brak wyścigów w bazie danych. Uruchom synchronizację.
+        No races found in the database. Please run synchronization.
       </Typography>
     );
   }
+
   return (
     <Box>
-      {/* Semantyczna lista zgodna z WCAG */}
+      {/* Semantyczna lista wyścigów */}
       <Box
         component="ul"
-        aria-label="Lista wyścigów samochodowych"
+        aria-label="Simracing race events list"
         sx={{ listStyle: "none", p: 0, m: 0 }}
       >
         {events.map((event) => (
@@ -105,30 +105,35 @@ export default function InfiniteEventList({
 
       {/* Obsługa błędu doczytywania */}
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }} role="alert">
+        <Alert 
+          severity="error" 
+          role="alert"
+          className="mt-4 !bg-elo-loss/10 !text-elo-loss border border-elo-loss/20 font-medium rounded-xl"
+          sx={{ '& .MuiAlert-icon': { color: 'var(--color-elo-loss)' } }}
+        >
           {error}
         </Alert>
       )}
 
+      {/* Kontener loadera / końca listy */}
       <Box
         ref={loaderRef}
-        sx={{ mt: 1 }}
+        className="mt-4"
         aria-live="polite"
-        aria-busy={loadingMore} // WCAG: informuje czytniki, że ta sekcja się aktualizuje
+        aria-busy={loadingMore}
       >
         {loadingMore && (
-          <Box component="div" aria-label="Ładowanie kolejnych wyścigów">
-            <EventRowSkeleton count={3} />
+          <Box component="div" aria-label="Loading more race events">
+            <EventRowSkeleton count={2} />
           </Box>
         )}
 
         {!nextCursor && !loadingMore && (
           <Typography
             variant="body2"
-            color="text.secondary"
-            sx={{ textAlign: "center", py: 3 }}
+            className="!text-brand-muted/50 text-center py-6 font-mono text-xs uppercase tracking-widest font-bold"
           >
-            To już wszystkie zsynchronizowane wyścigi.
+            You have reached the end of the grid.
           </Typography>
         )}
       </Box>

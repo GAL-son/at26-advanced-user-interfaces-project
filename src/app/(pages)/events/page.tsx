@@ -34,9 +34,9 @@ export default function EventsPage() {
         setLoading(true);
       }
       setError(null);
-      // Pobieramy 25 elementów na start
+      
       const res = await fetch("/api/events?limit=25");
-      if (!res.ok) throw new Error("Nie udało się pobrać danych z bazy.");
+      if (!res.ok) throw new Error("Failed to fetch events from the database.");
 
       const json = await res.json();
 
@@ -46,10 +46,10 @@ export default function EventsPage() {
           nextCursor: json.nextCursor,
         });
       } else {
-        throw new Error(json.error || "Wystąpił nieoczekiwany błąd danych.");
+        throw new Error(json.error || "An unexpected data error occurred.");
       }
     } catch (err: any) {
-      setError(err.message || "Błąd połączenia z API.");
+      setError(err.message || "API connection error.");
     } finally {
       setLoading(false);
     }
@@ -60,89 +60,75 @@ export default function EventsPage() {
   }, []);
 
   return (
-    <Container component="main" maxWidth="md" sx={{ py: 5 }}>
-      {/* Sekcja Nagłówka */}
-      <Box
-        sx={{
-          mb: 4,
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", sm: "center" },
-          gap: 2,
-        }}
-      >
-        <Box>
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            sx={{ fontWeight: 800, letterSpacing: "-0.02em" }}
+    // Główny wrapper wymuszający ciemne/jasne tło na poziomie całej podstrony
+    <Box className="min-h-screen bg-brand-navy py-10 px-4 sm:px-6 lg:px-8 text-slate-100">
+      <Container component="main" maxWidth="md" className="p-0!">
+        
+        {/* SEKCJA NAGŁÓWKA */}
+        <Box
+          className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+        >
+          <Box className="space-y-1">
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              className="!text-brand-muted !font-black tracking-tight uppercase text-2xl sm:text-3xl"
+            >
+              ACSM Event Manager
+            </Typography>
+            <Typography variant="body2" className="!text-brand-muted/70 font-medium">
+              Browse synchronized races, detailed session outcomes, and dynamic ELO rating changes.
+            </Typography>
+          </Box>
+
+          {/* PRZYCISK ODŚWIEŻANIA W STYLU HUD */}
+          <Button
+            variant="outlined"
+            size="medium"
+            onClick={() => loadInitialData(true)}
+            disabled={loading}
+            startIcon={<RefreshIcon />}
+            aria-label="Refresh race events list"
+            sx={{
+              textTransform: "none",
+              transition: "all 0.15s ease",
+            }}
+            className="!text-brand-muted !border-brand-navy-light hover:!border-brand-yellow hover:!text-brand-yellow !font-mono text-xs uppercase tracking-wider !font-bold !px-4 !py-2 rounded-xl bg-brand-navy-dark/40"
           >
-            Zarządzanie Wynikami ACSM
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Przeglądaj zsynchronizowane wyścigi, szczegółowe rezultaty sesji oraz zmiany ELO.
-          </Typography>
+            Refresh
+          </Button>
         </Box>
 
-        <Button
-          variant="outlined"
-          color="inherit" // Bardziej minimalistyczny, surowy wygląd pasujący do reszty ramek
-          size="medium"
-          onClick={() => loadInitialData(true)} // Bezpieczne wywołanie z flagą true
-          disabled={loading}
-          startIcon={<RefreshIcon />}
-          aria-label="Odśwież listę wyścigów"
-          sx={{
-            borderColor: "divider",
-            textTransform: "none",
-            fontWeight: 600,
-            borderRadius: 1.5,
-            px: 2,
-            py: 0.75,
-            "&:hover": {
-              borderColor: "text.primary",
-              backgroundColor: "action.hover",
-            },
-          }}
-        >
-          Odśwież
-        </Button>
-      </Box>
+        <Divider className="!border-brand-navy-light/60 mb-8" />
 
-      <Divider sx={{ mb: 4 }} />
+        {/* STAN ŁADOWANIA POCZĄTKOWEGO */}
+        {loading && (
+          <Box aria-label="Fetching initial race events list">
+            <EventRowSkeleton count={8} /> 
+            {/* Zmniejszono z 25 na 8 dla lepszego UX wizualnego, unikania przeładowania DOM szkieletami */}
+          </Box>
+        )}
 
-      {/* Stan ładowania początkowego – Renderujemy dokładnie 25 skeletonów */}
-      {loading && (
-        <Box aria-label="Pobieranie początkowej listy wyścigów">
-          <EventRowSkeleton count={25} />
-        </Box>
-      )}
+        {/* STAN BŁĘDU */}
+        {error && (
+          <Alert 
+            severity="error" 
+            role="alert"
+            className="mb-6 !bg-elo-loss/10 !text-elo-loss border border-elo-loss/20 font-medium rounded-xl"
+            sx={{ '& .MuiAlert-icon': { color: 'var(--color-elo-loss)' } }}
+          >
+            {error}
+          </Alert>
+        )}
 
-      {/* Stan błędu */}
-      {error && (
-        <Alert 
-          severity="error" 
-          role="alert"
-          sx={{ 
-            mb: 4, 
-            borderRadius: 1.5,
-            border: "1px solid",
-            borderColor: "error.light",
-            bgcolor: "error.lighter" 
-          }}
-        >
-          {error}
-        </Alert>
-      )}
-
-      {/* Wyświetlenie asynchronicznej listy po załadowaniu danych */}
-      {!loading && !error && initialData && (
-        <InfiniteEventList
-          initialEvents={initialData.data}
-          initialNextCursor={initialData.nextCursor}
-        />
-      )}
-    </Container>
+        {/* WYŚWIETLENIE LISTY PO ZAŁADOWANIU */}
+        {!loading && !error && initialData && (
+          <InfiniteEventList
+            initialEvents={initialData.data}
+            initialNextCursor={initialData.nextCursor}
+          />
+        )}
+      </Container>
+    </Box>
   );
 }

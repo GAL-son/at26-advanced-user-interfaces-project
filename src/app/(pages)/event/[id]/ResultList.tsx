@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, 
-  TableRow, Paper, TableSortLabel, Box 
+  TableRow, TableSortLabel, Box 
 } from '@mui/material';
 import { RaceResultExtended } from '../page';
 import ResultListItem from './ResultListItem';
@@ -18,14 +18,12 @@ export default function ResultList({ results }: ResultListProps) {
   const [orderBy, setOrderBy] = useState<SortField>('pos');
   const [order, setOrder] = useState<SortOrder>('asc');
 
-  // Funkcja obsługująca przełączanie sortowania po kliknięciu nagłówka
   const handleSort = (field: SortField) => {
     const isAsc = orderBy === field && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(field);
   };
 
-  // Logika sortowania za pomocą useMemo (wydajność)
   const sortedResults = useMemo(() => {
     return [...results].sort((a, b) => {
       let comparison = 0;
@@ -40,50 +38,82 @@ export default function ResultList({ results }: ResultListProps) {
     });
   }, [results, orderBy, order]);
 
+  // Klasy pomocnicze dla nagłówków, aby wymusić styl na MUI
+  const headerCellClass = "!text-slate-400 !font-bold text-xs uppercase tracking-wider py-3.5 border-b border-brand-navy-light/60";
+
   return (
     <TableContainer 
-      component={Paper} 
-      sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }} 
-      elevation={0}
+      className="bg-brand-navy-dark border border-brand-navy-light/40 rounded-xl overflow-hidden shadow-2xl shadow-black/40"
     >
-      <Table aria-label="Tabela wyników wyścigu ze zmianami punktów ELO">
-        <TableHead sx={{ bgcolor: 'action.hover' }}>
+      <Table aria-label="Race results table with ELO changes">
+        <TableHead className="bg-brand-navy">
           <TableRow>
-            {/* Sortowalny nagłówek pozycji */}
-            <TableCell sx={{ fontWeight: 700, width: '90px' }}>
+            
+            {/* POSITION (Sortable) */}
+            <TableCell className={`${headerCellClass} w-20 text-center`}>
               <TableSortLabel
                 active={orderBy === 'pos'}
                 direction={orderBy === 'pos' ? order : 'asc'}
                 onClick={() => handleSort('pos')}
-                aria-label="Sortuj po pozycji"
+                aria-label="Sort by position"
+                sx={{
+                  color: 'inherit !important',
+                  '& .MuiTableSortLabel-icon': {
+                    color: '#fff200 !important', // Kolor strzałki sortowania (nasz żółty)
+                  },
+                }}
               >
-                Poz.
+                Pos
               </TableSortLabel>
             </TableCell>
 
-            {/* Standardowy nagłówek */}
-            <TableCell sx={{ fontWeight: 700 }}>Kierowca</TableCell>
+            {/* DRIVER */}
+            <TableCell className={headerCellClass}>
+              Driver
+            </TableCell>
 
-            {/* Sortowalny nagłówek Zmiany ELO */}
-            <TableCell sx={{ fontWeight: 700 }}>
+            {/* ELO CHANGE (Sortable) */}
+            <TableCell className={headerCellClass}>
               <TableSortLabel
                 active={orderBy === 'eloChange'}
                 direction={orderBy === 'eloChange' ? order : 'asc'}
                 onClick={() => handleSort('eloChange')}
-                aria-label="Sortuj po zmianie punktów ELO"
+                aria-label="Sort by ELO change"
+                sx={{
+                  color: 'inherit !important',
+                  '& .MuiTableSortLabel-icon': {
+                    color: '#fff200 !important',
+                  },
+                }}
               >
-                Zmiana ELO
+                Rating
               </TableSortLabel>
             </TableCell>
 
-            <TableCell sx={{ fontWeight: 700 }}>Samochód</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Okr.</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Czas łączny</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Strata</TableCell>
+            {/* CAR */}
+            <TableCell className={headerCellClass}>
+              Car
+            </TableCell>
+
+            {/* LAPS */}
+            <TableCell className={`${headerCellClass} text-center`}>
+              Laps
+            </TableCell>
+
+            {/* TOTAL TIME */}
+            <TableCell className={headerCellClass}>
+              Total Time
+            </TableCell>
+
+            {/* GAP */}
+            <TableCell className={headerCellClass}>
+              Gap
+            </TableCell>
+
           </TableRow>
         </TableHead>
         
-        <TableBody>
+        <TableBody className="divide-y divide-brand-navy-light/20">
           {sortedResults.map((row) => (
             <ResultListItem key={row.name} row={row} />
           ))}

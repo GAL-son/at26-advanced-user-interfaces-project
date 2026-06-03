@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Paper, Typography, Box, Chip } from '@mui/material';
+import { Paper, Typography, Box } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FlagIcon from '@mui/icons-material/Flag';
 import DnsIcon from '@mui/icons-material/Dns';
@@ -27,88 +27,76 @@ export default function RaceInfo({ info }: RaceInfoProps) {
   return (
     <Paper
       elevation={0}
-      component="section" // Semantyczny tag HTML5 dla dostępności (WCAG)
+      component="section"
       aria-labelledby="race-info-title"
-      sx={{
-        p: 3,
-        mb: 3,
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 2,
+      sx={{ 
+        p: 0, 
+        mb: 4, 
+        backgroundImage: 'none',
+        backgroundColor: 'transparent' 
       }}
+      // Zmieniono: border-brand-navy-light dopasuje się do jasnej/ciemnej ramki
+      className="bg-brand-navy-dark border-l-4 border-brand-yellow rounded-r-xl border-y border-r border-brand-navy-light overflow-hidden shadow-xl"
     >
-      <Typography
-        id="race-info-title"
-        variant="h4"
-        component="h1"
-        gutterBottom
-        sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}
-      >
-        {info.eventName || "Wyścig bez nazwy"}
-      </Typography>
+      <Box className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        
+        {/* LEWA STRONA: Nazwa wydarzenia i Tor */}
+        <Box className="space-y-2">
+          <Typography
+            id="race-info-title"
+            variant="h4"
+            component="h1"
+            // Zmieniono: !text-brand-muted (zamiast !text-slate-100) - da ciemny navy/szary w jasnym i jasny w ciemnym
+            className="!text-brand-muted !font-black tracking-tight uppercase text-2xl sm:text-3xl"
+          >
+            {info.eventName || "Unnamed Event"}
+          </Typography>
+          
+          <Box className="flex items-center gap-2 text-brand-yellow font-mono text-sm uppercase tracking-wider font-semibold">
+            <FlagIcon sx={{ fontSize: '1.2rem' }} />
+            <span>Track: {readableTrack}</span>
+          </Box>
+        </Box>
 
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          gap: 1.5, 
-          flexWrap: 'wrap', 
-          alignItems: 'center' 
-        }}
-      >
-        {/* Główny punkt programu: Tor */}
-        <Chip 
-          icon={<FlagIcon aria-hidden="true" />}
-          label={`Tor: ${readableTrack}`} 
-          variant="outlined" 
-          color="primary"
-          sx={{ fontWeight: 600, px: 0.5 }}
-        />
+        {/* PRAWA STRONA: Szczegóły (Data i Serwer) */}
+        <Box className="flex flex-wrap md:flex-nowrap gap-4 items-stretch">
+          
+          {/* Kafelek: Data */}
+          <Box className="bg-brand-navy/40 border border-brand-navy-light rounded-lg p-3 flex items-center gap-3 min-w-[200px]">
+            {/* Zmieniono: text-brand-muted/80 (zamiast text-slate-400) */}
+            <Box className="p-2 bg-brand-navy-light/50 rounded text-brand-muted/80">
+              <CalendarTodayIcon fontSize="small" />
+            </Box>
+            <Box className="flex flex-col">
+              <span className="text-[10px] !text-brand-muted/60 uppercase tracking-widest font-bold">Race Date</span>
+              {/* Zmieniono: !text-brand-muted */}
+              <span className="!text-brand-muted text-sm font-medium font-mono">{formattedDate}</span>
+            </Box>
+          </Box>
 
-        {/* Ważny punkt programu: Data */}
-        <Chip 
-          icon={<CalendarTodayIcon aria-hidden="true" />}
-          label={`Data: ${formattedDate}`} 
-          variant="outlined" 
-          sx={{ px: 0.5 }}
-        />
+          {/* Kafelek: Serwer */}
+          <a 
+            href={serverUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Join server: ${info.server}`}
+            className="bg-brand-navy/40 border border-brand-navy-light hover:border-brand-yellow/40 rounded-lg p-3 flex items-center gap-3 min-w-[200px] transition-all group"
+          >
+            {/* Zmieniono: text-brand-muted/80 */}
+            <Box className="p-2 bg-brand-navy-light/50 rounded text-brand-muted/80 group-hover:!text-brand-yellow transition-colors">
+              <DnsIcon fontSize="small" />
+            </Box>
+            <Box className="flex flex-col">
+              <span className="text-[10px] !text-brand-muted/60 uppercase tracking-widest font-bold group-hover:!text-brand-yellow transition-colors">Server Status</span>
+              {/* Zmieniono: !text-brand-muted/90 */}
+              <span className="!text-brand-muted/90 text-xs font-mono truncate max-w-[150px] group-hover:underline">
+                {info.server}
+              </span>
+            </Box>
+          </a>
 
-        {/* Serwer - Zgodnie z wytycznymi: niższy priorytet wizualny (mniejszy i dyskretny) */}
-        <Chip 
-          component="a"
-          href={serverUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          clickable
-          icon={<DnsIcon fontSize="small" aria-hidden="true" />}
-          label={`Serwer: ${info.server}`} 
-          size="small"
-          variant="text" // Brak obramowania (border: none)
-          aria-label={`Przejdź do panelu serwera: ${info.server}`}
-          sx={{ 
-            fontSize: '0.75rem', 
-            color: 'primary.main', // Zmiana koloru na linkowy, sygnalizująca klikalność
-            backgroundColor: 'transparent', // Brak tła
-            height: '24px',
-            textDecoration: 'none',
-            '&:hover': {
-              textDecoration: 'underline',
-              backgroundColor: 'transparent', // Blokada domyślnego tła MUI na hoverze
-            },
-            '& .MuiChip-icon': {
-              fontSize: '0.9rem',
-              color: 'primary.main'
-            }
-          }}
-        />
+        </Box>
       </Box>
-
-      {/* Miejsce na przyszłe API z mapami i krajami torów */}
-      {/* <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed', borderColor: 'divider' }}>
-         <Typography variant="body2" color="text.secondary">
-           [Tutaj w przyszłości wyląduje komponent mapy i flaga kraju dla toru: {readableTrack}]
-         </Typography>
-      </Box> 
-      */}
     </Paper>
   );
 }
