@@ -7,6 +7,7 @@ import Link from "next/link";
 import RaceInfo from "./RaceInfo";
 import ResultList from "./ResultList";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
+import { getuid } from "process";
 
 export interface RaceResultExtended {
   pos: number;
@@ -69,6 +70,7 @@ export default function EventResultsPage() {
             }
 
             return {
+              guid: res.driver.guid,
               pos: res.position || index + 1,
               name: res.driver?.mainName || "Unknown Driver",
               car: res.car ? res.car.replace(/_/g, " ") : "Unknown Car",

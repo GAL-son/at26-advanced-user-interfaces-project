@@ -4,13 +4,20 @@ import { TableRow, TableCell, Box, Tooltip } from '@mui/material';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { RaceResultExtended } from '../page';
 import ComboBadge from '@/app/_components/ComboBadge';
-import PositionedListItem from '@/app/_components/PositionedListItem';
+import PositionedTableRow from '@/app/_components/PositionedTableRow';
+import { useRouter } from 'next/navigation';
 
 interface ResultListItemProps {
   row: RaceResultExtended;
 }
 
 export default function ResultListItem({ row }: ResultListItemProps) {
+  const router = useRouter();
+
+  const handleTableRowClick = () => {
+    router.push(`/drivers/${row.guid}`);
+  };
+
   const formatTime = (ms: number) => {
     if (ms === 0 || !ms) return "-";
     const mins = Math.floor(ms / 60000);
@@ -28,7 +35,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
   };
 
   return (
-    <PositionedListItem position={row.pos}>
+    <PositionedTableRow position={row.pos} onClick={handleTableRowClick}>
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
           {/* Dodano wykrzyknik, aby zbić domyślny kolor z MUI */}
@@ -87,6 +94,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
           `${row.gap}`
         )}
       </TableCell>
-    </PositionedListItem>
+    </PositionedTableRow>
   );
 }

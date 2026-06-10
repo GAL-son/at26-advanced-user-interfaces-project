@@ -1,14 +1,16 @@
-// src/app/_components/PositionedListItem.tsx
+// src/app/_components/PositionedTableRow.tsx
 
 "use client";
 import React from 'react';
 import { Box, TableCell, TableRow } from '@mui/material';
-interface PositionedListItemProps {
+
+interface PositionedTableRowProps {
     position: number;
     children: React.ReactNode;
+    onClick?: () => void; // Dodajemy propsa onClick
 }
 
-export default function PositionedListItem({ position, children }: PositionedListItemProps) {
+export default function PositionedTableRow({ position, children, onClick }: PositionedTableRowProps) {
     const getPositionStyles = (pos: number) => {
         if (pos === 1) return "!text-brand-yellow font-black bg-brand-yellow/10 dark:bg-brand-yellow/5";
         if (pos === 2) return "!text-race-silver font-bold bg-brand-navy-light/50";
@@ -27,6 +29,7 @@ export default function PositionedListItem({ position, children }: PositionedLis
                 transition: 'background-color 0.15s ease',
             }}
             className="group bg-brand-navy-dark border-b border-brand-navy-light"
+            onClick={onClick} // Dodajemy obsługę zdarzenia onClick
         >
             <TableCell className={`text-center w-16 ${getPositionStyles(position)}`}>
                 <span className="text-lg tabular-nums">{position}</span>
