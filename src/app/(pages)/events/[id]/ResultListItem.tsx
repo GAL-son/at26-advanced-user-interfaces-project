@@ -4,6 +4,7 @@ import { TableRow, TableCell, Box, Tooltip } from '@mui/material';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { RaceResultExtended } from '../page';
 import ComboBadge from '@/app/_components/ComboBadge';
+import PositionedListItem from '@/app/_components/PositionedListItem';
 
 interface ResultListItemProps {
   row: RaceResultExtended;
@@ -27,21 +28,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
   };
 
   return (
-    <TableRow 
-      sx={{ 
-        '&:hover': { 
-          backgroundColor: 'var(--color-brand-navy-light) !important' 
-        },
-        transition: 'background-color 0.15s ease',
-      }}
-      className="group bg-brand-navy-dark border-b border-brand-navy-light"
-    >
-      {/* POZYCJA */}
-      <TableCell className={`text-center w-16 ${getPositionStyles(row.pos)}`}>
-        <span className="text-lg tabular-nums">{row.pos}</span>
-      </TableCell>
-
-      {/* KIEROWCA + COMBO */}
+    <PositionedListItem position={row.pos}>
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
           {/* Dodano wykrzyknik, aby zbić domyślny kolor z MUI */}
@@ -100,6 +87,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
           `${row.gap}`
         )}
       </TableCell>
-    </TableRow>
+    </PositionedListItem>
   );
 }

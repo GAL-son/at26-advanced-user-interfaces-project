@@ -14,23 +14,6 @@ export async function GET(request: Request) {
 
         const offset = page * limit;
 
-        // 1. Jawne określenie typu dla orderBy przy użyciu typów Prismy
-        let orderBy: Prisma.DriverOrderByWithRelationInput;
-
-        if (sortBy === 'name') {
-            orderBy = { mainName: 'asc' };
-        } else if (sortBy === 'races') {
-            // Sortujemy po liczbie powiązanych rekordów z relacji raceResult
-            orderBy = { raceResult: { _count: 'desc' } };
-        } else if (sortBy === 'lastRaced') {
-            // Prisma nie pozwala na bezpośrednie sortowanie po polu z relacji "wiele do wielu" / "jeden do wielu" w ten sposób.
-            // Najbezpieczniej domyślnie posortować po ELO lub ID, a filtrowanie/sortowanie dany dociągnąć w pamięci,
-            // albo upewnić się, czy lastRaced to na pewno relacja 1-do-1.
-            orderBy = { currentElo: 'desc' };
-        } else {
-            orderBy = { currentElo: 'desc' };
-        }
-
         // Dynamiczne budowanie warunku wyszukiwania
         const where: Prisma.DriverWhereInput = search
             ? {
@@ -40,7 +23,18 @@ export async function GET(request: Request) {
                 ]
             }
             : {};
-        // Bezpieczne zapytanie za pomocą Prisma ORM
+
+        // 1. Definiowanie sortowania głównego zapytania
+        let orderBy: Prisma.DriverOrderByWithRelationInput;
+        if (sortBy === 'name') {
+            orderBy = { mainName: 'asc' };
+        } else if (sortBy === 'races') {
+            orderBy = { raceResult: { _count: 'desc' } };
+        } else {
+            orderBy = { currentElo: 'desc' };
+        }
+
+        // 2. Pobieramy kierowców dla aktualnej strony z bazy danych
         const drivers = await prisma.driver.findMany({
             where,
             orderBy,
@@ -71,25 +65,60 @@ export async function GET(request: Request) {
                         createdAt: true
                     }
                 },
-                // Zamiast sztucznego racesCount, używamy wbudowanego mechanizmu Prismy:
+                // Dodajemy agregację pobierającą datę ostatniego wyścigu
                 _count: {
-                    select: { raceResult: true } // Zwróci { raceResult: liczba_wyścigów }
+                    select: { raceResult: true }
                 }
             }
         });
 
-        // Mapowanie na obiekty typu Driver
-        const formattedDrivers = drivers.map(driver => {
-            // Wyciągamy liczbę wyścigów z obiektu agregacji _count
+        // Wskazówka wydajnościowa: Pętla Promise.all wykonuje zapytanie N+1 (osobne zapytanie do bazy dla każdego kierowcy na stronie). 
+        // Przy limit = 20 to aż 21 zapytań do bazy danych przy jednym strzale do endpointu.
+        const driversWithGlobalPosition = await Promise.all(
+            drivers.map(async (driver) => {
+                const higherEloCount = await prisma.driver.count({
+                    where: {
+                        currentElo: {
+                            gt: driver.currentElo
+                        }
+                    }
+                });
+                
+                const globalPosition = higherEloCount + 1;
+
+                // Szukamy najnowszej daty wyścigu z pobranej już relacji raceResult
+                const lastRaced = driver.raceResult.length > 0 
+                    ? driver.raceResult.reduce((latest, current) => 
+                        new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
+                      ).createdAt 
+                    : null;
+
+                return {
+                    ...driver,
+                    globalPosition,
+                    lastRaced
+                };
+            })
+        );
+
+        // Mapowanie na obiekty typu Driver i dołączenie pozycji oraz lastRaced
+        const formattedDrivers = driversWithGlobalPosition.map(driver => {
             const racesCount = driver._count?.raceResult || 0;
 
-            return new Driver(
+            const driverInstance = new Driver(
                 driver.guid,
                 driver.mainName,
                 driver.altNames,
                 driver.currentElo,
                 driver.combo,
             );
+
+            return {
+                ...driverInstance,
+                racesCount,
+                position: driver.globalPosition,
+                lastRaced: driver.lastRaced // <--- Nowe pole z datą ostatniego wyścigu
+            };
         });
 
         const hasMore = drivers.length === limit;

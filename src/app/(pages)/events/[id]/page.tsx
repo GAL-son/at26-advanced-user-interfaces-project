@@ -6,6 +6,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
 import RaceInfo from "./RaceInfo";
 import ResultList from "./ResultList";
+import LoadingSpinner from "@/app/_components/LoadingSpinner";
 
 export interface RaceResultExtended {
   pos: number;
@@ -32,38 +33,55 @@ export default function EventResultsPage() {
   useEffect(() => {
     if (!id) return;
 
-    fetch(`/api/event/${id}`)
+    fetch(`/api/events/${id}`)
       .then((res) => res.json())
       .then((data) => {
-        if (!data.success) {
+        // Sprawdzamy czy zapytanie się powiodło i czy mamy wyniki wyścigu
+        if (!data.success || !data.raceResults || data.raceResults.length === 0) {
           setLoading(false);
           return;
         }
 
-        setRaceInfo(data.info);
-        const leaderTime = data.results[0]?.totalTime || 0;
+        // Zapisujemy ogólne info o wyścigu (name, track, date, server itp.)
+        setRaceInfo({
+          name: data.name,
+          track: data.track,
+          date: data.date,
+          server: data.server,
+          processed: data.processed,
+        });
 
-        const mappedResults: RaceResultExtended[] = data.results.map(
+        const leaderResults = data.raceResults[0];
+        const leaderTime = leaderResults?.totalTime || 0;
+        const leaderLaps = leaderResults?.laps || 0;
+
+        const mappedResults: RaceResultExtended[] = data.raceResults.map(
           (res: any, index: number) => {
-            const gap =
-              index === 0
-                ? "-"
-                : `+${((res.totalTime - leaderTime) / 1000).toFixed(3)}s`;
+            // Logika obliczania straty (gap) z uwzględnieniem dublowania/DNF
+            let gapString = "-";
+            if (index > 0) {
+              if (res.laps < leaderLaps) {
+                const lapDiff = leaderLaps - res.laps;
+                gapString = `+${lapDiff} lap${lapDiff > 1 ? "s" : ""}`;
+              } else {
+                gapString = `+${((res.totalTime - leaderTime) / 1000).toFixed(3)}s`;
+              }
+            }
 
             return {
-              pos: index + 1,
-              name: res.driverName,
-              car: res.carModel.replace(/_/g, " "),
-              laps: res.numLaps,
+              pos: res.position || index + 1,
+              name: res.driver?.mainName || "Unknown Driver",
+              car: res.car ? res.car.replace(/_/g, " ") : "Unknown Car",
+              laps: res.laps,
               totalTime: res.totalTime,
               bestLap: res.bestLap,
-              gap: gap,
+              gap: gapString,
               eloBefore: res.eloBefore,
               eloAfter: res.eloAfter,
-              eloChange: res.eloChange,
+              eloChange: res.eloAfter - res.eloBefore, // Obliczamy różnicę ELO
               combo: res.combo,
             };
-          },
+          }
         );
 
         setResults(mappedResults);
@@ -78,12 +96,7 @@ export default function EventResultsPage() {
   // STAN ŁADOWANIA (Loader dopasowany do kolorystyki)
   if (loading) {
     return (
-      <Box className="flex justify-center items-center h-screen bg-brand-navy">
-        <CircularProgress 
-          aria-label="Loading race results" 
-          sx={{ color: '#fff200' }} // Nasz jaskrawy żółty akcent
-        />
-      </Box>
+     <LoadingSpinner></LoadingSpinner>
     );
   }
 

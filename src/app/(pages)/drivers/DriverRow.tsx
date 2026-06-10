@@ -2,7 +2,9 @@
 import React from 'react';
 import { TableRow, TableCell } from '@mui/material';
 import ComboBadge from '../../_components/ComboBadge';
+import PositionedListItem from '../../_components/PositionedListItem'; // Zaimportuj PositionedListItem
 
+// Ujednolicony interfejs - dokładnie taki, jaki leci z API i z mapowania
 export interface FormattedDriver {
   guid: string;
   mainName: string;
@@ -11,17 +13,20 @@ export interface FormattedDriver {
   combo: number;
   racesCount: number;
   lastRaced: string | null;
-  position: number; // Dodany atrybut pozycji
+  position: number;
 }
 
 interface DriverRowProps {
   driver: FormattedDriver;
-  index: number;
+  // Usunęliśmy nieużywany 'index', bo pozycja jest już w obiekcie driver
 }
 
 function formatLastRaced(dateString: string | null): string {
-  if (!dateString) return 'No races recorded';
+  if (!dateString || dateString === "N/A") return 'No races recorded';
   const date = new Date(dateString);
+  // Sprawdzenie poprawności daty
+  if (isNaN(date.getTime())) return 'No races recorded';
+
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -39,23 +44,10 @@ function formatLastRaced(dateString: string | null): string {
 
 export default function DriverRow({ driver }: DriverRowProps) {
   return (
-    <TableRow 
-      sx={{ 
-        '&:hover': { 
-          backgroundColor: 'var(--color-brand-navy-light) !important' 
-        },
-        transition: 'background-color 0.15s ease',
-      }}
-      className="group bg-brand-navy-dark border-b border-brand-navy-light h-[64px]" // ZMIANA: Sztywna wysokość dla całego wiersza
-    >
-      {/* POSITION */}
-      <TableCell align="center" className="!text-brand-muted/60 !font-bold font-mono">
-        {driver.position}
-      </TableCell>
+    <PositionedListItem position={driver.position}>
 
       {/* DRIVER INFO */}
       <TableCell className="py-0 h-full">
-        {/* Kontener zajmuje pełną wysokość i centruje zawartość w pionie */}
         <div className="flex flex-col justify-center h-[48px] max-w-md">
           <div className="flex items-center gap-2">
             <span className="font-semibold !text-brand-muted group-hover:!text-brand-yellow transition-colors text-base leading-tight">
@@ -63,9 +55,8 @@ export default function DriverRow({ driver }: DriverRowProps) {
             </span>
             <ComboBadge combo={driver.combo} />
           </div>
-          
-          {/* Warunkowy render: jeśli jest alias, dodaje go poniżej; jeśli nie ma, flexbox idealnie wycentruje samą nazwę */}
-          {driver.altNames && (
+
+          {driver.altNames && driver.altNames !== driver.mainName && (
             <div className="text-xs !text-brand-muted/60 mt-0.5 truncate leading-none">
               Aliases: {driver.altNames}
             </div>
@@ -85,8 +76,8 @@ export default function DriverRow({ driver }: DriverRowProps) {
 
       {/* ELO RATING */}
       <TableCell align="right" className="!text-elo-gain font-mono font-bold text-lg">
-        {driver.currentElo.toFixed(1)}
+        {typeof driver.currentElo === 'number' ? driver.currentElo.toFixed(0) : '0'}
       </TableCell>
-    </TableRow>
+    </PositionedListItem>
   );
 }
