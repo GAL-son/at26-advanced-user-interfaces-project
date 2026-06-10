@@ -5,7 +5,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -14,44 +13,49 @@ datasource db {
 
 model Event {
   id             String   @id
+  name           String
   track          String
   date           DateTime
-  resultsJsonUrl String   @unique
+  laps           Int?
+  time           Int?
+
   server         String
   processed      Boolean  @default(false)
   
-  // Relacje
-  eloHistory     EloHistory[]
+  raceResult     RaceResult[]
 }
 
 model Driver {
-  guid       String   @id // Steam GUID jest unikalny i stały
-  mainName   String   // Główna/aktualna nazwa
-  altNames   String?  // Nazwy oddzielone przecinkami
-  currentElo Float    @default(1200.0) // Startowe ELO
-  combo      Int      @default(0)      // 🟢 Seria wyścigów z rzędu podnosząca zyski punktowe
+  guid       String   @id
+  mainName   String
+  altNames   String?
+  currentElo Float    @default(1000.0)
+  combo      Int      @default(0)
   
-  eloHistory EloHistory[]
+  raceResult RaceResult[]
 }
 
-// 3. Tabela Historycznego ELO (Cross Table)
-model EloHistory {
-  id         Int      @id @default(autoincrement())
-  
-  // Relacja do Eventu
+model RaceResult {
+  id         String   @id @default(cuid())
   eventId    String
   event      Event    @relation(fields: [eventId], references: [id])
-  
-  // Relacja do Kierowcy
   driverGuid String
   driver     Driver   @relation(fields: [driverGuid], references: [guid])
   
-  eloBefore  Float    // ELO przed wyścigiem
-  eloAfter   Float    // ELO po wyścigu
-  eloChange  Float    // Różnica (np. +15, -10)
-  position   Int      // Zajęte miejsce w tym konkretnym wyścigu
-  combo      Int      @default(0)
-  
+  // Dane z wyścigu
+  started    Int
+  position   Int
+  car        String
+  laps       Int
+  totalTime  Float
+  bestLap    Float
+  gap        String?
+
+  eloBefore  Float?    
+  eloAfter   Float?    
+  combo      Int?     @default(0)
+  eloAlg     String?
+
   createdAt  DateTime @default(now())
 
   @@index([driverGuid])

@@ -1,4 +1,4 @@
-import { prisma } from '../lib/db.js';
+import { prisma } from '../lib/db/db.js';
 import { processEventElo } from '../lib/services/eventEloService.js';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

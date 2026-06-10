@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db/db';
 import { processEventElo } from '@/lib/services/eventEloService';
 
 export async function GET(request: Request) {

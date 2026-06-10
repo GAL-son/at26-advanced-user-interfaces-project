@@ -1,69 +1,70 @@
+// src/app/api/events/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db'; // Upewnij się, że ten import istnieje dla wyszukiwania eventu
-import { getEventEloResults } from '@/lib/services/eventEloService';
+import { prisma } from '@/lib/db/db';
+import { Event, RaceResult, Driver } from '@/lib/db/types';
 
-// Zmieniamy typowanie params na Promise, zgodnie z wymogami nowego Next.js
 export async function GET(
-    request: Request, 
-    { params }: { params: Promise<{ id: string }> } 
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        // 🟢 Kluczowa poprawka: Rozpakowujemy Promise za pomocą await
-        const resolvedParams = await params;
-        const id = resolvedParams.id;
+        const { id } = await params;
 
         if (!id) {
             return NextResponse.json({ success: false, error: 'Missing ID parameter' }, { status: 400 });
         }
 
-        // 1. Szukamy wyścigu w bazie danych, żeby wyciągnąć resultsJsonUrl
+        // Pobieramy event z bazy razem z relacjami
         const dbEvent = await prisma.event.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                raceResult: {
+                    include: {
+                        driver: true,
+                    },
+                },
+            },
         });
 
         if (!dbEvent) {
-            return NextResponse.json({ success: false, error: 'Event not found in database' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Event not found' }, { status: 404 });
         }
 
-        // 2. Pobieramy plik wynikowy JSON z ACSM
-        const acsmRes = await fetch(dbEvent.resultsJsonUrl, { cache: 'no-store' });
-        if (!acsmRes.ok) throw new Error('Failed to fetch ACSM JSON');
-        const acsmData = await acsmRes.json();
+        // Mapujemy tablicę wyników na pełne instancje klasy RaceResult
+        const raceResultsInstances = dbEvent.raceResult.map((result) => {
+            const driverInstance = new Driver(
+                result.driver.guid,
+                result.driver.mainName,
+                result.driver.altNames,
+                result.driver.currentElo,
+                result.driver.combo
+            );
 
-        // 3. Wyciągamy z bazy przeliczone punkty ELO dla tego wyścigu
-        const eloRecords = await getEventEloResults(id);
-        const eloMap = new Map(eloRecords.map(r => [r.driverGuid, r]));
-
-        // 4. Konstruujemy obiekt informacyjny
-        const info = {
-            track: acsmData.TrackName || dbEvent.track,
-            date: acsmData.Date || dbEvent.date,
-            server: dbEvent.server
-        };
-
-        // 5. Mapujemy wyniki
-        const results = (acsmData.Result || []).map((row: any) => {
-            const guid = row.DriverGuid?.trim();
-            const eloData = eloMap.get(guid);
-
-            return {
-                driverGuid: guid,
-                driverName: row.DriverName,
-                carModel: row.CarModel,
-                numLaps: row.NumLaps,
-                totalTime: row.TotalTime,
-                bestLap: row.BestLap,
-                eloBefore: eloData ? eloData.eloBefore : 1000,
-                eloAfter: eloData ? eloData.eloAfter : 1000,
-                eloChange: eloData ? eloData.eloChange : 0,
-                combo: eloData ? eloData.combo : 0
-            };
+            return new RaceResult({
+                ...result,
+                // totalTime i bestLap w Prisma to Float (number w JS), pasuje idealnie
+                driver: driverInstance
+            });
         });
 
-        return NextResponse.json({
-            success: true,
-            info,
-            results
+        // Tworzymy pełną instancję klasy Event
+        const eventInstance = new Event(
+            dbEvent.id,
+            dbEvent.name,
+            dbEvent.track,
+            dbEvent.date,
+            dbEvent.server,
+            dbEvent.processed,
+            dbEvent.laps ?? undefined,
+            dbEvent.time ?? undefined,
+            raceResultsInstances
+        );
+
+        // Zwracamy czysty obiekt JSON (gettery Next.js zserializuje automatycznie, jeśli są potrzebne na froncie, 
+        // ale w JSONie polecą tylko surowe właściwości)
+        return NextResponse.json({ 
+            success: true, 
+            data: eventInstance 
         });
 
     } catch (error: any) {
