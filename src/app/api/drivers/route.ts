@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/db';
-import { Prisma } from '@prisma/client'; // <-- Konieczny import
+import { Prisma } from '@prisma/client';
+import { Driver } from '@/lib/db/types';
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        
+
         const page = parseInt(searchParams.get('page') || '0', 10);
         const limit = parseInt(searchParams.get('limit') || '20', 10);
         const search = searchParams.get('search') || '';
@@ -13,59 +14,85 @@ export async function GET(request: Request) {
 
         const offset = page * limit;
 
-        // 1. Definiowanie sortowania przy użyciu Prisma.sql
-        // Dzięki temu wstawiamy bezpieczne fragmenty SQL bezpośrednio do zapytania.
-        let rowNumberOrderBy;
+        // 1. Jawne określenie typu dla orderBy przy użyciu typów Prismy
+        let orderBy: Prisma.DriverOrderByWithRelationInput;
+
         if (sortBy === 'name') {
-            rowNumberOrderBy = Prisma.sql`d.mainName ASC`;
+            orderBy = { mainName: 'asc' };
         } else if (sortBy === 'races') {
-            rowNumberOrderBy = Prisma.sql`COUNT(eh.id) DESC`; 
+            // Sortujemy po liczbie powiązanych rekordów z relacji raceResult
+            orderBy = { raceResult: { _count: 'desc' } };
         } else if (sortBy === 'lastRaced') {
-            rowNumberOrderBy = Prisma.sql`MAX(eh.createdAt) DESC`;
+            // Prisma nie pozwala na bezpośrednie sortowanie po polu z relacji "wiele do wielu" / "jeden do wielu" w ten sposób.
+            // Najbezpieczniej domyślnie posortować po ELO lub ID, a filtrowanie/sortowanie dany dociągnąć w pamięci,
+            // albo upewnić się, czy lastRaced to na pewno relacja 1-do-1.
+            orderBy = { currentElo: 'desc' };
         } else {
-            rowNumberOrderBy = Prisma.sql`d.currentElo DESC`;
+            orderBy = { currentElo: 'desc' };
         }
 
-        // 2. Dynamiczne budowanie warunku wyszukiwania za pomocą Prisma.sql
-        // Prisma.sql zadba o to, żeby parametr został dodany DOPIERO wtedy, gdy istnieje.
-        const searchFilter = search 
-            ? Prisma.sql`LOWER(mainName) LIKE LOWER(${`%${search}%`}) OR LOWER(altNames) LIKE LOWER(${`%${search}%`})` 
-            : Prisma.sql`1 = 1`;
+        // Dynamiczne budowanie warunku wyszukiwania
+        const where: Prisma.DriverWhereInput = search
+            ? {
+                OR: [
+                    { mainName: { contains: search } },
+                    { altNames: { contains: search } }
+                ]
+            }
+            : {};
+        // Bezpieczne zapytanie za pomocą Prisma ORM
+        const drivers = await prisma.driver.findMany({
+            where,
+            orderBy,
+            skip: offset,
+            take: limit,
+            select: {
+                guid: true,
+                mainName: true,
+                altNames: true,
+                currentElo: true,
+                combo: true,
+                raceResult: {
+                    select: {
+                        id: true,
+                        eventId: true,
+                        driverGuid: true,
+                        started: true,
+                        position: true,
+                        car: true,
+                        laps: true,
+                        totalTime: true,
+                        bestLap: true,
+                        gap: true,
+                        eloBefore: true,
+                        eloAfter: true,
+                        combo: true,
+                        eloAlg: true,
+                        createdAt: true
+                    }
+                },
+                // Zamiast sztucznego racesCount, używamy wbudowanego mechanizmu Prismy:
+                _count: {
+                    select: { raceResult: true } // Zwróci { raceResult: liczba_wyścigów }
+                }
+            }
+        });
 
-        // 3. Bezpieczne zapytanie przez $queryRaw z backtickami (tagged template literal)
-        // Prisma wygeneruje '?' pod maską na dev, a '$1' na produkcji. Znika problem z limitami i offsetami.
-        const rawDrivers = await prisma.$queryRaw<any[]>`
-            WITH RankedDrivers AS (
-                SELECT 
-                    d.guid,
-                    d.mainName,
-                    d.altNames,
-                    d.combo,
-                    d.currentElo,
-                    COUNT(eh.id) as racesCount,
-                    MAX(eh.createdAt) as lastRaced,
-                    ROW_NUMBER() OVER (
-                        ORDER BY ${rowNumberOrderBy}, d.mainName ASC
-                    ) as position
-                FROM "Driver" d
-                INNER JOIN "EloHistory" eh ON eh."driverGuid" = d.guid
-                GROUP BY d.guid, d.mainName, d.altNames, d.combo, d.currentElo
-            )
-            SELECT * FROM RankedDrivers
-            WHERE ${searchFilter}
-            ORDER BY position ASC
-            LIMIT ${limit} OFFSET ${offset}
-        `;
+        // Mapowanie na obiekty typu Driver
+        const formattedDrivers = drivers.map(driver => {
+            // Wyciągamy liczbę wyścigów z obiektu agregacji _count
+            const racesCount = driver._count?.raceResult || 0;
 
-        // 4. Mapowanie typów (konwersja BigInt z bazy na Number)
-        const formattedDrivers = rawDrivers.map(driver => ({
-            ...driver,
-            racesCount: Number(driver.racesCount),
-            position: Number(driver.position)
-        }));
+            return new Driver(
+                driver.guid,
+                driver.mainName,
+                driver.altNames,
+                driver.currentElo,
+                driver.combo,
+            );
+        });
 
-        const hasMore = formattedDrivers.length === limit;
-
+        const hasMore = drivers.length === limit;
         return NextResponse.json({
             success: true,
             drivers: formattedDrivers,

@@ -1,9 +1,22 @@
 import { prisma } from '@/lib/db/db';
 import { type RaceResult } from '@/lib/db/types';
-import {currentAlgorithm} from './EloConfig'
+import { currentAlgorithm } from './EloConfig'
 
 export async function processEventElo(eventId: string, rawRaceResults: RaceResult[]) {
   if (!rawRaceResults || rawRaceResults.length < 2) {
+    if (rawRaceResults.length === 1) {
+      const singleResult = rawRaceResults[0];
+      await prisma.raceResult.update({
+        where: { id: singleResult.id },
+        data: {
+          eloBefore: singleResult.eloBefore ?? 1000,
+          eloAfter: singleResult.eloBefore ?? 1000, // ELO się nie zmienia
+          combo: singleResult.combo ?? 0,
+          eloAlg: currentAlgorithm.name
+        }
+      });
+    }
+
     await prisma.event.update({ where: { id: eventId }, data: { processed: true } });
     return { skipped: true, reason: 'Mniej niż 2 kierowców w przekazanych wynikach' };
   }
@@ -17,33 +30,25 @@ export async function processEventElo(eventId: string, rawRaceResults: RaceResul
   // 2. Transakcja bazodanowa
   await prisma.$transaction(async (tx) => {
     for (const result of updatedResults) {
-      
+
       // A. Aktualizacja profilu kierowcy (nowe ELO + inkrementacja combo)
       await tx.driver.update({
         where: { guid: result.driverGuid },
-        data: { 
+        data: {
           currentElo: result.eloAfter!,
-          combo: { increment: 1 } 
+          combo: { increment: 1 }
         }
       });
 
       // B. Zapis wyniku wyścigu do tabeli relacyjnej
-      await tx.raceResult.create({
+      await tx.raceResult.update({
+        where: { id: result.id }, // Używamy oryginalnego ID rekordu z bazy
         data: {
-          eventId: result.eventId,
-          driverGuid: result.driverGuid,
-          started: result.started,
-          position: result.position,
-          car: result.car,
-          laps: result.laps,
-          totalTime: result.totalTime,
-          bestLap: result.bestLap,
-          gap: result.gap,
           eloBefore: result.eloBefore,
           eloAfter: result.eloAfter,
-          combo: result.combo, // Zapisujemy stan combo użyty w TYM wyścigu
+          combo: result.combo,
           eloAlg: result.eloAlg,
-          createdAt: result.createdAt
+          // Nie musisz aktualizować reszty pól jak laps czy totalTime, bo one się nie zmieniły
         }
       });
     }
@@ -61,9 +66,9 @@ export async function processEventElo(eventId: string, rawRaceResults: RaceResul
     });
   });
 
-  return { 
-    success: true, 
-    driversCalculated: updatedResults.length, 
-    algorithmUsed: currentAlgorithm.name 
+  return {
+    success: true,
+    driversCalculated: updatedResults.length,
+    algorithmUsed: currentAlgorithm.name
   };
 }

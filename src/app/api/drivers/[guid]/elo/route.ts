@@ -3,38 +3,47 @@ import { prisma } from '@/lib/db/db';
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ guid: string }> }
+    { params }: { params: Promise<{ guid: string }> } // 1. params jako Promise (Next.js 15)
 ) {
     try {
-        const { guid } = await params;
+        const { guid } = await params; // 2. Odpakowanie guid za pomocą await
         const { searchParams } = new URL(request.url);
         
         const page = parseInt(searchParams.get('page') || '0', 10);
         const limit = parseInt(searchParams.get('limit') || '50', 10);
         const offset = page * limit;
 
-        // Pobieramy historię elo. W SQLite nazwy kolumn wielką literą w cudzysłowie
-        // są wymagane, jeśli Prisma wygenerowała je camelCase w bazie (np. "driverGuid")
-        const eloHistory = await prisma.$queryRaw<any[]>`
-            SELECT 
-                id,
-                "eloAfter",
-                "eloChange",
-                "createdAt"
-            FROM "EloHistory"
-            WHERE "driverGuid" = ${guid}
-            ORDER BY "createdAt" DESC
-            LIMIT ${limit} OFFSET ${offset}
-        `;
+        // Pobieramy historię wyników z RaceResult
+        const raceResults = await prisma.raceResult.findMany({
+            where: { driverGuid: guid },
+            orderBy: { createdAt: 'desc' },
+            skip: offset,
+            take: limit,
+            select: {
+                id: true,
+                eloBefore: true, // Potrzebne do obliczenia zmiany
+                eloAfter: true,
+                createdAt: true,
+                combo: true,
+            }
+        });
 
-        const formattedHistory = eloHistory.map(item => ({
-            id: item.id,
-            elo: Number(item.eloAfter),
-            eloChange: Number(item.eloChange),
-            createdAt: item.createdAt
-        }));
+        // 3. Obliczamy eloChange dynamicznie podczas mapowania
+        const formattedHistory = raceResults.map(item => {
+            const before = item.eloBefore ?? 1000; // fallback, jeśli pole byłoby nullem
+            const after = item.eloAfter ?? 1000;
+            const change = after - before;
 
-        const hasMore = formattedHistory.length === limit;
+            return {
+                id: item.id,
+                elo: Number(after),
+                eloChange: Number(change), // Obliczona wartość
+                createdAt: item.createdAt.toISOString(),
+                combo: item.combo
+            };
+        });
+
+        const hasMore = raceResults.length === limit;
 
         return NextResponse.json({
             success: true,

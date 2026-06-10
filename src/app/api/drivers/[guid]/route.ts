@@ -8,27 +8,34 @@ export async function GET(
     try {
         const { guid } = await params;
 
-        // Pobieramy profil oraz agregujemy statystyki z EloHistory
-        const drivers = await prisma.$queryRaw<any[]>`
-            SELECT 
-                d.guid,
-                d.mainName,
-                d.altNames,
-                d.combo,
-                d.currentElo,
-                COUNT(eh.id) as racesCount,
-                MAX(eh.createdAt) as lastRaced
-            FROM "Driver" d
-            LEFT JOIN "EloHistory" eh ON eh.driverGuid = d.guid
-            WHERE d.guid = ${guid}
-            GROUP BY d.guid, d.mainName, d.altNames, d.combo, d.currentElo
-        `;
+        // Pobieramy profil kierowcy z optymalnymi podzapytaniami
+        const driver = await prisma.driver.findUnique({
+            where: { guid },
+            select: {
+                guid: true,
+                mainName: true,
+                altNames: true,
+                combo: true,
+                currentElo: true,
+                // 1. Pobieramy tylko ilość wyścigów bezpośrednio z bazy
+                _count: {
+                    select: { raceResult: true }
+                },
+                // 2. Pobieramy TYLKO JEDEN, najnowszy wyścig, żeby wyciągnąć jego datę
+                raceResult: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                    select: { createdAt: true }
+                }
+            }
+        });
 
-        if (!drivers || drivers.length === 0) {
+        if (!driver) {
             return NextResponse.json({ success: false, error: "Kierowca nie został znaleziony" }, { status: 404 });
         }
 
-        const driver = drivers[0];
+        // 3. Wyciągamy datę ostatniego wyścigu (jeśli kierowca w ogóle w jakimś jechał)
+        const lastRaceDate = driver.raceResult[0]?.createdAt;
 
         const formattedDriver = {
             guid: driver.guid,
@@ -36,8 +43,8 @@ export async function GET(
             altNames: driver.altNames,
             combo: Number(driver.combo),
             currentElo: Number(driver.currentElo),
-            racesCount: Number(driver.racesCount),
-            lastRaced: driver.lastRaced ? new Date(driver.lastRaced).toISOString() : null
+            racesCount: driver._count.raceResult, // Liczba wyścigów z agregacji _count
+            lastRaced: lastRaceDate ? new Date(lastRaceDate).toISOString() : null
         };
 
         return NextResponse.json({
