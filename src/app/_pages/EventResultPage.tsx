@@ -1,11 +1,10 @@
-"use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Container, Button, Typography, Box, CircularProgress } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
-import RaceInfo from "./RaceInfo";
-import ResultList from "./ResultList";
+import RaceInfo from "@/app/_components/Results/RaceInfo";
+import ResultList from "@/app/_components/Results/ResultList";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import { getuid } from "process";
 

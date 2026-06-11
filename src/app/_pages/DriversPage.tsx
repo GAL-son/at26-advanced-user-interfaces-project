@@ -1,8 +1,7 @@
-"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, Typography } from "@mui/material";
-import DriverFilterBar, { SortOption } from "./DriverFilterBar";
-import DriverRow, { FormattedDriver } from "./DriverRow";
+import DriverFilterBar, { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
+import DriverRow, { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 
 export default function DriversPage() {
@@ -90,6 +89,10 @@ export default function DriversPage() {
     return () => observer.disconnect();
   }, [hasMore, loading, isInitialLoad]);
 
+  const displayPosition = () => {
+    return sortBy == "elo" || sortBy == "races"
+  }
+
   const headerClass = "!text-brand-muted/70 !font-bold text-xs uppercase tracking-wider py-3 border-b border-brand-navy-light";
 
   return (
@@ -118,7 +121,7 @@ export default function DriversPage() {
           <Table aria-label="Drivers global standings">
             <TableHead className="bg-brand-navy/60">
               <TableRow>
-                <TableCell align="center" className={`${headerClass} w-16`}>Pos</TableCell>
+                {displayPosition() && (<TableCell align="center" className={`${headerClass} w-16`}>Pos</TableCell>) }                
                 <TableCell className={headerClass}>Driver Profile</TableCell>
 
                 <TableCell
@@ -145,7 +148,7 @@ export default function DriversPage() {
             </TableHead>
             <TableBody>
               {drivers.map((driver) => (
-                <DriverRow key={driver.guid} driver={driver} />
+                <DriverRow key={driver.guid} driver={driver} usePosition={displayPosition()}/>
               ))}
             </TableBody>
           </Table>

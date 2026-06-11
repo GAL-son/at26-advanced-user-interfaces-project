@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Box, Paper, IconButton } from "@mui/material";
@@ -8,7 +7,7 @@ import SportsScoreIcon from "@mui/icons-material/SportsScore";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
-import EloChart from "./EloChart";
+import EloChart from "@/app/_components/Elo/EloChart";
 
 interface DriverStats {
   guid: string;

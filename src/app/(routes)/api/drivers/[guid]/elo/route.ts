@@ -1,3 +1,5 @@
+// TODO: Replaced by elo route 
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/db';
 

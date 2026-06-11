@@ -1,8 +1,8 @@
 "use client";
 import React from 'react';
 import { TableCell } from '@mui/material';
-import ComboBadge from '../../_components/ComboBadge';
-import PositionedListItem from '../../_components/PositionedTableRow';
+import ComboBadge from '@/app/_components/Elo/ComboBadge';
+import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import { useRouter } from 'next/navigation'; 
 
 export interface FormattedDriver {
@@ -18,6 +18,7 @@ export interface FormattedDriver {
 
 interface DriverRowProps {
   driver: FormattedDriver;
+  usePosition: boolean;
 }
 
 function formatLastRaced(dateString: string | null): string {
@@ -40,7 +41,7 @@ function formatLastRaced(dateString: string | null): string {
   });
 }
 
-export default function DriverRow({ driver }: DriverRowProps) {
+export default function DriverRow({ driver, usePosition = true}: DriverRowProps) {
   const router = useRouter();
 
   const handleTableRowClick = () => {
@@ -48,7 +49,7 @@ export default function DriverRow({ driver }: DriverRowProps) {
   };
 
   return (
-    <PositionedListItem 
+    <PositionedTableRow 
       position={driver.position} 
       onClick={handleTableRowClick}
       className="cursor-pointer hover:bg-white/5 transition-colors" // Opcjonalny, ładny hover
@@ -84,6 +85,6 @@ export default function DriverRow({ driver }: DriverRowProps) {
         <TableCell align="right" className="!text-elo-gain font-mono font-bold text-lg">
           {typeof driver.currentElo === 'number' ? driver.currentElo.toFixed(0) : '0'}
         </TableCell>
-      </PositionedListItem>
+      </PositionedTableRow>
   );
 }

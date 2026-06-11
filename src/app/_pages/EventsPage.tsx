@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -9,8 +8,8 @@ import {
   Divider,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import InfiniteEventList from "./InfiniteEventList";
-import EventRowSkeleton from "./EventRowSkeleton";
+import InfiniteEventList from "@/app/_components/Events/InfiniteEventList";
+import EventRowSkeleton from "@/app/_components/Events/EventRowSkeleton";
 
 interface RaceEvent {
   id: string;

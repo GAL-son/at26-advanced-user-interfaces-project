@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import ListWrapper from '@/app/_components/ListItem';
+import ListWrapper from '@/app/_components/Events/ListItem';
 import { Box, Typography, ButtonBase } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import EventIcon from '@mui/icons-material/Event';
