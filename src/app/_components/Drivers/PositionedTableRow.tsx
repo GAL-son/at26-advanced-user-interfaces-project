@@ -5,7 +5,7 @@ import React from 'react';
 import { Box, TableCell, TableRow } from '@mui/material';
 
 interface PositionedTableRowProps {
-    displayPosition: boolean;
+    displayPosition?: boolean;
     position: number;
     children: React.ReactNode;
     onClick?: () => void; // Dodajemy propsa onClick

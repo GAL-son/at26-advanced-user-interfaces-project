@@ -48,32 +48,62 @@ export async function GET(request: Request) {
                 combo: true,
                 raceResult: {
                     select: {
+                        id: true,
+                        eventId: true,
+                        driverGuid: true,
+                        started: true,
+                        position: true,
+                        car: true,
+                        laps: true,
+                        totalTime: true,
+                        bestLap: true,
+                        gap: true,
+                        eloBefore: true,
+                        eloAfter: true,
+                        combo: true,
+                        eloAlg: true,
                         createdAt: true
                     }
                 },
+                // Dodajemy agregację pobierającą datę ostatniego wyścigu
                 _count: {
                     select: { raceResult: true }
                 }
             }
         });
 
-        // 3. JEŚLI wyszukiwanie (search) jest puste, pozycja globalna wynika wprost z offsetu (strony)
-        // JEŚLI użytkownik coś wpisuje, pozycja "globalna" staje się pozycją w wynikach wyszukiwania.
-        // Jeśli absolutnie potrzebujesz pozycji w skali CAŁEJ bazy nawet podczas filtrowania "search", 
-        // daj znać – wtedy optymalnym rozwiązaniem będzie użycie Prisma.$queryRaw z funkcją okna DENSE_RANK().
-        
-        const formattedDrivers = drivers.map((driver, index) => {
+        // Wskazówka wydajnościowa: Pętla Promise.all wykonuje zapytanie N+1 (osobne zapytanie do bazy dla każdego kierowcy na stronie). 
+        // Przy limit = 20 to aż 21 zapytań do bazy danych przy jednym strzale do endpointu.
+        const driversWithGlobalPosition = await Promise.all(
+            drivers.map(async (driver) => {
+                const higherEloCount = await prisma.driver.count({
+                    where: {
+                        currentElo: {
+                            gt: driver.currentElo
+                        }
+                    }
+                });
+                
+                const globalPosition = higherEloCount + 1;
+
+                // Szukamy najnowszej daty wyścigu z pobranej już relacji raceResult
+                const lastRaced = driver.raceResult.length > 0 
+                    ? driver.raceResult.reduce((latest, current) => 
+                        new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
+                      ).createdAt 
+                    : null;
+
+                return {
+                    ...driver,
+                    globalPosition,
+                    lastRaced
+                };
+            })
+        );
+
+        // Mapowanie na obiekty typu Driver i dołączenie pozycji oraz lastRaced
+        const formattedDrivers = driversWithGlobalPosition.map(driver => {
             const racesCount = driver._count?.raceResult || 0;
-
-            // Logika pozycji: bazuje na aktualnym miejscu w pobranej paczce + offsecie stronnicowania
-            const globalPosition = offset + index + 1;
-
-            // Szukamy najnowszej daty wyścigu z pobranej już relacji raceResult
-            const lastRaced = driver.raceResult.length > 0 
-                ? driver.raceResult.reduce((latest, current) => 
-                    new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
-                  ).createdAt 
-                : null;
 
             const driverInstance = new Driver(
                 driver.guid,
@@ -86,8 +116,8 @@ export async function GET(request: Request) {
             return {
                 ...driverInstance,
                 racesCount,
-                position: globalPosition,
-                lastRaced
+                position: driver.globalPosition,
+                lastRaced: driver.lastRaced // <--- Nowe pole z datą ostatniego wyścigu
             };
         });
 
