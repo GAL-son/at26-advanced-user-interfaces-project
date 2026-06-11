@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
-import ComboBadge from "@/app/_components/ComboBadge";
+import ComboBadge from "@/app/_components/Elo/ComboBadge";
 
 const DRIVER_COLORS = [
   "#eab308", // Yellow

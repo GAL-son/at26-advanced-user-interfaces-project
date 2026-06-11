@@ -2,7 +2,7 @@
 
 "use client";
 import React from 'react';
-import ListWrapper from '@/app/_components/ListItem'
+import ListWrapper from '@/app/_components/Events/ListItem'
 import ResultListItem, { RaceResultExtended } from '@/app/(pages)/events/[id]/ResultListItem';
 
 export default function TestPage() {

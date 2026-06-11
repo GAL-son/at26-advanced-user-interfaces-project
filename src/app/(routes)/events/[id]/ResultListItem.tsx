@@ -3,8 +3,8 @@ import React from 'react';
 import { TableRow, TableCell, Box, Tooltip } from '@mui/material';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { RaceResultExtended } from '../page';
-import ComboBadge from '@/app/_components/ComboBadge';
-import PositionedTableRow from '@/app/_components/PositionedTableRow';
+import ComboBadge from '@/app/_components/Elo/ComboBadge';
+import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import { useRouter } from 'next/navigation';
 
 interface ResultListItemProps {
