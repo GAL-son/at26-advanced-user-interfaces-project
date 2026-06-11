@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { Prisma } from '@prisma/client'; // <-- Konieczny import
+import { prisma } from '@/lib/db/db';
+import { Prisma } from '@prisma/client';
+import { Driver } from '@/lib/db/types';
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        
+
         const page = parseInt(searchParams.get('page') || '0', 10);
         const limit = parseInt(searchParams.get('limit') || '20', 10);
         const search = searchParams.get('search') || '';
@@ -13,59 +14,114 @@ export async function GET(request: Request) {
 
         const offset = page * limit;
 
-        // 1. Definiowanie sortowania przy użyciu Prisma.sql
-        // Dzięki temu wstawiamy bezpieczne fragmenty SQL bezpośrednio do zapytania.
-        let rowNumberOrderBy;
+        // Dynamiczne budowanie warunku wyszukiwania
+        const where: Prisma.DriverWhereInput = search
+            ? {
+                OR: [
+                    { mainName: { contains: search } },
+                    { altNames: { contains: search } }
+                ]
+            }
+            : {};
+
+        // 1. Definiowanie sortowania głównego zapytania
+        let orderBy: Prisma.DriverOrderByWithRelationInput;
         if (sortBy === 'name') {
-            rowNumberOrderBy = Prisma.sql`d.mainName ASC`;
+            orderBy = { mainName: 'asc' };
         } else if (sortBy === 'races') {
-            rowNumberOrderBy = Prisma.sql`COUNT(eh.id) DESC`; 
-        } else if (sortBy === 'lastRaced') {
-            rowNumberOrderBy = Prisma.sql`MAX(eh.createdAt) DESC`;
+            orderBy = { raceResult: { _count: 'desc' } };
         } else {
-            rowNumberOrderBy = Prisma.sql`d.currentElo DESC`;
+            orderBy = { currentElo: 'desc' };
         }
 
-        // 2. Dynamiczne budowanie warunku wyszukiwania za pomocą Prisma.sql
-        // Prisma.sql zadba o to, żeby parametr został dodany DOPIERO wtedy, gdy istnieje.
-        const searchFilter = search 
-            ? Prisma.sql`LOWER(mainName) LIKE LOWER(${`%${search}%`}) OR LOWER(altNames) LIKE LOWER(${`%${search}%`})` 
-            : Prisma.sql`1 = 1`;
+        // 2. Pobieramy kierowców dla aktualnej strony z bazy danych
+        const drivers = await prisma.driver.findMany({
+            where,
+            orderBy,
+            skip: offset,
+            take: limit,
+            select: {
+                guid: true,
+                mainName: true,
+                altNames: true,
+                currentElo: true,
+                combo: true,
+                raceResult: {
+                    select: {
+                        id: true,
+                        eventId: true,
+                        driverGuid: true,
+                        started: true,
+                        position: true,
+                        car: true,
+                        laps: true,
+                        totalTime: true,
+                        bestLap: true,
+                        gap: true,
+                        eloBefore: true,
+                        eloAfter: true,
+                        combo: true,
+                        eloAlg: true,
+                        createdAt: true
+                    }
+                },
+                // Dodajemy agregację pobierającą datę ostatniego wyścigu
+                _count: {
+                    select: { raceResult: true }
+                }
+            }
+        });
 
-        // 3. Bezpieczne zapytanie przez $queryRaw z backtickami (tagged template literal)
-        // Prisma wygeneruje '?' pod maską na dev, a '$1' na produkcji. Znika problem z limitami i offsetami.
-        const rawDrivers = await prisma.$queryRaw<any[]>`
-            WITH RankedDrivers AS (
-                SELECT 
-                    d.guid,
-                    d.mainName,
-                    d.altNames,
-                    d.combo,
-                    d.currentElo,
-                    COUNT(eh.id) as racesCount,
-                    MAX(eh.createdAt) as lastRaced,
-                    ROW_NUMBER() OVER (
-                        ORDER BY ${rowNumberOrderBy}, d.mainName ASC
-                    ) as position
-                FROM "Driver" d
-                INNER JOIN "EloHistory" eh ON eh."driverGuid" = d.guid
-                GROUP BY d.guid, d.mainName, d.altNames, d.combo, d.currentElo
-            )
-            SELECT * FROM RankedDrivers
-            WHERE ${searchFilter}
-            ORDER BY position ASC
-            LIMIT ${limit} OFFSET ${offset}
-        `;
+        // Wskazówka wydajnościowa: Pętla Promise.all wykonuje zapytanie N+1 (osobne zapytanie do bazy dla każdego kierowcy na stronie). 
+        // Przy limit = 20 to aż 21 zapytań do bazy danych przy jednym strzale do endpointu.
+        const driversWithGlobalPosition = await Promise.all(
+            drivers.map(async (driver) => {
+                const higherEloCount = await prisma.driver.count({
+                    where: {
+                        currentElo: {
+                            gt: driver.currentElo
+                        }
+                    }
+                });
+                
+                const globalPosition = higherEloCount + 1;
 
-        // 4. Mapowanie typów (konwersja BigInt z bazy na Number)
-        const formattedDrivers = rawDrivers.map(driver => ({
-            ...driver,
-            racesCount: Number(driver.racesCount),
-            position: Number(driver.position)
-        }));
+                // Szukamy najnowszej daty wyścigu z pobranej już relacji raceResult
+                const lastRaced = driver.raceResult.length > 0 
+                    ? driver.raceResult.reduce((latest, current) => 
+                        new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
+                      ).createdAt 
+                    : null;
 
-        const hasMore = formattedDrivers.length === limit;
+                return {
+                    ...driver,
+                    globalPosition,
+                    lastRaced
+                };
+            })
+        );
 
+        // Mapowanie na obiekty typu Driver i dołączenie pozycji oraz lastRaced
+        const formattedDrivers = driversWithGlobalPosition.map(driver => {
+            const racesCount = driver._count?.raceResult || 0;
+
+            const driverInstance = new Driver(
+                driver.guid,
+                driver.mainName,
+                driver.altNames,
+                driver.currentElo,
+                driver.combo,
+            );
+
+            return {
+                ...driverInstance,
+                racesCount,
+                position: driver.globalPosition,
+                lastRaced: driver.lastRaced // <--- Nowe pole z datą ostatniego wyścigu
+            };
+        });
+
+        const hasMore = drivers.length === limit;
         return NextResponse.json({
             success: true,
             drivers: formattedDrivers,

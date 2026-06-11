@@ -9,7 +9,7 @@ interface LoadingSpinnerProps {
 }
 
 export default function LoadingSpinner({ 
-  text = "Syncing backlog...", 
+  text = "", 
   size = 12, 
   className = "" 
 }: LoadingSpinnerProps) {

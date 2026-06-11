@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db/db';
 import crypto from 'crypto';
 
 // Definicja typów dla API ACSM

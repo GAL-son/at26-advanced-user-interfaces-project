@@ -1,6 +1,6 @@
 // src/app/api/events/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +27,16 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: events,
+      data: events.map(event => ({
+        id: event.id,
+        name: event.name,
+        track: event.track,
+        date: event.date.toISOString(),
+        laps: event.laps,
+        time: event.time,
+        server: event.server,
+        processed: event.processed,
+      })),
       nextCursor: nextCursor, // Zwracamy frontendowi informację, skąd ma pobierać dalej
     });
     

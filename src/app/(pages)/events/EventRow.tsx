@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
-import { Box, Typography, Paper, ButtonBase } from '@mui/material';
+import ListWrapper from '@/app/_components/ListItem';
+import { Box, Typography, ButtonBase } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import EventIcon from '@mui/icons-material/Event';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -23,21 +24,10 @@ export default function EventRow({ event }: EventRowProps) {
     timeStyle: 'short'
   });
 
-  const targetUrl = `/event/${event.id}`;
+  const targetUrl = `/events/${event.id}`;
 
   return (
-    <Paper
-      component="li"
-      role="listitem"
-      elevation={0}
-      sx={{
-        p: 0,
-        mb: 1.5,
-        backgroundImage: 'none',
-        backgroundColor: 'transparent', // Pełne sterowanie oddane do Tailwind
-      }}
-      className="bg-brand-navy-dark border border-brand-navy-light rounded-xl overflow-hidden shadow-sm transition-shadow hover:shadow-md"
-    >
+    <ListWrapper>
       <ButtonBase
         component="a"
         href={targetUrl}
@@ -99,6 +89,6 @@ export default function EventRow({ event }: EventRowProps) {
           </Typography>
         </Box>
       </ButtonBase>
-    </Paper>
+    </ListWrapper>
   );
 }
