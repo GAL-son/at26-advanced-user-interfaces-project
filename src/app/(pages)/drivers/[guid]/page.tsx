@@ -123,7 +123,7 @@ export default function DriverProfilePage() {
 
         {/* 🟢 WYDZIELONY KOMPONENT WYKRESU */}
         {/* Działa asynchronicznie, pobiera dane w tle i ma swój dedykowany spinner */}
-        <EloChart guid={driver.guid} />
+        <EloChart guids={[guid]} />
 
       </div>
     </Box>

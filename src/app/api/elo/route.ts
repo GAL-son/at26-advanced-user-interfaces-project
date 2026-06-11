@@ -5,29 +5,31 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
 
-        // Pobierz listę guid graczy z parametrów URL
+        // Pobierz listę guidów (obsługuje jeden lub wiele oddzielonych przecinkami)
         const guidsParam = searchParams.get('guids');
         if (!guidsParam) {
             return NextResponse.json({ success: false, error: 'Guids parameter is required' }, { status: 400 });
         }
 
-        const guids = guidsParam.split(',');
+        const guids = guidsParam.split(',').map(g => g.trim()).filter(Boolean);
+        if (guids.length === 0) {
+            return NextResponse.json({ success: false, error: 'Invalid guids parameter' }, { status: 400 });
+        }
 
-        // Pobierz paginację z parametrów URL
+        // Paginacja
         const page = parseInt(searchParams.get('page') || '0', 10);
         const limit = parseInt(searchParams.get('limit') || '50', 10);
         const offset = page * limit;
 
-        // 1. Pobieramy profile kierowców, aby mieć dostęp do ich nazw (mainName)
+        // 1. Pobieramy profile kierowców
         const drivers = await prisma.driver.findMany({
             where: { guid: { in: guids } },
             select: { guid: true, mainName: true }
         });
 
-        // Tworzymy mapę [guid]: name dla szybkiego dostępu
         const driverNamesMap = new Map(drivers.map(d => [d.guid, d.mainName]));
 
-        // 2. Pobieramy globalną listę wydarzeń (Event) posortowaną chronologicznie od najnowszych
+        // 2. Pobieramy globalną listę wydarzeń (Event)
         const events = await prisma.event.findMany({
             orderBy: { date: 'desc' },
             skip: offset,
@@ -55,11 +57,11 @@ export async function GET(request: Request) {
             };
         });
 
-        // 3. Przetwarzamy każdy event dla każdego kierowcy po kolei
+        // 3. Przetwarzamy każdy event dla każdego kierowcy
         for (const event of events) {
-            // Tworzymy mapę wyników z tego konkretnego wyścigu dla szybkiego wyszukiwania O(1)
             const eventResultsMap = new Map(event.raceResult.map(r => [r.driverGuid, r]));
 
+            // Używamy Promise.all, aby zapytania o historię (Scenariusz B) szły równolegle dla kierowców w danym evencie
             await Promise.all(
                 guids.map(async (guid) => {
                     const result = eventResultsMap.get(guid);
@@ -77,8 +79,7 @@ export async function GET(request: Request) {
                             combo: result.combo ?? 0
                         });
                     } else {
-                        // Scenariusz B: Kierowca NIE brał udziału w wyścigu.
-                        // Szukamy ostatniego wyniku z przeszłości (przed tym eventem)
+                        // Scenariusz B: Kierowca NIE brał udziału w wyścigu
                         const lastRaceBefore = await prisma.raceResult.findFirst({
                             where: {
                                 driverGuid: guid,
@@ -113,14 +114,13 @@ export async function GET(request: Request) {
             );
         }
 
-        // Przekształcamy pogrupowane wyniki na finalny format tablicy
+        // Mapujemy na płaską tablicę wynikową
         const formattedResults = Object.entries(groupedResults).map(([guid, group]) => ({
             guid,
             name: group.name,
             data: group.data
         }));
 
-        // Paginacja bazuje teraz na liczbie przetworzonych wydarzeń (Event)
         const hasMore = events.length === limit;
 
         return NextResponse.json({
@@ -131,7 +131,7 @@ export async function GET(request: Request) {
         });
 
     } catch (error: any) {
-        console.error("[Driver Compare Elo API Error]:", error);
+        console.error("[Driver Elo API Error]:", error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

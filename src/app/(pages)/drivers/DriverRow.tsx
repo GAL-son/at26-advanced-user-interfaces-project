@@ -2,8 +2,7 @@
 import React from 'react';
 import { TableCell } from '@mui/material';
 import ComboBadge from '../../_components/ComboBadge';
-import PositionedListItem from '../../_components/PositionedTableRow'; 
-// POPRAWKA: Zmiana importu z 'next/router' na 'next/navigation'
+import PositionedListItem from '../../_components/PositionedTableRow';
 import { useRouter } from 'next/navigation'; 
 
 export interface FormattedDriver {
@@ -54,7 +53,6 @@ export default function DriverRow({ driver }: DriverRowProps) {
       onClick={handleTableRowClick}
       className="cursor-pointer hover:bg-white/5 transition-colors" // Opcjonalny, ładny hover
     >
-        {/* USUNIĘTO onClick={(e) => e.stopPropagation()} z poniższych TableCell */}
         <TableCell className="py-0 h-full">
           <div className="flex flex-col justify-center h-[48px] max-w-md">
             <div className="flex items-center gap-2">

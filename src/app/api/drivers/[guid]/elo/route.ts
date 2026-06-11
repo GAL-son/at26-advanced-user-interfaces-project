@@ -3,47 +3,90 @@ import { prisma } from '@/lib/db/db';
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ guid: string }> } // 1. params jako Promise (Next.js 15)
+    { params }: { params: Promise<{ guid: string }> }
 ) {
     try {
-        const { guid } = await params; // 2. Odpakowanie guid za pomocą await
+        const { guid } = await params;
         const { searchParams } = new URL(request.url);
         
         const page = parseInt(searchParams.get('page') || '0', 10);
         const limit = parseInt(searchParams.get('limit') || '50', 10);
         const offset = page * limit;
 
-        // Pobieramy historię wyników z RaceResult
-        const raceResults = await prisma.raceResult.findMany({
-            where: { driverGuid: guid },
-            orderBy: { createdAt: 'desc' },
+        // 1. Pobieramy paczkę eventów posortowaną od najnowszego
+        const events = await prisma.event.findMany({
+            orderBy: { date: 'desc' },
             skip: offset,
             take: limit,
-            select: {
-                id: true,
-                eloBefore: true, // Potrzebne do obliczenia zmiany
-                eloAfter: true,
-                createdAt: true,
-                combo: true,
+            include: {
+                raceResult: {
+                    where: { driverGuid: guid },
+                    select: {
+                        id: true,
+                        eloBefore: true,
+                        eloAfter: true,
+                        combo: true,
+                    }
+                }
             }
         });
 
-        // 3. Obliczamy eloChange dynamicznie podczas mapowania
-        const formattedHistory = raceResults.map(item => {
-            const before = item.eloBefore ?? 1000; // fallback, jeśli pole byłoby nullem
-            const after = item.eloAfter ?? 1000;
-            const change = after - before;
+        // 2. Mapujemy eventy asynchronicznie, aby w razie potrzeby dociągnąć dane historyczne
+        const formattedHistory = await Promise.all(
+            events.map(async (event) => {
+                const result = event.raceResult[0]; // max 1 element z filtra unique
 
-            return {
-                id: item.id,
-                elo: Number(after),
-                eloChange: Number(change), // Obliczona wartość
-                createdAt: item.createdAt.toISOString(),
-                combo: item.combo
-            };
-        });
+                if (result) {
+                    // Scenariusz A: Kierowca brał udział w wyścigu
+                    return {
+                        eventId: event.id,
+                        eventName: event.name,
+                        eventDate: event.date.toISOString(),
+                        hasRaced: true,
+                        id: result.id,
+                        elo: Number(result.eloAfter ?? 1000),
+                        eloChange: Number((result.eloAfter ?? 1000) - (result.eloBefore ?? 1000)),
+                        combo: result.combo ?? 0
+                    };
+                }
 
-        const hasMore = raceResults.length === limit;
+                // Scenariusz B: Kierowca NIE brał udziału w tym wyścigu.
+                // Szukamy OSTATNIEGO (najnowszego z przeszłości) wyścigu tego kierowcy PRZED datą obecnego eventu.
+                const lastRaceBefore = await prisma.raceResult.findFirst({
+                    where: {
+                        driverGuid: guid,
+                        event: {
+                            date: { lt: event.date } // Mniejsza data niż obecny event
+                        }
+                    },
+                    orderBy: {
+                        event: { date: 'desc' } // Najnowszy z tych, które były wcześniej
+                    },
+                    select: {
+                        eloAfter: true,
+                        combo: true
+                    }
+                });
+
+                // Jeśli znaleźliśmy poprzedni wyścig, bierzemy z niego eloAfter. 
+                // Jeśli nie (to pierwszy event w historii całego systemu), bierzemy default 1000.
+                const baseElo = lastRaceBefore?.eloAfter ?? 1000;
+                const baseCombo = lastRaceBefore?.combo ?? 0;
+
+                return {
+                    eventId: event.id,
+                    eventName: event.name,
+                    eventDate: event.date.toISOString(),
+                    hasRaced: false,
+                    id: null,
+                    elo: Number(baseElo),
+                    eloChange: 0,
+                    combo: baseCombo
+                };
+            })
+        );
+
+        const hasMore = events.length === limit;
 
         return NextResponse.json({
             success: true,

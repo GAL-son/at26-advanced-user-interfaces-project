@@ -1,8 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Box, Typography } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, Typography } from "@mui/material";
 import DriverFilterBar, { SortOption } from "./DriverFilterBar";
 import DriverRow, { FormattedDriver } from "./DriverRow";
+import LoadingSpinner from "@/app/_components/LoadingSpinner";
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<FormattedDriver[]>([]);
@@ -12,6 +13,8 @@ export default function DriversPage() {
   const [sortBy, setSortBy] = useState<SortOption>('elo');
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  // Nowy stan określający, czy to pierwsze ładowanie strony/filtrów
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -21,17 +24,20 @@ export default function DriversPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset tabeli i powrót na pierwszą stronę przy zmianie filtrów lub karty sortowania
+  // Reset tabeli przy zmianie filtrów lub karty sortowania
   useEffect(() => {
     setDrivers([]);
     setPage(0);
     setHasMore(true);
+    setIsInitialLoad(true); // Przy zmianie filtrów traktujemy to znów jako "initial load" dla nowego zestawu danych
   }, [debouncedSearch, sortBy]);
 
   // Pobieranie danych z zaktualizowanego API
   useEffect(() => {
     async function fetchDrivers() {
-      if (!hasMore || loading) return;
+      // Jeśli nie ma więcej danych lub już trwa ładowanie, przerywamy
+      // Wyjątek: pozwalamy przejść jeśli drivers jest puste (reset na page=0)
+      if ((!hasMore && page !== 0) || loading) return;
       setLoading(true);
 
       try {
@@ -41,13 +47,12 @@ export default function DriversPage() {
         const data = await res.json();
 
         if (data.success && data.drivers) {
-          // Mapujemy format z API na format w pełni kompatybilny z DriverRow
           const mappedDrivers: FormattedDriver[] = data.drivers.map((d: any) => ({
             guid: d.guid,
-            mainName: d.mainName,         // Poprawiono z 'name' na 'mainName'
+            mainName: d.mainName,
             altNames: d.altNames,
-            position: d.position,         // Poprawiono z 'globalPosition' na 'position'
-            racesCount: d.racesCount,     // Poprawiono z 'races' na 'racesCount'
+            position: d.position,
+            racesCount: d.racesCount,
             combo: d.combo,
             currentElo: d.currentElo || 0,
             lastRaced: d.lastRaced || "N/A"
@@ -60,6 +65,7 @@ export default function DriversPage() {
         console.error("Error fetching drivers leaderboard:", err);
       } finally {
         setLoading(false);
+        setIsInitialLoad(false); // Pierwsze zapytanie (lub zapytanie po resecie filtrów) się zakończyło
       }
     }
     fetchDrivers();
@@ -72,7 +78,8 @@ export default function DriversPage() {
 
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
+        // Nie triggerujemy kolejnej strony, jeśli wciąż trwa pierwsze ładowanie komponentu
+        if (entries[0].isIntersecting && hasMore && !loading && !isInitialLoad) {
           setPage(prev => prev + 1);
         }
       },
@@ -81,7 +88,7 @@ export default function DriversPage() {
 
     observer.observe(currentTarget);
     return () => observer.disconnect();
-  }, [hasMore, loading]);
+  }, [hasMore, loading, isInitialLoad]);
 
   const headerClass = "!text-brand-muted/70 !font-bold text-xs uppercase tracking-wider py-3 border-b border-brand-navy-light";
 
@@ -114,7 +121,6 @@ export default function DriversPage() {
                 <TableCell align="center" className={`${headerClass} w-16`}>Pos</TableCell>
                 <TableCell className={headerClass}>Driver Profile</TableCell>
 
-                {/* Dynamiczne podświetlenie kolumny aktywnego sortowania */}
                 <TableCell
                   align="center"
                   className={`${headerClass} w-36 ${sortBy === 'races' ? '!text-brand-yellow font-black' : ''}`}
@@ -144,8 +150,15 @@ export default function DriversPage() {
             </TableBody>
           </Table>
 
-          {/* Stan pusty (brak pasujących kierowców) */}
-          {drivers.length === 0 && !loading && (
+          {/* 1. INITIAL LOADER (Gdy strona startuje lub filtry się resetują i czekamy na pierwszy feedback z API) */}
+          {isInitialLoad && (
+            <Box className="py-12 flex justify-center w-full">
+              <LoadingSpinner text={"Loading drivers leaderboard..."} />
+            </Box>
+          )}
+
+          {/* 2. PUSTY STAN (Wyświetla się TYLKO, gdy ładowanie się zakończyło, a baza danych zwróciła 0 wyników) */}
+          {!isInitialLoad && !loading && drivers.length === 0 && (
             <Typography
               variant="body1"
               className="!text-brand-muted text-center py-12 font-medium"
@@ -154,16 +167,14 @@ export default function DriversPage() {
             </Typography>
           )}
 
-          {/* Loader na samym dole tabeli */}
+          {/* Loader na samym dole tabeli dla Infinite Scroll (używany tylko przy kolejnych stronach) */}
           <div
             ref={observerTarget}
             className="w-full py-6 flex justify-center bg-brand-navy/20 border-t border-brand-navy-light/40"
           >
-            {loading && (
-              <div className="flex items-center gap-3 !text-brand-yellow font-mono text-xs uppercase tracking-wider font-bold">
-                <CircularProgress size={16} sx={{ color: 'var(--color-brand-yellow)' }} />
-                Loading standings extension...
-              </div>
+            {/* Ten spinner pokaże się tylko przy pobieraniu stron 1, 2, 3... */}
+            {loading && !isInitialLoad && (
+              <LoadingSpinner text={"Loading more drivers..."} />
             )}
             {!hasMore && drivers.length > 0 && (
               <span className="text-[10px] !text-brand-muted/40 font-mono uppercase tracking-widest font-black">
