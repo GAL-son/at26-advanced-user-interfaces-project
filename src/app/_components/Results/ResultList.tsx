@@ -4,7 +4,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, 
   TableRow, TableSortLabel, Box 
 } from '@mui/material';
-import { RaceResultExtended } from '../page';
+import { RaceResultExtended } from '../../(routes)/events/page';
 import ResultListItem from './ResultListItem';
 
 interface ResultListProps {
