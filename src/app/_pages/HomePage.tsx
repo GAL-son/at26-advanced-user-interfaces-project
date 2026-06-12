@@ -1,22 +1,32 @@
-import ActiveDriversTicker, { ActiveDriver } from "@/app/_components/Home/ActiveDriversTicker";
+import ActiveDriversTicker from "@/app/_components/Home/ActiveDriversTicker";
+import LatestEventsSection from "@/app/_components/Home/LatestEventsSection";
+import { ExtendedDriver, TickerDriver } from "@/lib/services/drivers";
+import { FormattedEvent } from "@/lib/services/events";
+import TopDriversLeaderboard from "../_components/Home/TopDriversLeaderboard";
+import { DashboardDuels } from "@/lib/services/duels";
+import VirtualDuelsSection from "../_components/Home/VirtualDuelsSection";
 
 interface HomePageProps {
-  activeDrivers: ActiveDriver[];
+  activeDrivers: TickerDriver[];
+  latestEvents: FormattedEvent[];
+  topDrivers: ExtendedDriver[];
+  dashboardDuels: DashboardDuels;
 }
 
-export default function HomePage({ activeDrivers }: HomePageProps) {
+export default function HomePage({ activeDrivers, latestEvents, topDrivers, dashboardDuels }: HomePageProps) {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Karuzela renderuje się tu, dostaje dane z serwera, ale w środku ma "use client" dla animacji */}
-      <ActiveDriversTicker drivers={activeDrivers} />
+    <div className="flex flex-col min-h-screen bg-[var(--color-brand-navy)]">
+      {/* Ticker z aktywnymi graczami */}
+      <ActiveDriversTicker drivers={activeDrivers} scrollSpeed={0.5}/>
       
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-[var(--color-brand-text)]">
-          Witaj w Lidze Simracingowej
-        </h1>
+      {/* Główna sekcja strony */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Sekcja ostatnich 2 eventów */}
+        <LatestEventsSection events={latestEvents} />
         
-        {/* Tutaj wejdą kolejne komponenty strony głównej */}
-        {/* <OtherComponent /> */}
+        {/* Miejsce na kolejne komponenty strony głównej */}
+        <TopDriversLeaderboard drivers={topDrivers} />
+        <VirtualDuelsSection duels={dashboardDuels} />
       </main>
     </div>
   );

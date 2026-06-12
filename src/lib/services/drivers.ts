@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/db';
+import { Prisma } from '@prisma/client';
 
 export interface TickerDriver {
   guid: string;
@@ -6,6 +7,126 @@ export interface TickerDriver {
   elo: number;
   combo: number;
   lastActive: string;
+}
+
+export interface ExtendedDriver {
+  guid: string;
+  mainName: string;
+  altNames: string | null;
+  currentElo: number;
+  combo: number;
+  racesCount: number;
+  position: number;
+  lastRaced: string | null;
+}
+
+interface GetDriversParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+}
+
+export async function getDriversList({
+  page = 0,
+  limit = 20,
+  search = '',
+  sortBy = 'elo'
+}: GetDriversParams = {}): Promise<{ drivers: ExtendedDriver[]; hasMore: boolean }> {
+  
+  const offset = page * limit;
+
+  // Dynamiczne budowanie warunku wyszukiwania
+  const where: Prisma.DriverWhereInput = search
+    ? {
+        OR: [
+          { mainName: { contains: search } },
+          { altNames: { contains: search } }
+        ]
+      }
+    : {};
+
+  // Definiowanie sortowania
+  let orderBy: Prisma.DriverOrderByWithRelationInput;
+  if (sortBy === 'name') {
+    orderBy = { mainName: 'asc' };
+  } else if (sortBy === 'races') {
+    orderBy = { raceResult: { _count: 'desc' } };
+  } else if (sortBy === 'combo') {
+    orderBy = { combo: 'desc' };
+  } else {
+    orderBy = { currentElo: 'desc' };
+  }
+
+  // Pobieramy kierowców
+  const drivers = await prisma.driver.findMany({
+    where,
+    orderBy,
+    skip: offset,
+    take: limit,
+    select: {
+      guid: true,
+      mainName: true,
+      altNames: true,
+      currentElo: true,
+      combo: true,
+      raceResult: {
+        select: {
+          createdAt: true
+        }
+      },
+      _count: {
+        select: { raceResult: true }
+      }
+    }
+  });
+
+  // OPTYMALIZACJA N+1:
+  // Jeśli szukamy Top 5 po ELO od początku (page=0, sortBy=elo, bez wyszukiwania tekstowego),
+  // ich pozycja globalna to po prostu index + 1. Nie musimy pytać bazy danych!
+  const isTopEloRequest = page === 0 && sortBy === 'elo' && !search;
+
+  const formattedDrivers: ExtendedDriver[] = await Promise.all(
+    drivers.map(async (driver, index) => {
+      let globalPosition = offset + index + 1;
+
+      // Jeśli to nie jest standardowe top ELO (np. ktoś sortuje po nazwie lub filtruje),
+      // dopiero wtedy odpalamy bezpiecznie pojedynczy count.
+      if (!isTopEloRequest) {
+        const higherEloCount = await prisma.driver.count({
+          where: {
+            currentElo: { gt: driver.currentElo }
+          }
+        });
+        globalPosition = higherEloCount + 1;
+      }
+
+      // Wyciągamy najnowszą datę wyścigu
+      const lastRacedDate = driver.raceResult.length > 0
+        ? driver.raceResult.reduce((latest, current) => 
+            current.createdAt > latest.createdAt ? current : latest
+          ).createdAt
+        : null;
+
+      return {
+        guid: driver.guid,
+        mainName: driver.mainName,
+        altNames: driver.altNames,
+        currentElo: driver.currentElo,
+        combo: driver.combo,
+        racesCount: driver._count?.raceResult || 0,
+        position: globalPosition,
+        lastRaced: lastRacedDate ? lastRacedDate.toISOString() : null
+      };
+    })
+  );
+
+  const hasMore = drivers.length === limit;
+
+  return {
+    drivers: formattedDrivers,
+    hasMore
+  };
 }
 
 // Funkcja pomocnicza do względnego czasu

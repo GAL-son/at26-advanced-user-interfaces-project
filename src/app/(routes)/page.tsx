@@ -1,12 +1,24 @@
 import HomePage from "@/app/_pages/HomePage";
-import { getRecentlyActiveDrivers } from "@/lib/services/drivers";
+import { getRecentlyActiveDrivers, getDriversList } from "@/lib/services/drivers";
+import { getLatestEvents } from "@/lib/services/events";
+import { getVirtualDuels } from "@/lib/services/duels"; // <-- Nowy import
 
-// Serwer wymusza rewalidację całej strony np. co 5 minut (opcjonalnie)
-export const revalidate = 300; 
+export const revalidate = 60;
 
 export default async function Page() {
-  // Wywołanie bezpośrednio metody serwisu
-  const activeDrivers = await getRecentlyActiveDrivers({ sinceParam: '14d', limitParam: 15 }); 
+  const [activeDrivers, latestEvents, leaderboardData, virtualDuels] = await Promise.all([
+    getRecentlyActiveDrivers({ sinceParam: '14d', limitParam: 15 }),
+    getLatestEvents(2),
+    getDriversList({ page: 0, limit: 5, sortBy: 'elo' }),
+    getVirtualDuels() // <-- Pobieranie pojedynków z serwisu
+  ]);
 
-  return <HomePage activeDrivers={activeDrivers} />;
+  return (
+    <HomePage 
+      activeDrivers={activeDrivers} 
+      latestEvents={latestEvents} 
+      topDrivers={leaderboardData.drivers} 
+      dashboardDuels={virtualDuels} // <-- Przekazanie do strony
+    />
+  );
 }

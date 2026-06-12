@@ -35,28 +35,25 @@ export default function TopBarMenu({ navItems, pathname, onDrawerToggle }: TopBa
         >
             <Container maxWidth="xl">
                 <Toolbar disableGutters sx={{ height: 64 }}>
+                    <Typography
+                        variant="h6"
+                        noWrap
+                        component={Link}
+                        href="/"
+                        sx={{
+                            mr: 4,
+                            display: { xs: 'none', md: 'flex' },
+                            fontWeight: 900,
+                            letterSpacing: '-0.5px',
+                            color: 'var(--color-brand-text)',
+                            textDecoration: 'none',
+                            alignItems: 'center',
+                            gap: 1
+                        }}
+                    >
+                        <SpeedIcon sx={{ color: 'var(--color-brand-yellow-hover)' }} /> Simracing App
+                    </Typography>
 
-                    {/* LOGO: Desktop */}
-                    <Link href='/'>
-                        <Typography
-                            variant="h6"
-                            noWrap
-                            component={Link}
-                            href="/drivers"
-                            sx={{
-                                mr: 4,
-                                display: { xs: 'none', md: 'flex' },
-                                fontWeight: 900,
-                                letterSpacing: '-0.5px',
-                                color: 'var(--color-brand-text)',
-                                textDecoration: 'none',
-                                alignItems: 'center',
-                                gap: 1
-                            }}
-                        >
-                            <SpeedIcon sx={{ color: 'var(--color-brand-yellow-hover)' }} /> Simracing App
-                        </Typography>
-                    </Link>
 
 
                     {/* HAMBURGER: Mobile */}
