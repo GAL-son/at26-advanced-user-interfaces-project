@@ -98,7 +98,7 @@ export default function VirtualDuelsSection({ duels }: VirtualDuelsSectionProps)
           id="duels-heading" 
           className="text-xl sm:text-2xl font-black uppercase tracking-wide text-[var(--color-brand-text)]"
         >
-          Generowane Pojedynki (H2H)
+          Duels
         </h2>
       </div>
 

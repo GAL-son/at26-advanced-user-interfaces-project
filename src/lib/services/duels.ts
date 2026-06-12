@@ -29,7 +29,7 @@ function isEloClose(eloA: number, eloB: number, maxPercent = 0.05): boolean {
   return diff <= minElo * maxPercent;
 }
 
-// Funkcja pomocnicza: Wybiera losową parę spełniającą kryteria z listy kierowców
+// Funkcja pomocnicza: Wybiera parę spełniającą kryteria z listy kierowców
 function findMatch(drivers: any[], maxPercent = 0.05): VirtualDuel | null {
   if (drivers.length < 2) return null;
 
@@ -65,8 +65,23 @@ function findMatch(drivers: any[], maxPercent = 0.05): VirtualDuel | null {
 
 export async function getVirtualDuels(): Promise<DashboardDuels> {
   try {
-    // 1. Pobieramy wszystkich aktywnych kierowców z podstawowymi metrykami, posortowanych po ELO malejąco
-    const allDrivers = await prisma.driver.findMany({
+    // Obliczamy datę sprzed 4 tygodni
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+
+    // 1. Pobieramy aktywnych kierowców (wyścig w ciągu ostatnich 4 tygodni), posortowanych po ELO malejąco
+    const activeDrivers = await prisma.driver.findMany({
+      where: {
+        raceResult: {
+          some: {
+            event: {
+              date: {
+                gte: fourWeeksAgo,
+              },
+            },
+          },
+        },
+      },
       orderBy: {
         currentElo: 'desc',
       },
@@ -76,32 +91,32 @@ export async function getVirtualDuels(): Promise<DashboardDuels> {
         currentElo: true,
         combo: true,
         _count: {
-          select: { raceResult: true },
+          select: { raceResult: true }, // Zwraca całkowitą liczbę wyścigów kierowcy (potrzebne do filtrowania poniżej)
         },
       },
     });
 
     // 2. Segmentacja kierowców na kategorie
-    const topDrivers = allDrivers.filter(d => d.currentElo >= 1200 && (d._count?.raceResult ?? 0) > 10);
-    const midfieldDrivers = allDrivers.filter(d => d.currentElo < 1200 && d.currentElo >= 950 && (d._count?.raceResult ?? 0) > 10);
-    const rookieDrivers = allDrivers.filter(d => (d._count?.raceResult ?? 0) <= 10);
+    const topDrivers = activeDrivers.filter(d => d.currentElo >= 1200 && (d._count?.raceResult ?? 0) > 10);
+    const midfieldDrivers = activeDrivers.filter(d => d.currentElo < 1200 && d.currentElo >= 950 && (d._count?.raceResult ?? 0) > 10);
+    const rookieDrivers = activeDrivers.filter(d => (d._count?.raceResult ?? 0) <= 10);
 
     // 3. Dopasowywanie par pojedynkowych
     const topDuel = findMatch(topDrivers, 0.05);
     if (topDuel) {
-      topDuel.categoryName = "Czołówka (Top Split)";
+      topDuel.categoryName = "Top Split";
       topDuel.categoryKey = "top";
     }
 
     const midfieldDuel = findMatch(midfieldDrivers, 0.05);
     if (midfieldDuel) {
-      midfieldDuel.categoryName = "Środek Stawki (Midfield)";
+      midfieldDuel.categoryName = "Midfield";
       midfieldDuel.categoryKey = "midfield";
     }
 
-    const rookiesDuel = findMatch(rookieDrivers, 0.08); // Dla rookies lekko zwiększamy tolerancję (8%), bo na początku ELO mocno skacze
+    const rookiesDuel = findMatch(rookieDrivers, 0.08); // Wyższa tolerancja dla debiutantów
     if (rookiesDuel) {
-      rookiesDuel.categoryName = "Pojedynek Debiutantów (Rookies)";
+      rookiesDuel.categoryName = "Rookies";
       rookiesDuel.categoryKey = "rookies";
     }
 
