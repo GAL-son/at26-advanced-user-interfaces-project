@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
-import { TableRow, TableCell, Box, Tooltip } from '@mui/material';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import { TableCell, Box } from '@mui/material';
 import { RaceResultExtended } from '../../(routes)/events/page';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
@@ -27,19 +26,23 @@ export default function ResultListItem({ row }: ResultListItemProps) {
 
   const isGain = row.eloChange >= 0;
 
-  const getPositionStyles = (pos: number) => {
-    if (pos === 1) return "!text-brand-yellow font-black bg-brand-yellow/10 dark:bg-brand-yellow/5";
-    if (pos === 2) return "!text-race-silver font-bold bg-brand-navy-light/50";
-    if (pos === 3) return "!text-race-bronze font-bold bg-race-bronze/10";
-    return "!text-brand-muted font-medium";
-  };
-
   return (
     <PositionedTableRow position={row.pos} onClick={handleTableRowClick}>
+      {/* NAZWA KIEROWCY */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
-          {/* Dodano wykrzyknik, aby zbić domyślny kolor z MUI */}
-          <span className="font-semibold tracking-wide !text-brand-muted group-hover:!text-brand-yellow transition-colors">
+          <span 
+            className="font-semibold tracking-wide transition-colors duration-200"
+            style={{ 
+              // Domyślnie stonowany kolor, na hover całego wiersza (dzięki klasie group) zmienia się w złoty/żółty
+              color: 'var(--color-brand-text-muted)' 
+            }}
+            sx={{
+              '.group:hover &': {
+                color: 'var(--color-brand-yellow-hover) !important'
+              }
+            }}
+          >
             {row.name}
           </span>
           
@@ -52,46 +55,72 @@ export default function ResultListItem({ row }: ResultListItemProps) {
       {/* ZMIANA ELO */}
       <TableCell>
         <Box className="flex items-center gap-2 font-mono text-sm">
-          {/* Dodano wykrzyknik, aby przebić style MUI */}
-          <span className="!text-brand-muted font-medium">{row.eloAfter}</span>
-          
-          <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-bold border ${
-            isGain 
-              ? 'bg-elo-gain/10 !text-elo-gain border-elo-gain/20' 
-              : 'bg-elo-loss/10 !text-elo-loss border-elo-loss/20'
-          }`}>
-            {isGain ? `+${row.eloChange}` : row.eloChange}
+          <span style={{ color: 'var(--color-brand-text)' }}>
+            {row.eloAfter}
           </span>
+          
+          <Box 
+            component="span" 
+            className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold border"
+            sx={{
+              backgroundColor: isGain 
+                ? 'color-mix(in srgb, var(--color-elo-gain) 10%, transparent)' 
+                : 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
+              color: isGain 
+                ? 'var(--color-elo-gain)' 
+                : 'var(--color-elo-loss)',
+              borderColor: isGain 
+                ? 'color-mix(in srgb, var(--color-elo-gain) 20%, transparent)' 
+                : 'color-mix(in srgb, var(--color-elo-loss) 20%, transparent)',
+            }}
+          >
+            {isGain ? `+${row.eloChange}` : row.eloChange}
+          </Box>
         </Box>
       </TableCell>
 
       {/* SAMOCHÓD */}
-      {/* Dodano wykrzyknik: !text-brand-muted/80 */}
-      <TableCell className="!text-brand-muted/80 font-medium text-xs tracking-wide uppercase">
+      <TableCell 
+        className="font-medium text-xs tracking-wide uppercase"
+        style={{ color: 'var(--color-brand-text-muted)' }}
+      >
         {row.car}
       </TableCell>
 
       {/* OKRĄŻENIA */}
-      {/* Dodano wykrzyknik: !text-brand-muted */}
-      <TableCell className="!text-brand-muted font-mono text-center">
+      <TableCell 
+        className="font-mono text-center"
+        style={{ color: 'var(--color-brand-text-muted)' }}
+      >
         {row.laps}
       </TableCell>
 
       {/* CZAS ŁĄCZNY */}
-      {/* Dodano wykrzyknik: !text-brand-muted */}
-      <TableCell className="!text-brand-muted font-mono font-medium">
+      <TableCell 
+        className="font-mono font-medium"
+        style={{ color: 'var(--color-brand-text)' }}
+      >
         {formatTime(row.totalTime)}
       </TableCell>
 
-      {/* STRATA (GAP) */}
-      {/* Dodano wykrzyknik: !text-brand-muted */}
-      <TableCell className="!text-brand-muted font-mono text-xs">
+      {/* STRATA (GAP) / WINNER */}
+      <TableCell className="font-mono text-xs">
         {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
-          <span className="!text-brand-yellow font-semibold text-[10px] uppercase tracking-wider bg-brand-yellow/10 px-1.5 py-0.5 rounded border border-brand-yellow/20">
+          <Box 
+            component="span"
+            className="font-semibold text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border"
+            sx={{
+              color: 'var(--color-brand-yellow-text)',
+              backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--color-brand-yellow) 20%, transparent)',
+            }}
+          >
             Winner
-          </span>
+          </Box>
         ) : (
-          `${row.gap}`
+          <span style={{ color: 'var(--color-brand-text-muted)' }}>
+            {row.gap}
+          </span>
         )}
       </TableCell>
     </PositionedTableRow>

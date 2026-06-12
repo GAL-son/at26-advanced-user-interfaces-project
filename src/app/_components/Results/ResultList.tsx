@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, 
-  TableRow, TableSortLabel, Box 
+  TableRow, TableSortLabel 
 } from '@mui/material';
 import { RaceResultExtended } from '../../(routes)/events/page';
 import ResultListItem from './ResultListItem';
@@ -38,82 +38,82 @@ export default function ResultList({ results }: ResultListProps) {
     });
   }, [results, orderBy, order]);
 
-  // Klasy pomocnicze dla nagłówków, aby wymusić styl na MUI
-  const headerCellClass = "!text-slate-400 !font-bold text-xs uppercase tracking-wider py-3.5 border-b border-brand-navy-light/60";
-
   return (
     <TableContainer 
-      className="bg-brand-navy-dark border border-brand-navy-light/40 rounded-xl overflow-hidden shadow-2xl shadow-black/40"
+      className="rounded-xl overflow-hidden shadow-xl"
+      sx={{
+        backgroundColor: 'var(--color-brand-navy-dark)',
+        border: '1px solid var(--color-brand-navy-light)',
+        transition: 'background-color 0.3s ease, border-color 0.3s ease',
+      }}
     >
       <Table aria-label="Race results table with ELO changes">
-        <TableHead className="bg-brand-navy">
+        <TableHead 
+          sx={{ 
+            backgroundColor: 'var(--color-brand-navy)',
+            transition: 'background-color 0.3s ease',
+          }}
+        >
           <TableRow>
             
             {/* POSITION (Sortable) */}
-            <TableCell className={`${headerCellClass} w-20 text-center`}>
+            <TableCell 
+              className="w-20 text-center py-3.5"
+              sx={{ ...headerCellSx }}
+            >
               <TableSortLabel
                 active={orderBy === 'pos'}
                 direction={orderBy === 'pos' ? order : 'asc'}
                 onClick={() => handleSort('pos')}
                 aria-label="Sort by position"
-                sx={{
-                  color: 'inherit !important',
-                  '& .MuiTableSortLabel-icon': {
-                    color: '#fff200 !important', // Kolor strzałki sortowania (nasz żółty)
-                  },
-                }}
+                sx={sortLabelSx}
               >
                 Pos
               </TableSortLabel>
             </TableCell>
 
             {/* DRIVER */}
-            <TableCell className={headerCellClass}>
+            <TableCell className="py-3.5" sx={headerCellSx}>
               Driver
             </TableCell>
 
             {/* ELO CHANGE (Sortable) */}
-            <TableCell className={headerCellClass}>
+            <TableCell className="py-3.5" sx={headerCellSx}>
               <TableSortLabel
                 active={orderBy === 'eloChange'}
                 direction={orderBy === 'eloChange' ? order : 'asc'}
                 onClick={() => handleSort('eloChange')}
                 aria-label="Sort by ELO change"
-                sx={{
-                  color: 'inherit !important',
-                  '& .MuiTableSortLabel-icon': {
-                    color: '#fff200 !important',
-                  },
-                }}
+                sx={sortLabelSx}
               >
                 Rating
               </TableSortLabel>
             </TableCell>
 
             {/* CAR */}
-            <TableCell className={headerCellClass}>
+            <TableCell className="py-3.5" sx={headerCellSx}>
               Car
             </TableCell>
 
             {/* LAPS */}
-            <TableCell className={`${headerCellClass} text-center`}>
+            <TableCell className="text-center py-3.5" sx={headerCellSx}>
               Laps
             </TableCell>
 
             {/* TOTAL TIME */}
-            <TableCell className={headerCellClass}>
+            <TableCell className="py-3.5" sx={headerCellSx}>
               Total Time
             </TableCell>
 
             {/* GAP */}
-            <TableCell className={headerCellClass}>
+            <TableCell className="py-3.5" sx={headerCellSx}>
               Gap
             </TableCell>
 
           </TableRow>
         </TableHead>
         
-        <TableBody className="divide-y divide-brand-navy-light/20">
+        <TableBody>
           {sortedResults.map((row) => (
             <ResultListItem key={row.name} row={row} />
           ))}
@@ -122,3 +122,29 @@ export default function ResultList({ results }: ResultListProps) {
     </TableContainer>
   );
 }
+
+// 📌 Style współdzielone dla komórek nagłówka (reagujące na motyw)
+const headerCellSx = {
+  color: 'var(--color-brand-text-muted) !important',
+  fontSize: '0.75rem',
+  fontWeight: 'bold',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  borderBottom: '1px solid var(--color-brand-navy-light)',
+};
+
+// 📌 Style dla etykiet sortowania i dynamicznego dopasowania koloru strzałki
+const sortLabelSx = {
+  color: 'inherit !important',
+  '&:hover': {
+    color: 'var(--color-brand-text) !important',
+  },
+  '&.Mui-active': {
+    color: 'var(--color-brand-text) !important',
+  },
+  '& .MuiTableSortLabel-icon': {
+    // Dynamiczny kolor strzałki reagujący na tryb jasny (ciemny złoty) i ciemny (jaskrawy żółty)
+    color: 'var(--color-brand-yellow-text) !important', 
+    opacity: '0.8 !important',
+  },
+};

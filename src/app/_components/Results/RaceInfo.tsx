@@ -29,14 +29,18 @@ export default function RaceInfo({ info }: RaceInfoProps) {
       elevation={0}
       component="section"
       aria-labelledby="race-info-title"
+      className="group border-l-4 rounded-r-xl overflow-hidden shadow-xl"
       sx={{ 
         p: 0, 
         mb: 4, 
         backgroundImage: 'none',
-        backgroundColor: 'transparent' 
+        backgroundColor: 'var(--color-brand-navy-dark)',
+        borderTop: '1px solid var(--color-brand-navy-light)',
+        borderRight: '1px solid var(--color-brand-navy-light)',
+        borderBottom: '1px solid var(--color-brand-navy-light)',
+        borderLeftColor: 'var(--color-brand-yellow)', // Stały, złoty akcent po lewej stronie
+        transition: 'all 0.3s ease',
       }}
-      // Zmieniono: border-brand-navy-light dopasuje się do jasnej/ciemnej ramki
-      className="bg-brand-navy-dark border-l-4 border-brand-yellow rounded-r-xl border-y border-r border-brand-navy-light overflow-hidden shadow-xl"
     >
       <Box className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         
@@ -46,14 +50,17 @@ export default function RaceInfo({ info }: RaceInfoProps) {
             id="race-info-title"
             variant="h4"
             component="h1"
-            // Zmieniono: !text-brand-muted (zamiast !text-slate-100) - da ciemny navy/szary w jasnym i jasny w ciemnym
-            className="!text-brand-muted !font-black tracking-tight uppercase text-2xl sm:text-3xl"
+            className="font-black tracking-tight uppercase text-2xl sm:text-3xl"
+            sx={{ color: 'var(--color-brand-text)' }} // Główny tekst (Slate 900 w light / Slate 50 w dark)
           >
             {info.eventName || "Unnamed Event"}
           </Typography>
           
-          <Box className="flex items-center gap-2 text-brand-yellow font-mono text-sm uppercase tracking-wider font-semibold">
-            <FlagIcon sx={{ fontSize: '1.2rem' }} />
+          <Box 
+            className="flex items-center gap-2 font-mono text-sm uppercase tracking-wider font-semibold"
+            sx={{ color: 'var(--color-brand-yellow-text)' }} // Bezpieczny żółty dla tekstu
+          >
+            <FlagIcon sx={{ fontSize: '1.2rem', color: 'var(--color-brand-yellow-hover)' }} />
             <span>Track: {readableTrack}</span>
           </Box>
         </Box>
@@ -62,38 +69,89 @@ export default function RaceInfo({ info }: RaceInfoProps) {
         <Box className="flex flex-wrap md:flex-nowrap gap-4 items-stretch">
           
           {/* Kafelek: Data */}
-          <Box className="bg-brand-navy/40 border border-brand-navy-light rounded-lg p-3 flex items-center gap-3 min-w-[200px]">
-            {/* Zmieniono: text-brand-muted/80 (zamiast text-slate-400) */}
-            <Box className="p-2 bg-brand-navy-light/50 rounded text-brand-muted/80">
+          <Box 
+            className="rounded-lg p-3 flex items-center gap-3 min-w-[200px]"
+            sx={{
+              backgroundColor: 'var(--color-brand-navy)',
+              border: '1px solid var(--color-brand-navy-light)',
+            }}
+          >
+            <Box 
+              className="p-2 rounded" 
+              sx={{ 
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-text-muted) 12%, transparent)',
+                color: 'var(--color-brand-text-muted)' 
+              }}
+            >
               <CalendarTodayIcon fontSize="small" />
             </Box>
             <Box className="flex flex-col">
-              <span className="text-[10px] !text-brand-muted/60 uppercase tracking-widest font-bold">Race Date</span>
-              {/* Zmieniono: !text-brand-muted */}
-              <span className="!text-brand-muted text-sm font-medium font-mono">{formattedDate}</span>
+              <span 
+                className="text-[10px] uppercase tracking-widest font-bold"
+                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              >
+                Race Date
+              </span>
+              <span 
+                className="text-sm font-medium font-mono"
+                style={{ color: 'var(--color-brand-text)' }}
+              >
+                formattedDate
+              </span>
             </Box>
           </Box>
 
           {/* Kafelek: Serwer */}
-          <a 
+          <Box
+            component="a" 
             href={serverUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Join server: ${info.server}`}
-            className="bg-brand-navy/40 border border-brand-navy-light hover:border-brand-yellow/40 rounded-lg p-3 flex items-center gap-3 min-w-[200px] transition-all group"
+            className="rounded-lg p-3 flex items-center gap-3 min-w-[200px] transition-all no-underline"
+            sx={{
+              backgroundColor: 'var(--color-brand-navy)',
+              border: '1px solid var(--color-brand-navy-light)',
+              '&:hover': {
+                borderColor: 'var(--color-brand-yellow-hover)',
+              },
+              // Selektory hover dla dzieci kafelka (efekt 'group-hover' w czystym CSS)
+              '&:hover .server-icon': {
+                color: 'var(--color-brand-yellow-text)',
+              },
+              '&:hover .server-title': {
+                color: 'var(--color-brand-yellow-text)',
+              },
+              '&:hover .server-link': {
+                color: 'var(--color-brand-text)',
+                textDecoration: 'underline',
+              }
+            }}
           >
-            {/* Zmieniono: text-brand-muted/80 */}
-            <Box className="p-2 bg-brand-navy-light/50 rounded text-brand-muted/80 group-hover:!text-brand-yellow transition-colors">
+            <Box 
+              className="p-2 rounded server-icon transition-colors duration-200" 
+              sx={{ 
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-text-muted) 12%, transparent)',
+                color: 'var(--color-brand-text-muted)' 
+              }}
+            >
               <DnsIcon fontSize="small" />
             </Box>
-            <Box className="flex flex-col">
-              <span className="text-[10px] !text-brand-muted/60 uppercase tracking-widest font-bold group-hover:!text-brand-yellow transition-colors">Server Status</span>
-              {/* Zmieniono: !text-brand-muted/90 */}
-              <span className="!text-brand-muted/90 text-xs font-mono truncate max-w-[150px] group-hover:underline">
+            <Box className="flex flex-col truncate">
+              <span 
+                className="text-[10px] uppercase tracking-widest font-bold server-title transition-colors duration-200"
+                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              >
+                Server Status
+              </span>
+              <span 
+                className="text-xs font-mono truncate max-w-[150px] server-link transition-colors duration-200"
+                style={{ color: 'var(--color-brand-text-muted)' }}
+              >
                 {info.server}
               </span>
             </Box>
-          </a>
+          </Box>
 
         </Box>
       </Box>

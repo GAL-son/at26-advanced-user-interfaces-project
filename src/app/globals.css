@@ -2,40 +2,93 @@
 
 /* 1. Rejestracja nazw zmiennych i motyw domyślny (jasny) */
 @theme {
-  --color-brand-navy: #f8fafc;         
-  --color-brand-navy-dark: #ffffff;    
-  --color-brand-navy-light: #e2e8f0;   
-  --color-brand-muted: #64748b;        
-  
-  --color-brand-yellow: #eab308;       
-  --color-brand-yellow-hover: #ca8a04;
+  /* Tła i bazy (Semantyczne odpowiedniki) */
+  --color-brand-navy: #f8fafc; /* Jasne tło główne */
+  --color-brand-navy-dark: #ffffff; /* Tło paneli/kart (w light mode białe) */
+  --color-brand-navy-light: #e2e8f0; /* Borders / Delikatne sekcje */
 
-  --color-race-gold: #d97706;          
+  /* BRAKUJĄCE: Domyślne kolory tekstów (Foregrounds) */
+  --color-brand-text: #0f172a; /* Główny tekst (Slate 900) */
+  --color-brand-text-muted: #475569; /* Tekst pomocniczy (Slate 600 dla lepszego kontrastu) */
+
+  /* Kolory funkcyjne i ich bezpieczne warianty tekstowe */
+  --color-brand-yellow: #eab308;
+  --color-brand-yellow-hover: #ca8a04;
+  --color-brand-yellow-text: #854d0e; /* NOWOŚĆ: Ciemny żółty do tekstu na jasnym tle */
+
+  --color-race-gold: #d97706;
+  --color-race-gold-text: #b45309; /* NOWOŚĆ: Czytelne złoto do tekstu */
   --color-race-silver: #475569;
   --color-race-bronze: #b45309;
-  
-  --color-elo-gain: #15803d;           
-  --color-elo-loss: #b91c1c;         
-  --radius-brand-card: 12px;  
+
+  --color-elo-gain: #15803d;
+  --color-elo-loss: #b91c1c;
+
+  --color-streak-bg: #fff7ed; /* Bardzo jasny pomarańczowy (Orange 50) */
+  --color-streak-border: #ffedd5; /* Delikatna ramka pomarańczowa (Orange 100) */
+  --color-streak-text: #c2410c;
+
+  --radius-brand-card: 12px;
 }
 
 /* 2. Mapowanie dla trybu ciemnego na podstawie atrybutu HTML */
 @layer base {
+  html, 
+  body, 
+  body *, 
+  .MuiBox-root, 
+  .MuiTableCell-root, 
+  .MuiTableRow-root, 
+  .MuiButtonBase-root,
+  .MuiInputBase-root,
+  fieldset {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 300ms !important; /* Tutaj ustawiasz swój globalny czas */
+  }
+
   html[data-mui-color-scheme="dark"] {
-    --color-brand-navy: #0b1224;        
-    --color-brand-navy-dark: #070b16;   
-    --color-brand-navy-light: #17223b;  
-    --color-brand-muted: #94a3b8;     
-    
-    --color-brand-yellow: #fff200;      
+    /* Tła i bazy */
+    --color-brand-navy: #0b1224;
+    --color-brand-navy-dark: #070b16;
+    --color-brand-navy-light: #17223b;
+
+    /* Nadpisanie tekstów dla ciemnego motywu */
+    --color-brand-text: #f8fafc; /* Główny tekst (Slate 50) */
+    --color-brand-text-muted: #94a3b8; /* Tekst pomocniczy (Slate 400) */
+
+    /* Kolory funkcyjne w dark mode mogą być jasne i jaskrawe */
+    --color-brand-yellow: #fff200;
     --color-brand-yellow-hover: #e6da00;
+    --color-brand-yellow-text: #fff200;
 
     --color-race-gold: #ffd700;
+    --color-race-gold-text: #ffd700;
+
+    /* NADPISANIE DLA SREBRA I BRĄZU (DARK MODE) */
     --color-race-silver: #cbd5e1;
+    --color-race-silver-text: #e2e8f0;
+    --color-race-silver-bg: #1e293b;
     --color-race-bronze: #cd7f32;
-    
-    --color-elo-gain: #10b981;          
-    --color-elo-loss: #f43f5e;          
+    --color-race-bronze-text: #ffedd5;
+    --color-race-bronze-bg: #431407; /* Delikatne pomarańczowo-brązowe tło */
+
+    --color-elo-gain: #15803d;
+    --color-elo-loss: #b91c1c;
+
+    --color-streak-bg: #2a1405; /* Głębokie, ciemne tło pomarańczowe */
+    --color-streak-border: #451a03; /* Ciemniejsza ramka idealna na ciemny granat */
+    --color-streak-text: #f97316;
+
+    --radius-brand-card: 12px; /* Jaśniejsza, bardziej neonowa czerwień/róż */
+  }
+
+  /* Globalne przypisanie domyślnych kolorów tekstu i tła */
+  body {
+    background-color: var(--color-brand-navy);
+    color: var(--color-brand-text);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 }
-

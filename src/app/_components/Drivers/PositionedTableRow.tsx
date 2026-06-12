@@ -1,40 +1,75 @@
-// src/app/_components/PositionedTableRow.tsx
-
 "use client";
 import React from 'react';
-import { Box, TableCell, TableRow } from '@mui/material';
+import { TableCell, TableRow } from '@mui/material';
 
 interface PositionedTableRowProps {
     displayPosition?: boolean;
     position: number;
     children: React.ReactNode;
-    onClick?: () => void; // Dodajemy propsa onClick
+    onClick?: () => void;
 }
 
 export default function PositionedTableRow({ displayPosition = true, position, children, onClick }: PositionedTableRowProps) {
-    const getPositionStyles = (pos: number) => {
-        if (pos === 1) return "!text-brand-yellow font-black bg-brand-yellow/10 dark:bg-brand-yellow/5";
-        if (pos === 2) return "!text-race-silver font-bold bg-brand-navy-light/50";
-        if (pos === 3) return "!text-race-bronze font-bold bg-race-bronze/10";
-        return "!text-brand-muted font-medium";
+    
+    const getPositionSxStyles = (pos: number) => {
+        if (pos === 1) {
+            return {
+                color: 'var(--color-brand-yellow-text)',
+                fontWeight: 900,
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)',
+            };
+        }
+        if (pos === 2) {
+            return {
+                color: 'var(--color-race-silver-text)',
+                fontWeight: 700,
+                backgroundColor: 'var(--color-race-silver-bg)',
+            };
+        }
+        if (pos === 3) {
+            return {
+                color: 'var(--color-race-bronze-text)',
+                fontWeight: 700,
+                backgroundColor: 'var(--color-race-bronze-bg)',
+            };
+        }
+        return {
+            color: 'var(--color-brand-text-muted)',
+            fontWeight: 500,
+        };
     };
-
-    const positionStyles = getPositionStyles(position);
 
     return (
         <TableRow
+            onClick={onClick}
+            className="group cursor-pointer"
             sx={{
-                '&:hover': {
-                    backgroundColor: 'var(--color-brand-navy-light) !important'
-                },
+                backgroundColor: 'var(--color-brand-navy-dark)',
+                borderBottom: '1px solid var(--color-brand-navy-light)',
                 transition: 'background-color 0.15s ease',
+                
+                // ROZWIĄZANIE: Usuwamy domyślny border MUI dla WSZYSTKICH komórek w tym wierszu
+                '& .MuiTableCell-root': {
+                    borderBottom: 'none',
+                },
+                
+                // Efekt hover bezpieczny dla obu trybów wyświetlania
+                '&:hover': {
+                    backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 4%, var(--color-brand-navy-dark)) !important'
+                },
             }}
-            className="group bg-brand-navy-dark border-b border-brand-navy-light"
-            onClick={onClick} // Dodajemy obsługę zdarzenia onClick
         >
-            {displayPosition && (<TableCell className={`text-center w-16 ${getPositionStyles(position)}`}>
-                <span className="text-lg tabular-nums">{position}</span>
-            </TableCell>)}
+            {displayPosition && (
+                <TableCell 
+                    className="text-center w-16"
+                    sx={{
+                        ...getPositionSxStyles(position),
+                        // borderBottom: 'none' -> już niepotrzebne, bo załatwia to selektor wyżej
+                    }}
+                >
+                    <span className="text-lg tabular-nums">{position}</span>
+                </TableCell>
+            )}
 
             {children}
         </TableRow>

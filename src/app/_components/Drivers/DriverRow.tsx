@@ -52,19 +52,22 @@ export default function DriverRow({ driver, usePosition = true}: DriverRowProps)
     <PositionedTableRow 
       position={driver.position} 
       onClick={handleTableRowClick}
-      className="cursor-pointer hover:bg-white/5 transition-colors" // Opcjonalny, ładny hover
+      /* POPRAWKA: Zamiana hover:bg-white/5 na delikatny, uniwersalny hover oparty o navy-light */
+      className="cursor-pointer hover:bg-brand-navy-light/30 transition-colors group"
     >
         <TableCell className="py-0 h-full">
           <div className="flex flex-col justify-center h-[48px] max-w-md">
             <div className="flex items-center gap-2">
-              <span className="font-semibold !text-brand-muted group-hover:!text-brand-yellow transition-colors text-base leading-tight">
+              {/* POPRAWKA: Główny tekst na bazie brand-text, a hover dynamicznie reaguje na brand-yellow */}
+              <span className="font-semibold !text-brand-text group-hover:!text-brand-yellow-hover transition-colors text-base leading-tight">
                 {driver.mainName}
               </span>
               <ComboBadge combo={driver.combo} />
             </div>
 
             {driver.altNames && driver.altNames !== driver.mainName && (
-              <div className="text-xs !text-brand-muted/60 mt-0.5 truncate leading-none">
+              /* POPRAWKA: Zamiana !text-brand-muted/60 na semantyczny text-brand-text-muted */
+              <div className="text-xs !text-brand-text-muted mt-0.5 truncate leading-none">
                 Aliases: {driver.altNames}
               </div>
             )}
@@ -72,16 +75,19 @@ export default function DriverRow({ driver, usePosition = true}: DriverRowProps)
         </TableCell>
 
         {/* RACES COUNT */}
-        <TableCell align="center" className="!text-brand-muted font-mono font-medium">
+        {/* POPRAWKA: Zamiana !text-brand-muted na !text-brand-text */}
+        <TableCell align="center" className="!text-brand-text font-mono font-medium">
           {driver.racesCount}
         </TableCell>
 
         {/* LAST ACTIVE */}
-        <TableCell align="center" className="!text-brand-muted/80 text-sm font-medium">
+        {/* POPRAWKA: Zastąpienie przezroczystości przez !text-brand-text-muted */}
+        <TableCell align="center" className="!text-brand-text-muted text-sm font-medium">
           {formatLastRaced(driver.lastRaced)}
         </TableCell>
 
         {/* ELO RATING */}
+        {/* UWAGA: Jeśli to ogólny widok rankingu, elo-gain jest ok, ale jeśli tekst ma być po prostu czytelny na jasnym tle, upewnij się, że zielony z palety spełnia normy WCAG. W razie problemów zmień na !text-brand-text */}
         <TableCell align="right" className="!text-elo-gain font-mono font-bold text-lg">
           {typeof driver.currentElo === 'number' ? driver.currentElo.toFixed(0) : '0'}
         </TableCell>
