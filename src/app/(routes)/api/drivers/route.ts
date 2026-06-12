@@ -30,6 +30,8 @@ export async function GET(request: Request) {
             orderBy = { mainName: 'asc' };
         } else if (sortBy === 'races') {
             orderBy = { raceResult: { _count: 'desc' } };
+        } else if (sortBy === 'combo') { // <--- NOWY WARUNEK
+            orderBy = { combo: 'desc' };
         } else {
             orderBy = { currentElo: 'desc' };
         }

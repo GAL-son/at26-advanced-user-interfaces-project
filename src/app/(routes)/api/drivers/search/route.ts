@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         // Mapowanie na prosty format wyjściowy (nazwa i guid)
         const results = matchedDrivers.map(driver => ({
             guid: driver.guid,
-            name: driver.mainName,
+            mainName: driver.mainName,
             currentElo: driver.currentElo,
         }));
 

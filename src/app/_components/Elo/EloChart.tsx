@@ -12,15 +12,16 @@ import {
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EventDot from "@/app/_components/Elo/EventDot";
 import EventTooltip from "@/app/_components/Elo/EventTooltip";
-import { Box } from "@mui/material";
+import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
+import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import { useRouter } from "next/navigation";
 
-// Uaktualniona paleta kolorów linii: zbalansowana pod kątem jasnego i ciemnego tła
 const DRIVER_COLORS = [
-  "var(--color-brand-yellow-hover)", // Głęboki złoty/żółty
-  "#2563eb", // Stabilny niebieski (Blue 600)
-  "#dc2626", // Stabilny czerwony (Red 600)
-  "#059669", // Stabilny szmaragdowy (Emerald 600)
-  "#7c3aed", // Stabilny fioletowy (Purple 600)
+  "var(--color-brand-yellow-hover)",
+  "#2563eb",
+  "#dc2626",
+  "#059669",
+  "#7c3aed",
 ];
 
 interface RaceDataPoint {
@@ -42,19 +43,20 @@ interface DriverGroup {
 
 interface EloChartProps {
   guids: string[];
+  isComparable?: boolean; // NOWY PARAMETR
 }
 
-export default function EloChart({ guids }: EloChartProps) {
+export default function EloChart({ guids, isComparable = false }: EloChartProps) {
+  const router = useRouter();
   const [chartData, setChartData] = useState<any[]>([]);
-  const [driversMeta, setDriversMeta] = useState<
-    { guid: string; name: string; color: string }[]
-  >([]);
+  const [driversMeta, setDriversMeta] = useState<{ guid: string; name: string; color: string }[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [tooltipPos, setTooltipPos] = useState<
-    { x: number; y: number } | undefined
-  >(undefined);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | undefined>(undefined);
+
+  // STAN WSKAŹNIKÓW PRZEWIJANIA (GRADIENTY)
+  const [scrollMasks, setScrollMasks] = useState({ left: false, right: false });
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
@@ -63,6 +65,19 @@ export default function EloChart({ guids }: EloChartProps) {
   const isLoadingRef = useRef(false);
 
   const guidsString = guids.join(",");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // LOGIKA AKTUALIZACJI GRADIENTÓW
+  const updateScrollMasks = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+
+    setScrollMasks({
+      left: scrollLeft > 5,
+      right: Math.ceil(scrollLeft + clientWidth) < scrollWidth - 5,
+    });
+  };
 
   useEffect(() => {
     if (!isMounted.current) {
@@ -85,9 +100,7 @@ export default function EloChart({ guids }: EloChartProps) {
       setLoading(true);
 
       try {
-        const res = await fetch(
-          `/api/elo?guids=${guidsString}&page=${page}&limit=50`,
-        );
+        const res = await fetch(`/api/elo?guids=${guidsString}&page=${page}&limit=50`);
         const result = await res.json();
 
         if (!isCurrent) return;
@@ -151,12 +164,14 @@ export default function EloChart({ guids }: EloChartProps) {
               isResettingScroll.current = true;
 
               el.scrollLeft = el.scrollWidth;
+              updateScrollMasks();
               setTimeout(() => {
                 isResettingScroll.current = false;
               }, 150);
             } else {
               const deltaWidth = el.scrollWidth - previousScrollWidth;
               el.scrollLeft = previousScrollLeft + deltaWidth;
+              updateScrollMasks();
             }
           }, 50);
         }
@@ -179,15 +194,10 @@ export default function EloChart({ guids }: EloChartProps) {
   }, [page, guidsString]);
 
   const handleScroll = () => {
-    const container = scrollContainerRef.current;
+    updateScrollMasks();
 
-    if (
-      !container ||
-      isLoadingRef.current ||
-      !hasMore ||
-      isResettingScroll.current
-    )
-      return;
+    const container = scrollContainerRef.current;
+    if (!container || isLoadingRef.current || !hasMore || isResettingScroll.current) return;
     if (container.scrollWidth <= container.clientWidth) return;
 
     if (container.scrollLeft <= 50) {
@@ -207,12 +217,15 @@ export default function EloChart({ guids }: EloChartProps) {
   const calculatedWidth = Math.max(800, chronologicalData.length * 65);
 
   const allEloValues = chartData.flatMap((point) =>
-    guids
-      .map((guid) => point[`elo_${guid}`])
-      .filter((val) => val !== undefined),
+    guids.map((guid) => point[`elo_${guid}`]).filter((val) => val !== undefined)
   );
   const yMin = allEloValues.length ? Math.min(...allEloValues) - 40 : 900;
   const yMax = allEloValues.length ? Math.max(...allEloValues) + 40 : 1200;
+
+  // Funkcja obsługująca przekierowanie do porównywarki
+  const handleCompareClick = () => {
+    router.push(`/drivers/compare?guids=${guidsString}`);
+  };
 
   return (
     <Box
@@ -225,85 +238,108 @@ export default function EloChart({ guids }: EloChartProps) {
     >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
-          <h2
-            className="text-lg font-bold uppercase tracking-wider"
-            style={{ color: "var(--color-brand-text)" }} // Poprawiono kontrast tytułu
-          >
-            {guids.length > 1
-              ? "ELO Comparison Graph"
-              : "ELO Performance Graph"}
+          <h2 className="text-lg font-bold uppercase tracking-wider text-[var(--color-brand-text)]">
+            {guids.length > 1 ? "ELO Comparison Graph" : "ELO Performance Graph"}
           </h2>
-          <p
-            className="text-xs font-mono"
-            style={{ color: "var(--color-brand-text-muted)", opacity: 0.7 }}
-          >
+          <p className="text-xs font-mono text-[var(--color-brand-text-muted)] opacity-70">
             ← Scroll left to load older competitive history
           </p>
         </div>
 
-        {/* LEGENDA KIEROWCÓW */}
-        {driversMeta.length > 1 && (
-          <Box
-            className="flex flex-wrap gap-3 p-2 rounded"
-            sx={{
-              backgroundColor: "var(--color-brand-navy)",
-              border: "1px solid var(--color-brand-navy-light)",
-            }}
-          >
-            {driversMeta.map((m) => (
-              <div
-                key={m.guid}
-                className="flex items-center gap-2 font-mono text-xs"
-              >
-                <span
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: m.color }}
-                />
-                <span
-                  className="font-bold"
-                  style={{ color: "var(--color-brand-text)" }}
-                >
-                  {m.name}
-                </span>
-              </div>
-            ))}
-          </Box>
-        )}
+        {/* GRUPA KONTROLEK Z LEGENDA I PRZYCISKIEM */}
+        <div className="flex flex-wrap items-center gap-3">
+          {driversMeta.length > 0 && (
+            <Box
+              className="flex flex-wrap gap-3 p-2 rounded"
+              sx={{
+                backgroundColor: "var(--color-brand-navy)",
+                border: "1px solid var(--color-brand-navy-light)",
+              }}
+            >
+              {driversMeta.map((m) => (
+                <div key={m.guid} className="flex items-center gap-2 font-mono text-xs">
+                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
+                  <span className="font-bold text-[var(--color-brand-text)]">{m.name}</span>
+                </div>
+              ))}
+            </Box>
+          )}
+
+          {/* DYNAMICZNY PRZYCISK PORÓWNANIA */}
+          {isComparable && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<CompareArrowsIcon />}
+              onClick={handleCompareClick}
+              sx={{
+                borderColor: "var(--color-brand-navy-light)",
+                color: "var(--color-brand-text)",
+                fontFamily: "monospace",
+                fontSize: "12px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                backgroundColor: "var(--color-brand-navy)",
+                "&:hover": {
+                  borderColor: "var(--color-brand-yellow-hover)",
+                  backgroundColor: "color-mix(in srgb, var(--color-brand-yellow-hover) 8%, transparent)",
+                },
+              }}
+            >
+              Compare
+            </Button>
+          )}
+        </div>
 
         {loading && <LoadingSpinner text="Syncing timeline..." />}
       </div>
 
-      {/* GLÓWNY KONTENER WYKRESU */}
+      {/* GŁÓWNY KONTENER WYKRESU Z ABSOLUTNYMI GRADIENTAMI */}
       <Box
-        className="relative flex rounded-lg p-4 overflow-hidden"
+        className="relative flex rounded-lg p-2 overflow-hidden"
         sx={{
           backgroundColor: "var(--color-brand-navy)",
           border: "1px solid var(--color-brand-navy-light)",
         }}
       >
-        {/* LEWA, PRZYPIĘTA OŚ Y */}
+        {/* GRADIENT LEWY */}
+        {scrollMasks.left && (
+          <Box
+            className="absolute top-0 bottom-0 z-20 pointer-events-none w-12"
+            sx={{
+              left: "48px",
+              background: "linear-gradient(to right, var(--color-brand-navy), transparent)"
+            }}
+          />
+        )}
+
+        {/* GRADIENT PRAWY */}
+        {scrollMasks.right && (
+          <Box
+            className="absolute top-0 bottom-0 right-0 z-20 pointer-events-none w-12"
+            sx={{
+              background: "linear-gradient(to left, var(--color-brand-navy), transparent)"
+            }}
+          />
+        )}
+
+        {/* LEWA OŚ Y */}
         <Box
-          className="w-16 h-[340px] flex-shrink-0 z-10 select-none"
+          className="w-12 h-[340px] flex-shrink-0 z-30 select-none"
           sx={{
-            backgroundColor: "var(--color-brand-navy-dark)",
+            backgroundColor: "var(--color-brand-navy)",
             borderRight: "1px solid var(--color-brand-navy-light)",
           }}
         >
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-            <LineChart
-              data={chronologicalData}
-              margin={{ top: 15, right: 0, left: 5, bottom: 25 }}
-            >
+            <LineChart data={chronologicalData} margin={{ top: 15, right: 0, left: 0, bottom: 25 }}>
               <XAxis dataKey="eventId" hide />
               <YAxis
+                type="number"
                 domain={[yMin, yMax]}
-                width={45}
-                stroke="transparent" // Ukrywamy samą pionową kreskę osi, zostawiając jedynie czytelne cyfry ELO
-                tick={{
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  fill: "var(--color-brand-text-muted)",
-                }}
+                width={40}
+                stroke="transparent"
+                tick={{ fontFamily: "monospace", fontSize: 10, fill: "var(--color-brand-text-muted)" }}
               />
               {guids.map((guid) => (
                 <Line
@@ -324,13 +360,13 @@ export default function EloChart({ guids }: EloChartProps) {
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="w-full min-w-0 overflow-x-auto overflow-y-hidden"
+          className="w-full min-w-0 overflow-x-auto overflow-y-hidden z-10"
         >
           <div style={{ width: `${calculatedWidth}px`, height: "340px" }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart
                 data={chronologicalData}
-                margin={{ top: 15, right: 20, left: 10, bottom: 5 }}
+                margin={{ top: 15, right: 10, left: 0, bottom: 5 }}
                 onMouseMove={(e) => {
                   if (e && e.activeCoordinate) {
                     const { x, y } = e.activeCoordinate;
@@ -359,39 +395,23 @@ export default function EloChart({ guids }: EloChartProps) {
                     if (targetY < 10) {
                       targetY = y + 20;
                     }
-                    targetY = Math.max(
-                      10,
-                      Math.min(targetY, chartHeight - tooltipHeight - 10),
-                    );
+                    targetY = Math.max(10, Math.min(targetY, chartHeight - tooltipHeight - 10));
 
                     setTooltipPos({ x: targetX, y: targetY });
                   }
                 }}
                 onMouseLeave={() => setTooltipPos(undefined)}
               >
-                {/* Dostosowanie linii siatki wykresu */}
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--color-brand-text-muted)"
-                  opacity={0.15}
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-brand-text-muted)" opacity={0.15} />
 
-                {/* Dolna oś czasu/dat wyścigów */}
                 <XAxis
                   dataKey="eventId"
                   stroke="var(--color-brand-navy-light)"
                   tickFormatter={(value) => {
-                    const found = chronologicalData.find(
-                      (p) => p.eventId === value,
-                    );
+                    const found = chronologicalData.find((p) => p.eventId === value);
                     return found ? found.displayDate : "";
                   }}
-                  tick={{
-                    fontFamily: "monospace",
-                    fontSize: 10,
-                    fontWeight: "bold",
-                    fill: "var(--color-brand-text-muted)",
-                  }}
+                  tick={{ fontFamily: "monospace", fontSize: 10, fontWeight: "bold", fill: "var(--color-brand-text-muted)" }}
                   dy={10}
                 />
 
@@ -399,10 +419,7 @@ export default function EloChart({ guids }: EloChartProps) {
 
                 <Tooltip
                   content={<EventTooltip guids={guids} />}
-                  cursor={{
-                    stroke: "var(--color-brand-navy-light)",
-                    strokeWidth: 1,
-                  }}
+                  cursor={{ stroke: "var(--color-brand-navy-light)", strokeWidth: 1 }}
                   position={tooltipPos}
                   allowEscapeViewBox={{ x: true, y: true }}
                   wrapperStyle={{ zIndex: 100, pointerEvents: "none" }}
@@ -416,13 +433,8 @@ export default function EloChart({ guids }: EloChartProps) {
                     stroke={DRIVER_COLORS[index % DRIVER_COLORS.length]}
                     strokeWidth={2.5}
                     connectNulls={true}
-                    dot={
-                      <EventDot
-                        guid={guid}
-                        color={DRIVER_COLORS[index % DRIVER_COLORS.length]}
-                      />
-                    }
-                    activeDot={{ r: 5, strokeWidth: 1 }}
+                    dot={<EventDot guid={guid} color={DRIVER_COLORS[index % DRIVER_COLORS.length]} isMobile={isMobile} />}
+                    activeDot={{ r: isMobile ? 6.5 : 5, strokeWidth: 1 }}
                     isAnimationActive={false}
                   />
                 ))}

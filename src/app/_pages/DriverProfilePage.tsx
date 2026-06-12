@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Box, Paper, IconButton } from "@mui/material";
@@ -26,7 +28,6 @@ export default function DriverProfilePage() {
   const [driver, setDriver] = useState<DriverStats | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // Pobranie wyłącznie podstawowych danych profilu (błyskawiczne zapytanie)
   useEffect(() => {
     async function fetchDriverProfile() {
       try {
@@ -44,74 +45,185 @@ export default function DriverProfilePage() {
     fetchDriverProfile();
   }, [guid]);
 
-  // Główny loader strony (widoczny tylko przez ułamek sekundy na pobranie metadanych)
+  // EKRAN ŁADOWANIA WSTĘPNEGO
   if (loadingProfile) {
     return (
-      <Box className="min-h-screen bg-brand-navy flex flex-col items-center justify-center gap-3">
+      <Box 
+        className="min-h-screen flex flex-col items-center justify-center gap-3"
+        sx={{ backgroundColor: 'var(--color-brand-navy)' }}
+      >
         <LoadingSpinner text="Establishing baseline telemetry..." size={20} className="py-2 px-4" />
       </Box>
     );
   }
 
+  // BŁĄD POŁĄCZENIA
   if (!driver) {
     return (
-      <Box className="min-h-screen bg-brand-navy flex items-center justify-center text-brand-muted font-mono text-sm">
+      <Box 
+        className="min-h-screen flex items-center justify-center font-mono text-sm"
+        sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text-muted)' }}
+      >
         [ERROR]: Driver profile connection timed out.
       </Box>
     );
   }
 
   return (
-    <Box className="min-h-screen bg-brand-navy py-10 px-4 sm:px-6 lg:px-8 text-slate-100">
+    <Box 
+      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
+      sx={{
+        backgroundColor: 'var(--color-brand-navy)',
+        color: 'var(--color-brand-text)',
+        transition: 'background-color 0.3s ease, color 0.3s ease'
+      }}
+    >
       <div className="container mx-auto max-w-5xl">
         
         {/* NAGŁÓWEK / POWRÓT */}
         <div className="flex items-center gap-4 mb-8">
           <IconButton 
             onClick={() => router.back()} 
-            className="!border !border-brand-navy-light !text-brand-muted hover:!bg-brand-navy-light/20"
+            sx={{
+              border: '1px solid var(--color-brand-navy-light)',
+              color: 'var(--color-brand-text-muted)',
+              backgroundColor: 'transparent',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 8%, transparent)',
+                borderColor: 'var(--color-brand-text-muted)'
+              },
+            }}
           >
             <ArrowBackIcon />
           </IconButton>
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight text-brand-muted leading-tight">
+            <h1 
+              className="text-3xl font-black uppercase tracking-tight leading-tight"
+              style={{ color: 'var(--color-brand-text)' }}
+            >
               {driver.mainName}
             </h1>
             {driver.altNames && (
-              <p className="text-xs text-brand-muted/60 mt-1">Aliases: {driver.altNames}</p>
+              <p 
+                className="text-xs mt-1"
+                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              >
+                Aliases: {driver.altNames}
+              </p>
             )}
           </div>
         </div>
 
-        {/* STATYSTYKI - KARTY HUD (Wyświetlane od razu) */}
+        {/* STATYSTYKI - KARTY HUD */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Paper component={Box} className="bg-brand-navy-dark border border-brand-navy-light p-5 rounded-brand-card flex items-center gap-4 shadow-sm" sx={{ backgroundImage: 'none' }}>
-            <div className="p-3 bg-brand-yellow/10 rounded-lg text-brand-yellow">
+          
+          {/* KARTA 1: CURRENT ELO */}
+          <Paper 
+            component={Box} 
+            className="p-5 flex items-center gap-4 shadow-sm" 
+            sx={{ 
+              backgroundImage: 'none',
+              backgroundColor: 'var(--color-brand-navy-dark)',
+              border: '1px solid var(--color-brand-navy-light)',
+              borderRadius: 'var(--radius-brand-card)'
+            }}
+          >
+            <Box 
+              className="p-3 rounded-lg flex-shrink-0"
+              sx={{ 
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow-hover) 12%, transparent)',
+                color: 'var(--color-brand-yellow-hover)'
+              }}
+            >
               <TrendingUpIcon fontSize="large" />
-            </div>
+            </Box>
             <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-brand-muted/60 font-bold">Current ELO</p>
-              <h3 className="text-2xl font-black font-mono text-brand-muted">{driver.currentElo}</h3>
+              <p 
+                className="text-[10px] font-mono uppercase tracking-widest font-bold"
+                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              >
+                Current ELO
+              </p>
+              <h3 
+                className="text-2xl font-black font-mono"
+                style={{ color: 'var(--color-brand-text)' }}
+              >
+                {driver.currentElo}
+              </h3>
             </div>
           </Paper>
 
-          <Paper component={Box} className="bg-brand-navy-dark border border-brand-navy-light p-5 rounded-brand-card flex items-center gap-4 shadow-sm" sx={{ backgroundImage: 'none' }}>
-            <div className="p-3 bg-brand-muted/10 rounded-lg text-brand-muted">
+          {/* KARTA 2: TOTAL EXPERIENCE */}
+          <Paper 
+            component={Box} 
+            className="p-5 flex items-center gap-4 shadow-sm" 
+            sx={{ 
+              backgroundImage: 'none',
+              backgroundColor: 'var(--color-brand-navy-dark)',
+              border: '1px solid var(--color-brand-navy-light)',
+              borderRadius: 'var(--radius-brand-card)'
+            }}
+          >
+            <Box 
+              className="p-3 rounded-lg flex-shrink-0"
+              sx={{ 
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 6%, transparent)',
+                color: 'var(--color-brand-text-muted)'
+              }}
+            >
               <SportsScoreIcon fontSize="large" />
-            </div>
+            </Box>
             <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-brand-muted/60 font-bold">Total Experience</p>
-              <h3 className="text-2xl font-black font-mono text-brand-muted">{driver.racesCount} <span className="text-xs font-normal text-brand-muted/60">races</span></h3>
+              <p 
+                className="text-[10px] font-mono uppercase tracking-widest font-bold"
+                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              >
+                Total Experience
+              </p>
+              <h3 
+                className="text-2xl font-black font-mono"
+                style={{ color: 'var(--color-brand-text)' }}
+              >
+                {driver.racesCount}{" "}
+                <span className="text-xs font-normal" style={{ color: 'var(--color-brand-text-muted)' }}>
+                  races
+                </span>
+              </h3>
             </div>
           </Paper>
 
-          <Paper component={Box} className="bg-brand-navy-dark border border-brand-navy-light p-5 rounded-brand-card flex items-center gap-4 shadow-sm" sx={{ backgroundImage: 'none' }}>
-            <div className="p-3 bg-brand-navy-light text-brand-muted/80 rounded-lg">
+          {/* KARTA 3: LAST ONLINE SYNC */}
+          <Paper 
+            component={Box} 
+            className="p-5 flex items-center gap-4 shadow-sm" 
+            sx={{ 
+              backgroundImage: 'none',
+              backgroundColor: 'var(--color-brand-navy-dark)',
+              border: '1px solid var(--color-brand-navy-light)',
+              borderRadius: 'var(--radius-brand-card)'
+            }}
+          >
+            <Box 
+              className="p-3 rounded-lg flex-shrink-0"
+              sx={{ 
+                backgroundColor: 'var(--color-brand-navy-light)',
+                color: 'var(--color-brand-text-muted)'
+              }}
+            >
               <EventAvailableIcon fontSize="large" />
-            </div>
+            </Box>
             <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-brand-muted/60 font-bold">Last Online Sync</p>
-              <h3 className="text-sm font-bold text-brand-muted mt-1">
+              <p 
+                className="text-[10px] font-mono uppercase tracking-widest font-bold"
+                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              >
+                Last Online Sync
+              </p>
+              <h3 
+                className="text-sm font-bold mt-1"
+                style={{ color: 'var(--color-brand-text)' }}
+              >
                 {new Date(driver.lastRaced).toLocaleDateString("en-US", {
                   day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
                 })}
@@ -120,9 +232,8 @@ export default function DriverProfilePage() {
           </Paper>
         </div>
 
-        {/* 🟢 WYDZIELONY KOMPONENT WYKRESU */}
-        {/* Działa asynchronicznie, pobiera dane w tle i ma swój dedykowany spinner */}
-        <EloChart guids={[guid]} />
+        {/* ASYNCHRONICZNY WYKRES ELO KIEROWCY Z PARAMETREM PORÓWNANIA */}
+        <EloChart guids={[guid]} isComparable={true} />
 
       </div>
     </Box>

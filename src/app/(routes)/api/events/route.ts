@@ -6,13 +6,25 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Pobieramy parametry z URL, ustawiamy domyślny limit na 10
+    // Pobieramy parametry z URL
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     const cursor = searchParams.get('cursor'); // ID wyścigu, od którego zaczynamy
+    const search = searchParams.get('search'); // Fraza wyszukiwania (name lub track)
+
+    // Budujemy dynamiczny obiekt filtrowania
+    const whereClause = search
+      ? {
+          OR: [
+            { name: { contains: search } },
+            { track: { contains: search } },
+          ],
+        }
+      : {};
 
     const events = await prisma.event.findMany({
       take: limit + 1, // Pobieramy jeden element więcej, żeby sprawdzić, czy jest kolejna strona
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      where: whereClause, // Aplikujemy filtry wyszukiwania
       orderBy: {
         date: 'desc',
       },
@@ -41,7 +53,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error("[API Events] Paginacja napotkała błąd:", error);
+    console.error("[API Events] Paginacja/Wyszukiwanie napotkało błąd:", error);
     return NextResponse.json({
       success: false,
       error: "Nie udało się pobrać kolejnej paczki danych."

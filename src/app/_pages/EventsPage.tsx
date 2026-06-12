@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -34,7 +36,8 @@ export default function EventsPage() {
       }
       setError(null);
       
-      const res = await fetch("/api/events?limit=25");
+      // Limit zmieniony na 24 (podzielne przez 1, 2 i 3 kolumny)
+      const res = await fetch("/api/events?limit=24");
       if (!res.ok) throw new Error("Failed to fetch events from the database.");
 
       const json = await res.json();
@@ -59,9 +62,16 @@ export default function EventsPage() {
   }, []);
 
   return (
-    // Główny wrapper wymuszający ciemne/jasne tło na poziomie całej podstrony
-    <Box className="min-h-screen bg-brand-navy py-10 px-4 sm:px-6 lg:px-8 text-slate-100">
-      <Container component="main" maxWidth="md" className="p-0!">
+    <Box 
+      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
+      sx={{
+        backgroundColor: 'var(--color-brand-navy)',
+        color: 'var(--color-brand-text)',
+        transition: 'background-color 0.3s ease, color 0.3s ease'
+      }}
+    >
+      {/* Zmiana maxWidth z "md" na "lg" zapewnia optymalną szerokość dla 3 kolumn kafelków */}
+      <Container component="main" maxWidth="lg" className="p-0!">
         
         {/* SEKCJA NAGŁÓWKA */}
         <Box
@@ -71,16 +81,21 @@ export default function EventsPage() {
             <Typography 
               variant="h4" 
               component="h1" 
-              className="!text-brand-muted !font-black tracking-tight uppercase text-2xl sm:text-3xl"
+              className="tracking-tight uppercase text-2xl sm:text-3xl"
+              sx={{ color: 'var(--color-brand-text)', fontWeight: 900 }}
             >
               ACSM Event Manager
             </Typography>
-            <Typography variant="body2" className="!text-brand-muted/70 font-medium">
+            <Typography 
+              variant="body2" 
+              className="font-medium"
+              sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.8 }}
+            >
               Browse synchronized races, detailed session outcomes, and dynamic ELO rating changes.
             </Typography>
           </Box>
 
-          {/* PRZYCISK ODŚWIEŻANIA W STYLU HUD */}
+          {/* PRZYCISK ODŚWIEŻANIA */}
           <Button
             variant="outlined"
             size="medium"
@@ -90,21 +105,42 @@ export default function EventsPage() {
             aria-label="Refresh race events list"
             sx={{
               textTransform: "none",
-              transition: "all 0.15s ease",
+              transition: "all 0.2s ease",
+              fontFamily: "var(--font-geist-mono), monospace",
+              fontSize: "0.75rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              fontWeight: 700,
+              px: 2,
+              py: 1,
+              borderRadius: "var(--radius-brand-card)",
+              
+              color: 'var(--color-brand-text-muted)',
+              borderColor: 'var(--color-brand-navy-light)',
+              backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)',
+
+              '&:hover': {
+                borderColor: 'var(--color-brand-yellow-hover)',
+                color: 'var(--color-brand-yellow-text)',
+                backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 8%, transparent)',
+              },
+              '&:disabled': {
+                color: 'color-mix(in srgb, var(--color-brand-text-muted) 40%, transparent)',
+                borderColor: 'var(--color-brand-navy-light)',
+              }
             }}
-            className="!text-brand-muted !border-brand-navy-light hover:!border-brand-yellow hover:!text-brand-yellow !font-mono text-xs uppercase tracking-wider !font-bold !px-4 !py-2 rounded-xl bg-brand-navy-dark/40"
           >
             Refresh
           </Button>
         </Box>
 
-        <Divider className="!border-brand-navy-light/60 mb-8" />
+        <Divider sx={{ borderColor: 'var(--color-brand-navy-light)', mb: 4 }} />
 
         {/* STAN ŁADOWANIA POCZĄTKOWEGO */}
         {loading && (
           <Box aria-label="Fetching initial race events list">
-            <EventRowSkeleton count={8} /> 
-            {/* Zmniejszono z 25 na 8 dla lepszego UX wizualnego, unikania przeładowania DOM szkieletami */}
+            {/* Hrabia skeletonów ustawiony na 12 (pełne wiersze dla siatki 1, 2 i 3 kolumnowej) */}
+            <EventRowSkeleton count={12} /> 
           </Box>
         )}
 
@@ -113,8 +149,14 @@ export default function EventsPage() {
           <Alert 
             severity="error" 
             role="alert"
-            className="mb-6 !bg-elo-loss/10 !text-elo-loss border border-elo-loss/20 font-medium rounded-xl"
-            sx={{ '& .MuiAlert-icon': { color: 'var(--color-elo-loss)' } }}
+            className="mb-6 font-medium"
+            sx={{ 
+              borderRadius: 'var(--radius-brand-card)',
+              backgroundColor: 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
+              color: 'var(--color-elo-loss)',
+              border: '1px solid color-mix(in srgb, var(--color-elo-loss) 20%, transparent)',
+              '& .MuiAlert-icon': { color: 'var(--color-elo-loss)' } 
+            }}
           >
             {error}
           </Alert>

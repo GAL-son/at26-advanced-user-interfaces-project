@@ -38,46 +38,48 @@ export default function RaceInfo({ info }: RaceInfoProps) {
         borderTop: '1px solid var(--color-brand-navy-light)',
         borderRight: '1px solid var(--color-brand-navy-light)',
         borderBottom: '1px solid var(--color-brand-navy-light)',
-        borderLeftColor: 'var(--color-brand-yellow)', // Stały, złoty akcent po lewej stronie
+        borderLeftColor: 'var(--color-brand-yellow)',
         transition: 'all 0.3s ease',
       }}
     >
       <Box className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         
         {/* LEWA STRONA: Nazwa wydarzenia i Tor */}
-        <Box className="space-y-2">
+        <Box className="space-y-2 min-w-0">
           <Typography
             id="race-info-title"
             variant="h4"
             component="h1"
-            className="font-black tracking-tight uppercase text-2xl sm:text-3xl"
-            sx={{ color: 'var(--color-brand-text)' }} // Główny tekst (Slate 900 w light / Slate 50 w dark)
+            className="font-black tracking-tight uppercase text-2xl sm:text-3xl truncate"
+            sx={{ color: 'var(--color-brand-text)' }}
           >
             {info.eventName || "Unnamed Event"}
           </Typography>
           
           <Box 
             className="flex items-center gap-2 font-mono text-sm uppercase tracking-wider font-semibold"
-            sx={{ color: 'var(--color-brand-yellow-text)' }} // Bezpieczny żółty dla tekstu
+            sx={{ color: 'var(--color-brand-yellow-text)' }}
           >
             <FlagIcon sx={{ fontSize: '1.2rem', color: 'var(--color-brand-yellow-hover)' }} />
-            <span>Track: {readableTrack}</span>
+            <span className="truncate">Track: {readableTrack}</span>
           </Box>
         </Box>
 
         {/* PRAWA STRONA: Szczegóły (Data i Serwer) */}
-        <Box className="flex flex-wrap md:flex-nowrap gap-4 items-stretch">
+        {/* Kontener na mobile bierze 100% szerokości, na desktopie kurczy się do zawartości */}
+        <Box className="flex flex-wrap md:flex-nowrap gap-4 items-stretch w-full md:w-auto">
           
           {/* Kafelek: Data */}
+          {/* w-full (mobile) -> sm:flex-1 (równe na tablecie) -> md:w-[220px] (stałe na desktopie) */}
           <Box 
-            className="rounded-lg p-3 flex items-center gap-3 min-w-[200px]"
+            className="rounded-lg p-3 flex items-center gap-3 w-full sm:flex-1 md:w-[220px]"
             sx={{
               backgroundColor: 'var(--color-brand-navy)',
               border: '1px solid var(--color-brand-navy-light)',
             }}
           >
             <Box 
-              className="p-2 rounded" 
+              className="p-2 rounded flex-shrink-0" 
               sx={{ 
                 backgroundColor: 'color-mix(in srgb, var(--color-brand-text-muted) 12%, transparent)',
                 color: 'var(--color-brand-text-muted)' 
@@ -85,7 +87,7 @@ export default function RaceInfo({ info }: RaceInfoProps) {
             >
               <CalendarTodayIcon fontSize="small" />
             </Box>
-            <Box className="flex flex-col">
+            <Box className="flex flex-col min-w-0">
               <span 
                 className="text-[10px] uppercase tracking-widest font-bold"
                 style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
@@ -93,29 +95,29 @@ export default function RaceInfo({ info }: RaceInfoProps) {
                 Race Date
               </span>
               <span 
-                className="text-sm font-medium font-mono"
+                className="text-sm font-medium font-mono truncate"
                 style={{ color: 'var(--color-brand-text)' }}
               >
-                formattedDate
+                {formattedDate}
               </span>
             </Box>
           </Box>
 
           {/* Kafelek: Serwer */}
+          {/* Dokładnie te same klasy responsywne gwarantują identyczny rozmiar na tablecie */}
           <Box
             component="a" 
             href={serverUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Join server: ${info.server}`}
-            className="rounded-lg p-3 flex items-center gap-3 min-w-[200px] transition-all no-underline"
+            className="rounded-lg p-3 flex items-center gap-3 w-full sm:flex-1 md:w-[220px] transition-all no-underline"
             sx={{
               backgroundColor: 'var(--color-brand-navy)',
               border: '1px solid var(--color-brand-navy-light)',
               '&:hover': {
                 borderColor: 'var(--color-brand-yellow-hover)',
               },
-              // Selektory hover dla dzieci kafelka (efekt 'group-hover' w czystym CSS)
               '&:hover .server-icon': {
                 color: 'var(--color-brand-yellow-text)',
               },
@@ -129,7 +131,7 @@ export default function RaceInfo({ info }: RaceInfoProps) {
             }}
           >
             <Box 
-              className="p-2 rounded server-icon transition-colors duration-200" 
+              className="p-2 rounded server-icon flex-shrink-0 transition-colors duration-200" 
               sx={{ 
                 backgroundColor: 'color-mix(in srgb, var(--color-brand-text-muted) 12%, transparent)',
                 color: 'var(--color-brand-text-muted)' 
@@ -137,7 +139,7 @@ export default function RaceInfo({ info }: RaceInfoProps) {
             >
               <DnsIcon fontSize="small" />
             </Box>
-            <Box className="flex flex-col truncate">
+            <Box className="flex flex-col min-w-0 w-full">
               <span 
                 className="text-[10px] uppercase tracking-widest font-bold server-title transition-colors duration-200"
                 style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
@@ -145,7 +147,7 @@ export default function RaceInfo({ info }: RaceInfoProps) {
                 Server Status
               </span>
               <span 
-                className="text-xs font-mono truncate max-w-[150px] server-link transition-colors duration-200"
+                className="text-xs font-mono truncate server-link transition-colors duration-200"
                 style={{ color: 'var(--color-brand-text-muted)' }}
               >
                 {info.server}

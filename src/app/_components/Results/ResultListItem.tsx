@@ -27,16 +27,24 @@ export default function ResultListItem({ row }: ResultListItemProps) {
   const isGain = row.eloChange >= 0;
 
   return (
-    <PositionedTableRow position={row.pos} onClick={handleTableRowClick}>
+    <PositionedTableRow 
+      position={row.pos} 
+      onClick={handleTableRowClick}
+      sx={{
+        // Wiersz ukryty na mobile, widoczny od punktu sm (640px)
+        display: { xs: 'none', sm: 'table-row' },
+        cursor: 'pointer',
+        '&:hover': {
+          backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 3%, var(--color-brand-navy-dark)) !important',
+        }
+      }}
+    >
       {/* NAZWA KIEROWCY */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
           <span 
             className="font-semibold tracking-wide transition-colors duration-200"
-            style={{ 
-              // Domyślnie stonowany kolor, na hover całego wiersza (dzięki klasie group) zmienia się w złoty/żółty
-              color: 'var(--color-brand-text-muted)' 
-            }}
+            style={{ color: 'var(--color-brand-text-muted)' }}
             sx={{
               '.group:hover &': {
                 color: 'var(--color-brand-yellow-hover) !important'
@@ -45,10 +53,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
           >
             {row.name}
           </span>
-          
-          {row.combo > 0 && (
-            <ComboBadge combo={row.combo} />
-          )}
+          {row.combo > 0 && <ComboBadge combo={row.combo} />}
         </Box>
       </TableCell>
       
@@ -58,7 +63,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
           <span style={{ color: 'var(--color-brand-text)' }}>
             {row.eloAfter}
           </span>
-          
           <Box 
             component="span" 
             className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold border"
@@ -66,9 +70,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
               backgroundColor: isGain 
                 ? 'color-mix(in srgb, var(--color-elo-gain) 10%, transparent)' 
                 : 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
-              color: isGain 
-                ? 'var(--color-elo-gain)' 
-                : 'var(--color-elo-loss)',
+              color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)',
               borderColor: isGain 
                 ? 'color-mix(in srgb, var(--color-elo-gain) 20%, transparent)' 
                 : 'color-mix(in srgb, var(--color-elo-loss) 20%, transparent)',
@@ -87,9 +89,9 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {row.car}
       </TableCell>
 
-      {/* OKRĄŻENIA */}
+      {/* OKRĄŻENIA (Tablet hide, Desktop show) */}
       <TableCell 
-        className="font-mono text-center"
+        className="font-mono text-center hidden md:table-cell"
         style={{ color: 'var(--color-brand-text-muted)' }}
       >
         {row.laps}

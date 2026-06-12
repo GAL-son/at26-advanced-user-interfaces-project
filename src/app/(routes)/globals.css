@@ -33,9 +33,10 @@
 
 /* 2. Mapowanie dla trybu ciemnego na podstawie atrybutu HTML */
 @layer base {
+  /* Dodajemy wykluczenie elementów Drawer oraz jego dzieci */
   html, 
   body, 
-  body *, 
+  body *:not(.MuiDrawer-paper):not(.MuiDrawer-paper *), 
   .MuiBox-root, 
   .MuiTableCell-root, 
   .MuiTableRow-root, 
@@ -44,7 +45,7 @@
   fieldset {
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke !important;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-    transition-duration: 300ms !important; /* Tutaj ustawiasz swój globalny czas */
+    transition-duration: 300ms !important;
   }
 
   html[data-mui-color-scheme="dark"] {
