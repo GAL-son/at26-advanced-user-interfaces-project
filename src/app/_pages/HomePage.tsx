@@ -1,9 +1,14 @@
+// src/app/page.tsx
+"use client";
+
+import React from "react";
 import ActiveDriversTicker from "@/app/_components/Home/ActiveDriversTicker";
 import LatestEventsSection from "@/app/_components/Home/LatestEventsSection";
 import TopDriversLeaderboard from "@/app/_components/Home/TopDriversLeaderboard";
 import VirtualDuelsSection from "@/app/_components/Home/VirtualDuelsSection";
-import GlobalStatsSection from "@/app/_components/Home/GlobalStatsSection";
+import { focusFlatSection } from "@/app/_utils/navigation";
 import SocialsAndServers from "../_components/Socials/SocialsAndServers";
+import GlobalStatsSection from "../_components/Home/GlobalStatsSection";
 
 import { ExtendedDriver, TickerDriver } from "@/lib/services/drivers";
 import { FormattedEvent } from "@/lib/services/events";
@@ -17,51 +22,78 @@ interface HomePageProps {
   virtualDuels: DashboardDuels;
   globalStats: GlobalStats;
 }
+const SECTION_ORDER = [
+  "menu",
+  "ticker",
+  "events",
+  "leaderboard",
+  "duels",
+  "socials",
+];
 
-export default function HomePage({
-  activeDrivers,
-  latestEvents,
-  topDrivers,
-  virtualDuels,
-  globalStats,
-}: HomePageProps) {
+export default function HomePage({ activeDrivers, latestEvents, topDrivers, virtualDuels, globalStats }: HomePageProps) {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--color-brand-navy)]">
-      {/* Ticker z aktywnymi graczami na samej górze */}
-      <ActiveDriversTicker drivers={activeDrivers} scrollSpeed={0.5} />
+      
+      {/* SEKCJA: ticker */}
+      <div data-section="ticker" data-section-page-start="true">
+        <ActiveDriversTicker
+          drivers={activeDrivers}
+          scrollSpeed={0.5}
+          // Przekazujemy SECTION_ORDER jako trzeci argument:
+          onNavigateVertical={(dir) => focusFlatSection("ticker", dir, SECTION_ORDER)}
+        />
+      </div>
 
-      {/* Główna sekcja strony */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-8">
-        {/* SEKCJA 1: Ostatnie eventy (Pełna szerokość) */}
-        <div className="w-full">
-          <LatestEventsSection events={latestEvents} />
-        </div>
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 flex flex-col gap-8">
+        
+        {/* SEKCJA: events */}
+        {latestEvents && latestEvents.length > 0 && (
+          <div data-section="events" className="w-full">
+            <LatestEventsSection 
+              events={latestEvents}
+              onNavigateVertical={(dir) => focusFlatSection("events", dir, SECTION_ORDER)} 
+            />
+          </div>
+        )}
 
-        {/* SEKCJA 2: Top Drivers (Lewo) i Duels (Prawo) */}
-        {/* SEKCJA 2: Top Drivers (Lewo) i Duels (Prawo) */}
-        {/* Zmieniono items-start na items-stretch */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          <div className="w-full">
-            <TopDriversLeaderboard drivers={topDrivers} />
+        {/* SEKCJA DWUKOLUMNOWA 1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">          
+          <div data-section="leaderboard" className="w-full">
+            <TopDriversLeaderboard 
+              drivers={topDrivers} 
+              onNavigateHorizontal={(dir) => focusFlatSection("leaderboard", dir, SECTION_ORDER)}
+              // onNavigateVertical={(dir) => focusFlatSection("leaderboard", dir, SECTION_ORDER)}
+            />
           </div>
-          {/* Dodano flex i h-full, aby sekcja zajęła 100% wysokości grida */}
-          <div className="w-full flex">
-            <VirtualDuelsSection duels={virtualDuels} />
-          </div>
-        </div>
-
-        {/* SEKCJA 3: Globalne Statystyki (Lewo) i Linki/Serwery (Prawo) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          <div className="w-full flex">
-            <GlobalStatsSection stats={globalStats} />
-          </div>
-          <div className="w-full flex">
-            {/* Usunąłem stąd wewnętrzny mt-6 za pomocą modyfikacji w komponencie lub nadpisania, jeśli zajdzie potrzeba dostosowania marginesów */}
-            <div className="w-full mt-0">
-              <SocialsAndServers />
+          
+          {virtualDuels && (virtualDuels.top || virtualDuels.midfield || virtualDuels.rookies) && (
+            <div data-section="duels" className="w-full flex">
+              <VirtualDuelsSection 
+                duels={virtualDuels} 
+                onNavigateHorizontal={(dir) => focusFlatSection("duels", dir, SECTION_ORDER)}
+                // onNavigateVertical={(dir) => focusFlatSection("duels", dir, SECTION_ORDER)}
+              />
             </div>
+          )}
+        </div>
+
+        {/* SEKCJA DWUKOLUMNOWA 2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">          
+          <div data-section="socials" className="w-full">
+            <SocialsAndServers 
+              onNavigateHorizontal={(dir) => focusFlatSection("socials", dir, SECTION_ORDER)}
+              onNavigateVertical={(dir) => focusFlatSection("socials", dir, SECTION_ORDER)}
+            />
+          </div>
+          
+          <div data-section="stats" className="w-full flex">
+            <GlobalStatsSection 
+              stats={globalStats}
+            />
           </div>
         </div>
+
       </main>
     </div>
   );

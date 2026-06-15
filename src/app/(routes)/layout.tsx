@@ -55,27 +55,29 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col transition-colors duration-300" style={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          
+
           {/* GÓRNY PASEK NAWIGACJI */}
-          <TopBarMenu 
-            navItems={navItems} 
-            pathname={pathname} 
-            onDrawerToggle={handleDrawerToggle} 
-          />
+          <div data-sction="menu">
+            <TopBarMenu
+              navItems={navItems}
+              pathname={pathname}
+              onDrawerToggle={handleDrawerToggle}
+            />
+          </div>
 
           {/* SZUFLADA MOBILNA (DRAWER) */}
-          <DrawerMenu 
-            navItems={navItems} 
-            pathname={pathname} 
-            mobileOpen={mobileOpen} 
-            onDrawerToggle={handleDrawerToggle} 
+          <DrawerMenu
+            navItems={navItems}
+            pathname={pathname}
+            mobileOpen={mobileOpen}
+            onDrawerToggle={handleDrawerToggle}
           />
 
           {/* GŁÓWNA ZAWARTOŚĆ STRONY */}
-          <Box 
-            component="main" 
-            sx={{ 
-              flexGrow: 1, 
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
               p: { xs: 2, md: 4 },
               width: '100%',
               maxWidth: '1280px',

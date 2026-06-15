@@ -4,24 +4,47 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ComboBadge from "../Elo/ComboBadge";
 import { TickerDriver } from "@/lib/services/drivers";
+import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 
 interface ActiveDriversTickerProps {
   drivers: TickerDriver[];
   scrollSpeed?: number;
+  onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
-export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriversTickerProps) {
+export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVertical }: ActiveDriversTickerProps) {
   const [isPaused, setIsPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const preciseScrollLeftRef = useRef(0);
+
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const hasDraggedRef = useRef(false);
   const requestRef = useRef<number | null>(null);
-  
-  // NOWOŚĆ: Referencja przechowująca super-dokładną pozycję przewinięcia (pozwala na ułamki)
-  const preciseScrollLeftRef = useRef(0);
+
+  // 1. INICJALIZACJA UTWORZONEGO HOOKA (Zastępuje całą starą logikę handleLinkKeyDown)
+  const { registerItem, handleKeyDown } = useKeyboardNavigation({
+    itemCount: drivers.length,
+    orientation: "horizontal",
+    onLeave: (direction) => {
+      if (onNavigateVertical) {
+        onNavigateVertical(direction === "next" ? "down" : "up");
+      }
+    },
+    onIndexChange: (_, targetLink) => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const containerWidth = container.offsetWidth;
+        const linkLeft = targetLink.offsetLeft;
+        const linkWidth = targetLink.offsetWidth;
+        const targetScroll = linkLeft - containerWidth / 2 + linkWidth / 2;
+        container.scrollLeft = targetScroll;
+        preciseScrollLeftRef.current = targetScroll;
+      }
+    }
+  });
 
   useEffect(() => {
     if (!scrollContainerRef.current || !drivers || drivers.length === 0 || isDragging || isPaused) {
@@ -29,7 +52,6 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriv
       return;
     }
 
-    // Inicjalizujemy wirtualną pozycję aktualnym stanem kontenera
     preciseScrollLeftRef.current = scrollContainerRef.current.scrollLeft;
 
     const animate = () => {
@@ -37,18 +59,14 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriv
       if (!container) return;
 
       const speed = scrollSpeed ?? 0.8;
-      
-      // 1. Zwiększamy naszą wirtualną, dokładną pozycję o ułamek (np. 0.2)
       preciseScrollLeftRef.current += speed;
 
       const halfWidth = container.scrollWidth / 2;
-      
-      // 2. Obsługa zapętlenia na wirtualnej pozycji
+
       if (preciseScrollLeftRef.current >= halfWidth) {
         preciseScrollLeftRef.current -= halfWidth;
       }
 
-      // 3. Przypisujemy zaokrągloną wartość do DOM (przeglądarka teraz prawidłowo przesunie co kilka klatek)
       container.scrollLeft = Math.floor(preciseScrollLeftRef.current);
 
       requestRef.current = requestAnimationFrame(animate);
@@ -59,13 +77,13 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriv
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [isDragging, isPaused, drivers, scrollSpeed]); // Dodano scrollSpeed do zależności
+  }, [isDragging, isPaused, drivers, scrollSpeed]);
 
   if (!drivers || drivers.length === 0) return null;
 
   const duplicatedDrivers = [...drivers, ...drivers];
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handlePauseKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
       setIsPaused(!isPaused);
@@ -109,8 +127,6 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriv
     }
 
     container.scrollLeft = targetScroll;
-    
-    // AKTUALIZACJA: Synchronizujemy wirtualny scroll z tym wykonanym przez użytkownika myszką
     preciseScrollLeftRef.current = targetScroll;
   };
 
@@ -151,12 +167,16 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriv
               <Link
                 key={`${driver.guid}-${index}`}
                 href={`/drivers/${driver.guid}`}
+                // REJESTRACJA ELEMENTU PRZEZ HOOK
+                ref={!isDuplicate ? registerItem(index) : undefined}
                 onClick={(e) => {
                   if (hasDraggedRef.current) {
                     e.preventDefault();
                   }
                 }}
-                className="inline-flex items-center gap-2 rounded-sm px-2 py-1 transition-colors hover:bg-[var(--color-brand-navy-light)] focus-visible:outline-[var(--color-brand-yellow)] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-yellow)] focus-visible:outline-none"
+                // ZMIANA: Wywołujemy handleKeyDown pochodzące bezpośrednio z hooka
+                onKeyDown={(e) => !isDuplicate && handleKeyDown(e, index)}
+                className="inline-flex items-center gap-2 rounded-sm px-2 py-1 transition-colors hover:bg-[var(--color-brand-navy-light)] focus-brand"
                 aria-hidden={isDuplicate}
                 tabIndex={isDuplicate ? -1 : 0}
                 draggable={false}
@@ -181,7 +201,7 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed }: ActiveDriv
 
       <button
         onClick={() => setIsPaused(!isPaused)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handlePauseKeyDown}
         className="sr-only focus:not-sr-only focus:absolute focus:bottom-1 focus:right-4 focus:z-30 focus:rounded focus:bg-[var(--color-brand-yellow)] focus:px-3 focus:py-1 focus:text-[var(--color-brand-navy-dark)] focus:font-medium focus:outline-none"
         aria-pressed={isPaused}
       >

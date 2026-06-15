@@ -64,6 +64,17 @@ body {
   transition-property: grid-template-rows;
 }
 
+@utility focus-brand {
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-yellow);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent);
+  }
+  &:focus {
+    outline: none;
+  }
+}
+
 /* 4. Logika płynnego przełączania motywów */
 html.theme-toggling,
 html.theme-toggling * {
