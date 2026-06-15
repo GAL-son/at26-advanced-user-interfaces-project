@@ -14,10 +14,48 @@ export interface DriverBasicInfo {
 interface SelectedDriversListProps {
   drivers: DriverBasicInfo[];
   onRemove: (guid: string) => void;
+  onNavigateVertical?: (direction: "up" | "down") => void; // Obsługuje wyjście w górę i w dół
 }
 
-export default function SelectedDriversList({ drivers, onRemove }: SelectedDriversListProps) {
+export default function SelectedDriversList({ 
+  drivers, 
+  onRemove,
+  onNavigateVertical 
+}: SelectedDriversListProps) {
   const t = useTranslations("CompareDrivers.search");
+
+  // Obsługa nawigacji strzałkami wewnątrz listy chipów
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>, index: number) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextChip = document.getElementById(`selected-driver-chip-${index + 1}`);
+      nextChip?.focus();
+    }
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (index === 0) {
+        // Jeśli to pierwszy chip, wracamy w lewo do inputu wyszukiwarki
+        const searchInput = document.getElementById("driver-search-input");
+        searchInput?.focus();
+      } else {
+        const prevChip = document.getElementById(`selected-driver-chip-${index - 1}`);
+        prevChip?.focus();
+      }
+    }
+
+    // Wyjście w górę z całej sekcji
+    if (e.key === "ArrowUp" && onNavigateVertical) {
+      e.preventDefault();
+      onNavigateVertical("up"); 
+    }
+
+    // NOWOŚĆ: Wyjście w dół z całej sekcji (np. do sekcji wykresu)
+    if (e.key === "ArrowDown" && onNavigateVertical) {
+      e.preventDefault();
+      onNavigateVertical("down"); 
+    }
+  };
 
   return (
     <div className="md:mt-0">
@@ -30,12 +68,13 @@ export default function SelectedDriversList({ drivers, onRemove }: SelectedDrive
             {t("noDriversSelected")}
           </p>
         ) : (
-          drivers.map((driver) => (
+          drivers.map((driver, index) => (
             <div key={driver.guid} role="listitem">
               <Chip
+                id={`selected-driver-chip-${index}`}
                 label={`${driver.mainName} ${driver.currentElo ? `(${Math.round(driver.currentElo)})` : ""}`}
                 onDelete={() => onRemove(driver.guid)}
-                // 🌐 Dynamiczna interpolacja parametrów i18n gwarantuje poprawną składnię w każdym języku
+                onKeyDown={(e) => handleKeyDown(e, index)}
                 aria-label={t("driverChipAriaLabel", { driverName: driver.mainName })}
                 deleteIcon={
                   <CloseIcon
@@ -43,14 +82,14 @@ export default function SelectedDriversList({ drivers, onRemove }: SelectedDrive
                     aria-hidden="true"
                   />
                 }
-                className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light font-mono text-xs uppercase !p-1"
+                className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light font-mono text-xs uppercase !p-1 focus-brand"
                 sx={{
                   borderRadius: "4px",
                   transition: "all 0.2s ease",
                   "&:hover": {
                     borderColor: "var(--color-brand-yellow-hover)",
                   },
-                  "&:focus-visible": {
+                  "&:focus, &:focus-visible": {
                     outline: "2px solid var(--color-brand-yellow-hover) !important",
                     outlineOffset: "1px"
                   }

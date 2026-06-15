@@ -5,14 +5,14 @@ import { Box, TextField, InputAdornment, CircularProgress } from "@mui/material"
 import { useTranslations } from "next-intl";
 import SearchIcon from "@mui/icons-material/Search";
 
-// Rozszerzamy bazowy kontrakt, aby upewnić się, że każdy element generyczny posiada identyfikator
 export interface SearchResultItem {
   guid: string;
   mainName: string;
   [key: string]: any;
 }
 
-interface UniversalSearchProps<T extends SearchResultItem> {
+// Rozszerzamy propsy o standardowe atrybuty HTML (w tym data-* props)
+interface UniversalSearchProps<T extends SearchResultItem> extends React.HTMLAttributes<HTMLInputElement> {
   results: T[];
   renderItem?: React.ComponentType<{ item: T }>;
   onSelectResult: (item: T) => void;
@@ -34,18 +34,18 @@ export default function UniversalSearch<T extends SearchResultItem>({
   onSelectResult,
   fullWidth = true,
   renderItem: RenderItem,
+  onKeyDown, // Wyciągamy onKeyDown przekazywany z góry
+  ...props   // Zbieramy resztę propsów (np. data-focus-order)
 }: UniversalSearchProps<T>) {
   const t = useTranslations("Common");
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  // Śledzenie aktywnego indeksu za pomocą klawiatury
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasDropdown = Array.isArray(results);
 
-  // Generowanie unikalnych ID dla zachowania integralności ARIA (Kryterium WCAG 4.1.2)
   const uniqueId = React.useId();
   const listboxId = `combobox-listbox-${uniqueId}`;
   const getOptionId = (index: number) => `combobox-option-${uniqueId}-${index}`;
@@ -62,12 +62,10 @@ export default function UniversalSearch<T extends SearchResultItem>({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [hasDropdown]);
 
-  // Resetowanie indeksu fokusu, kiedy zmieniają się wyniki wyszukiwania
   useEffect(() => {
     setFocusedIndex(-1);
   }, [results]);
 
-  // Automatyczne przewijanie listy do wybranego klawiaturą elementu
   useEffect(() => {
     if (focusedIndex >= 0) {
       const activeOption = document.getElementById(getOptionId(focusedIndex));
@@ -86,15 +84,21 @@ export default function UniversalSearch<T extends SearchResultItem>({
     inputRef.current?.focus();
   };
 
-  // Obsługa pełnego cyklu sterowania klawiaturą (WCAG 2.1.1 - Keyboard)
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const showDropdown = hasDropdown && isDropdownOpen && (value.trim().length > 0 || results.length > 0);
+
+  // Zmodyfikowana obsługa klawiatury
+  const handleKeyDownInternal = (e: KeyboardEvent<HTMLInputElement>) => {
+    // KLUCZOWA ZMIANA: Jeśli lista jest zamknięta, pozwól działać nawigacji globalnej stronami
     if (!showDropdown) {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        setIsDropdownOpen(true);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowRight") {
+        if (onKeyDown) {
+          onKeyDown(e); // Przekaż zdarzenie do handleSearchKeyDown w kontenerze wyżej
+        }
       }
       return;
     }
 
+    // Jeśli lista jest otwarta, obsługuj nawigację wewnątrz podpowiedzi menu
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -116,15 +120,16 @@ export default function UniversalSearch<T extends SearchResultItem>({
         setFocusedIndex(-1);
         break;
       case "Tab":
-        // Pozwól opuścić pole, ale zamknij listę
         setIsDropdownOpen(false);
         break;
       default:
+        // Pozwól innym klawiszom (np. ArrowRight przenoszącemu na chipy) opuścić input
+        if (onKeyDown) {
+          onKeyDown(e);
+        }
         break;
     }
   };
-
-  const showDropdown = hasDropdown && isDropdownOpen && (value.trim().length > 0 || results.length > 0);
 
   return (
     <Box ref={dropdownRef} className="relative w-full">
@@ -139,7 +144,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
           onChange(e.target.value);
           setIsDropdownOpen(true);
         }}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleKeyDownInternal}
         inputRef={inputRef}
         slotProps={{
           htmlInput: {
@@ -149,6 +154,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
             "aria-controls": showDropdown ? listboxId : undefined,
             "aria-autocomplete": "list",
             "aria-activedescendant": focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined,
+            ...props, // KLUCZOWA ZMIANA: Przekazujemy "data-focus-order" bezpośrednio do natywnego tagu <input>
           },
           input: {
             startAdornment: (

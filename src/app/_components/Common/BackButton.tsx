@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { forwardRef } from "react";
 import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/navigation";
@@ -15,14 +15,14 @@ interface BackButtonProps {
   tabIndex?: number;
   /** Atrybut priorytetu dla skryptu nawigacji klawiaturą */
   "data-focus-order"?: string;
+  /** Callback do obsługi nawigacji strzałkami */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 }
 
-export default function BackButton({ 
-  fallbackHref, 
-  ariaLabel, 
-  tabIndex, 
-  "data-focus-order": dataFocusOrder 
-}: BackButtonProps) {
+const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(function BackButton(
+  { fallbackHref, ariaLabel, tabIndex, "data-focus-order": dataFocusOrder, onKeyDown },
+  ref
+) {
   const router = useRouter();
   const t = useTranslations("Common");
 
@@ -36,11 +36,12 @@ export default function BackButton({
 
   return (
     <IconButton 
+      ref={ref}
       onClick={handleBack} 
+      onKeyDown={onKeyDown}
       aria-label={ariaLabel || t("back")}
-      tabIndex={tabIndex}
+      tabIndex={tabIndex ?? 0}
       data-focus-order={dataFocusOrder}
-      // Podpinamy klasę utility focus-brand
       className="focus-brand"
       sx={{
         border: '1px solid var(--color-brand-navy-light)',
@@ -48,7 +49,6 @@ export default function BackButton({
         backgroundColor: 'transparent',
         transition: 'all 0.2s ease',
         
-        // Wyczyszczenie domyślnego zachowania focusu pod utility CSS
         "&:focus, &:focus-visible": {
           outline: "none",
         },
@@ -62,4 +62,6 @@ export default function BackButton({
       <ArrowBackIcon />
     </IconButton>
   );
-}
+});
+
+export default BackButton;

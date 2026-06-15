@@ -42,14 +42,21 @@ interface DriverGroup {
   data: RaceDataPoint[];
 }
 
-interface EloChartProps {
+// Rozszerzamy o standardowe atrybuty sekcji HTML (w tym data-* props)
+interface EloChartProps extends React.HTMLAttributes<HTMLElement> {
   guids: string[];
   isComparable?: boolean;
+  onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
-export default function EloChart({ guids, isComparable = false }: EloChartProps) {
+export default function EloChart({
+  guids,
+  isComparable = false,
+  onNavigateVertical,
+  ...props // Zbieramy resztę propsów, w tym kluczowe data-focus-order
+}: EloChartProps) {
   const router = useRouter();
-  const t = useTranslations("Elo"); // Przeniesione do dedykowanego namespace "Elo"
+  const t = useTranslations("Elo");
   const format = useFormatter();
 
   const [chartData, setChartData] = useState<any[]>([]);
@@ -58,10 +65,13 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | undefined>(undefined);
-
   const [scrollMasks, setScrollMasks] = useState({ left: false, right: false });
 
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const chartWrapperRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
   const isMounted = useRef(false);
   const isResettingScroll = useRef(false);
@@ -90,7 +100,20 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
     setPage(0);
     setHasMore(true);
     isFirstLoad.current = true;
+    setFocusedIndex(null);
+    setIsKeyboardActive(false);
   }, [guidsString]);
+
+  const chronologicalData = [...chartData].reverse().map((point) => ({
+    ...point,
+    displayDate: format.dateTime(new Date(point.eventDate), {
+      day: "2-digit",
+      month: "2-digit",
+    }),
+  }));
+
+  const POINT_WIDTH = 65;
+  const calculatedWidth = Math.max(800, chronologicalData.length * POINT_WIDTH);
 
   useEffect(() => {
     let isCurrent = true;
@@ -153,7 +176,13 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
           const previousScrollWidth = container ? container.scrollWidth : 0;
           const previousScrollLeft = container ? container.scrollLeft : 0;
 
-          setChartData((prev) => [...prev, ...localPageData]);
+          setChartData((prev) => {
+            const newData = [...prev, ...localPageData];
+            if (isFirstLoad.current) {
+              setFocusedIndex(newData.length - 1);
+            }
+            return newData;
+          });
           setHasMore(result.hasMore);
 
           setTimeout(() => {
@@ -178,7 +207,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
           }, 50);
         }
       } catch (err) {
-        console.error("Error fetching ELO data:", err);
+        console.error("Error searching ELO data:", err);
       } finally {
         if (isCurrent) {
           setLoading(false);
@@ -195,6 +224,120 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
     };
   }, [page, guidsString]);
 
+  const updateKeyboardTooltipPosition = (index: number) => {
+    if (!scrollContainerRef.current || chronologicalData.length === 0) return;
+
+    const container = scrollContainerRef.current;
+    const paddingLeft = 40; // Margines lewej osi
+    const chartHeight = 340;
+    const paddingTop = 15;
+    const paddingBottom = 40; // Miejsce na oś X na dole
+
+    // 1. Wyliczenie pozycji X
+    const targetX = paddingLeft + (index * ((calculatedWidth - paddingLeft - 10) / (chronologicalData.length - 1 || 1)));
+
+    // 2. Wyliczenie ŚREDNIEJ pozycji Y ze wszystkich dostępnych serii danych (kierowców)
+    const point = chronologicalData[index];
+
+    // Zbieramy wartości ELO tylko od tych kierowców, którzy mają dane w tym konkretnym punkcie
+    const availableElos = guids
+      .map(g => point[`elo_${g}`])
+      .filter((elo): elo is number => elo !== undefined);
+
+    // Jeśli z jakiegoś powodu brak danych, dajemy środek osi, w przeciwnym wypadku liczymy średnią arytmetyczną
+    const averageElo = availableElos.length > 0
+      ? availableElos.reduce((sum, val) => sum + val, 0) / availableElos.length
+      : (yMin + yMax) / 2;
+
+    // Proporcjonalne zmapowanie uśrednionej wartości ELO na piksele wykresu (odwrócona oś Y w SVG)
+    const usableHeight = chartHeight - paddingTop - paddingBottom;
+    const eloPercentage = (averageElo - yMin) / (yMax - yMin || 1);
+    const dotY = chartHeight - paddingBottom - (eloPercentage * usableHeight);
+
+    // Wymiary tooltipa do korekcji marginesów
+    const tooltipWidth = 240;
+    const tooltipHeight = 60 + guids.length * 38;
+
+    // KOREKCJA X (zwiększamy margines, gdy tooltip ląduje po lewej stronie kropki)
+    let calculatedX = targetX + 25; // Domyślnie po prawej stronie kropki (+25px)
+
+    if (calculatedX + tooltipWidth > container.scrollLeft + container.clientWidth) {
+      // Jeśli nie mieści się po prawej, przerzucamy na lewą stronę kropki.
+      // Zmieniamy z -25 na -40 (lub więcej), aby całkowicie odsłonić powiększoną kropkę oraz jej obwódkę.
+      calculatedX = targetX - tooltipWidth - 45;
+    }
+
+    // Korekcja Y (centrowanie tooltipa względem wyliczonego środka ciężkości)
+    let calculatedY = dotY - (tooltipHeight / 2);
+    calculatedY = Math.max(10, Math.min(calculatedY, chartHeight - tooltipHeight - 15));
+
+    setTooltipPos({
+      x: Math.max(container.scrollLeft + 5, calculatedX),
+      y: calculatedY,
+    });
+  };
+
+  const scrollActivePointIntoView = (index: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const paddingLeft = 40;
+
+    const pointX = paddingLeft + (index * ((calculatedWidth - paddingLeft - 10) / (chronologicalData.length - 1 || 1)));
+
+    const minVisible = container.scrollLeft + 80;
+    const maxVisible = container.scrollLeft + container.clientWidth - 80;
+
+    if (pointX < minVisible || pointX > maxVisible) {
+      container.scrollTo({
+        left: pointX - container.clientWidth / 2,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (chronologicalData.length === 0) return;
+
+    // Strzałki pionowe -> wyjście z sekcji wykresu
+    if ((e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigateVertical) {
+      e.preventDefault();
+      e.stopPropagation(); // Zatrzymujemy bąbelkowanie, by rodzic nie dublował akcji
+      setIsKeyboardActive(false);
+      setTooltipPos(undefined);
+      onNavigateVertical(e.key === "ArrowUp" ? "up" : "down");
+      return; // Natychmiast przerywamy dalsze sprawdzanie
+    }
+
+    if (focusedIndex === null) {
+      setFocusedIndex(chronologicalData.length - 1);
+      return;
+    }
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      setIsKeyboardActive(true);
+      const nextIndex = Math.max(0, focusedIndex - 1);
+
+      if (nextIndex <= 2 && !isLoadingRef.current && hasMore) {
+        isLoadingRef.current = true;
+        setPage((prev) => prev + 1);
+      }
+
+      setFocusedIndex(nextIndex);
+      updateKeyboardTooltipPosition(nextIndex);
+      scrollActivePointIntoView(nextIndex);
+    }
+
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      setIsKeyboardActive(true);
+      const nextIndex = Math.min(chronologicalData.length - 1, focusedIndex + 1);
+      setFocusedIndex(nextIndex);
+      updateKeyboardTooltipPosition(nextIndex);
+      scrollActivePointIntoView(nextIndex);
+    }
+  };
+
   const handleScroll = () => {
     updateScrollMasks();
 
@@ -207,16 +350,6 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
       setPage((prev) => prev + 1);
     }
   };
-
-  const chronologicalData = [...chartData].reverse().map((point) => ({
-    ...point,
-    displayDate: format.dateTime(new Date(point.eventDate), {
-      day: "2-digit",
-      month: "2-digit",
-    }),
-  }));
-
-  const calculatedWidth = Math.max(800, chronologicalData.length * 65);
 
   const allEloValues = chartData.flatMap((point) =>
     guids.map((guid) => point[`elo_${guid}`]).filter((val) => val !== undefined)
@@ -232,11 +365,27 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
     <Box
       component="section"
       aria-labelledby="chart-title"
-      className="p-6 shadow-xl relative overflow-hidden"
+      className="p-6 shadow-xl relative overflow-hidden focus-brand"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onFocus={() => {
+        if (focusedIndex === null && chronologicalData.length > 0) {
+          const lastIndex = chronologicalData.length - 1;
+          setFocusedIndex(lastIndex);
+          setIsKeyboardActive(true);
+          setTimeout(() => updateKeyboardTooltipPosition(lastIndex), 50);
+        }
+      }}
+      onBlur={() => {
+        setIsKeyboardActive(false);
+        setTooltipPos(undefined);
+      }}
+      {...props} // KLUCZOWA ZMIANA: Przekazujemy "data-focus-order" na kontener sekcji wykresu
       sx={{
         backgroundColor: "var(--color-brand-navy-dark)",
         border: "1px solid var(--color-brand-navy-light)",
         borderRadius: "var(--radius-brand-card)",
+        "&:focus": { outline: "none" }
       }}
     >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
@@ -277,6 +426,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
               size="small"
               startIcon={<CompareArrowsIcon />}
               onClick={handleCompareClick}
+              tabIndex={-1}
               sx={{
                 borderColor: "var(--color-brand-navy-light)",
                 color: "var(--color-brand-text)",
@@ -299,7 +449,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
         {loading && <LoadingSpinner text={t("chart.syncingTimeline")} />}
       </div>
 
-      {/* WCAG: Ukryta tabela dla czytników ekranu dająca alternatywny dostęp do danych wykresu */}
+      {/* WCAG Fallback Table */}
       <div className="sr-only">
         <h3>{t("chart.tableFallbackTitle")}</h3>
         <table>
@@ -315,8 +465,8 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
                 <td>{point.eventName} ({point.displayDate})</td>
                 {driversMeta.map(m => (
                   <td key={m.guid}>
-                    {point[`elo_${m.guid}`] !== undefined 
-                      ? format.number(Math.round(point[`elo_${m.guid}`])) 
+                    {point[`elo_${m.guid}`] !== undefined
+                      ? format.number(Math.round(point[`elo_${m.guid}`]))
                       : t("chart.noDataFallback")}
                   </td>
                 ))}
@@ -326,8 +476,9 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
         </table>
       </div>
 
-      {/* KONTENER GRAPHX */}
+      {/* GRAPHX WRAPPER */}
       <Box
+        ref={chartWrapperRef}
         role="img"
         aria-labelledby="chart-title"
         className="relative flex rounded-lg p-2 overflow-hidden"
@@ -355,7 +506,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
           />
         )}
 
-        {/* LEWA OŚ Y */}
+        {/* STATYCZNA LEWA OŚ Y */}
         <Box
           className="w-12 h-[340px] flex-shrink-0 z-30 select-none"
           aria-hidden="true"
@@ -401,6 +552,8 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
                 data={chronologicalData}
                 margin={{ top: 15, right: 10, left: 0, bottom: 5 }}
                 onMouseMove={(e) => {
+                  if (isKeyboardActive) return;
+
                   if (e && e.activeCoordinate) {
                     const { x, y } = e.activeCoordinate;
                     if (!scrollContainerRef.current) return;
@@ -425,15 +578,20 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
                     if (targetY + tooltipHeight > chartHeight - 10) {
                       targetY = y - tooltipHeight - 10;
                     }
-                    if (targetY < 10) {
-                      targetY = y + 20;
-                    }
                     targetY = Math.max(10, Math.min(targetY, chartHeight - tooltipHeight - 10));
 
+                    if (e.activeTooltipIndex !== undefined) {
+                      setFocusedIndex(e.activeTooltipIndex);
+                    }
                     setTooltipPos({ x: targetX, y: targetY });
                   }
                 }}
-                onMouseLeave={() => setTooltipPos(undefined)}
+                onMouseLeave={() => {
+                  if (!isKeyboardActive) {
+                    setTooltipPos(undefined);
+                    setFocusedIndex(null);
+                  }
+                }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-brand-text-muted)" opacity={0.15} />
 
@@ -451,13 +609,39 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
                 <YAxis domain={[yMin, yMax]} hide />
 
                 <Tooltip
-                  content={<EventTooltip guids={guids} />}
+                  // ZMIANA: Przekazujemy aktualny punkt bezpośrednio jako prop "keyboardRawData"
+                  content={
+                    <EventTooltip
+                      guids={guids}
+                      keyboardRawData={
+                        isKeyboardActive && focusedIndex !== null
+                          ? chronologicalData[focusedIndex]
+                          : undefined
+                      }
+                    />
+                  }
                   cursor={{ stroke: "var(--color-brand-navy-light)", strokeWidth: 1 }}
                   position={tooltipPos}
+                  active={(focusedIndex !== null && tooltipPos !== undefined) || isKeyboardActive}
+                  activeTooltipIndex={focusedIndex ?? undefined}
                   allowEscapeViewBox={{ x: true, y: true }}
-                  wrapperStyle={{ zIndex: 100, pointerEvents: "none" }}
+                  wrapperStyle={{
+                    zIndex: 100,
+                    pointerEvents: "none",
+                    display: (isKeyboardActive || tooltipPos) ? "block" : "none",
+                    opacity: (isKeyboardActive || tooltipPos) ? 1 : 0,
+                    visibility: (isKeyboardActive || tooltipPos) ? "visible" : "hidden"
+                  }}
+                  style={{
+                    display: "block",
+                    opacity: 1
+                  }}
+                  payload={
+                    isKeyboardActive && focusedIndex !== null && chronologicalData[focusedIndex]
+                      ? [{ payload: chronologicalData[focusedIndex] }]
+                      : undefined
+                  }
                 />
-
                 {guids.map((guid, index) => (
                   <Line
                     key={guid}
@@ -466,7 +650,15 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
                     stroke={DRIVER_COLORS[index % DRIVER_COLORS.length]}
                     strokeWidth={2.5}
                     connectNulls={true}
-                    dot={<EventDot guid={guid} color={DRIVER_COLORS[index % DRIVER_COLORS.length]} isMobile={isMobile} />}
+                    dot={
+                      <EventDot
+                        guid={guid}
+                        color={DRIVER_COLORS[index % DRIVER_COLORS.length]}
+                        isMobile={isMobile}
+                        // Przekazujemy aktualny indeks z klawiatury, aby kropka wiedziała kiedy urosnąć
+                        keyboardFocusedIndex={focusedIndex}
+                      />
+                    }
                     activeDot={{ r: isMobile ? 6.5 : 5, strokeWidth: 1 }}
                     isAnimationActive={false}
                   />
