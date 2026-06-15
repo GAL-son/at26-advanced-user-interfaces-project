@@ -6,6 +6,9 @@ import { useTranslations } from "next-intl";
 import DriverFilterBar, { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
 import DriverList from "@/app/_components/Drivers/DriverList";
 import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
+import { focusFlatSection } from "@/app/_utils/navigation";
+
+const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list"];
 
 export default function DriversPage() {
   const t = useTranslations("Drivers");
@@ -18,8 +21,6 @@ export default function DriversPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  // Stan dla komunikatów dynamicznych (Aria Live Region)
   const [srAnnouncement, setSrAnnouncement] = useState("");
 
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -40,7 +41,6 @@ export default function DriversPage() {
     async function fetchDrivers() {
       if ((!hasMore && page !== 0) || loading) return;
       setLoading(true);
-
       try {
         const res = await fetch(
           `/api/drivers?page=${page}&limit=20&search=${encodeURIComponent(debouncedSearch)}&sortBy=${sortBy}`
@@ -62,7 +62,6 @@ export default function DriversPage() {
           setDrivers(prev => (page === 0 ? mappedDrivers : [...prev, ...mappedDrivers]));
           setHasMore(data.hasMore);
 
-          // WCAG FIX: Inteligentne powiadomienia głosowe
           if (page === 0) {
             if (mappedDrivers.length === 0) {
               setSrAnnouncement(t("list.noDrivers"));
@@ -70,7 +69,6 @@ export default function DriversPage() {
               setSrAnnouncement(t("sr.resultsFound", { count: data.drivers.length }));
             }
           } else {
-            // Informujemy dyskretnie o zmianie liczby elementów na liście, zamiast spamu tekstowego
             setSrAnnouncement(t("sr.loadedMore", { total: drivers.length + mappedDrivers.length }));
           }
         }
@@ -113,7 +111,6 @@ export default function DriversPage() {
         color: 'var(--color-brand-text)',
       }}
     >
-      {/* Aria Live Region - anonsuje zmiany stanu bez przerywania operacji użytkownika */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {srAnnouncement}
       </div>
@@ -123,18 +120,17 @@ export default function DriversPage() {
           {t("title")}
         </h1>
 
-        {/* Sekcja filtrów oznaczona dla czytnika jako region wyszukiwania */}
-        <section aria-label={t("sr.filtersSection")}>
+        <div data-section="drivers-filters" className="w-full">
           <DriverFilterBar
             search={search}
             setSearch={setSearch}
             sortBy={sortBy}
             setSortBy={setSortBy}
+            onNavigateVertical={(dir) => focusFlatSection("drivers-filters", dir, SECTION_ORDER)}
           />
-        </section>
+        </div>
 
-        {/* Sekcja z listą kierowców */}
-        <section aria-label={t("sr.listSection")} className="mt-4">
+        <div data-section="drivers-list" className="w-full mt-4">
           <DriverList 
             drivers={drivers}
             loading={loading}
@@ -142,8 +138,10 @@ export default function DriversPage() {
             hasMore={hasMore}
             sortBy={sortBy}
             observerTargetRef={observerTarget}
+            onNavigateVertical={(dir) => focusFlatSection("drivers-list", dir, SECTION_ORDER)}
+            loadMoreDrivers={() => setPage(prev => prev + 1)}
           />
-        </section>
+        </div>
       </div>
     </Box>
   );

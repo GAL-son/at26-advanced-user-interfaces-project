@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { TableRow, SxProps, Theme } from '@mui/material';
 
 interface PositionedTableRowProps {
@@ -13,7 +13,7 @@ interface PositionedTableRowProps {
   sx?: SxProps<Theme>;
 }
 
-export default function PositionedTableRow({ 
+const PositionedTableRow = forwardRef<HTMLTableRowElement, PositionedTableRowProps>(({ 
   children, 
   onClick,
   onKeyDown,
@@ -22,19 +22,28 @@ export default function PositionedTableRow({
   className = "",
   role,
   sx = {}
-}: PositionedTableRowProps) {
+}, ref) => {
   return (
     <TableRow
+      ref={ref}
       onClick={onClick}
       onKeyDown={onKeyDown}
       tabIndex={tabIndex}
       aria-label={ariaLabel}
       role={role}
-      className={`group ${className}`}
+      // Klasa focus-brand zarządza teraz całością zachowania focusu
+      className={`group focus-brand ${className}`}
       sx={{
         backgroundColor: 'var(--color-brand-navy-dark)',
         borderBottom: '1px solid var(--color-brand-navy-light)',
         transition: 'background-color 0.15s ease',
+        
+        // Bezpieczny z-index przeniesiony bezpośrednio do głównego stanu, 
+        // aby zogniskowany wiersz nie chował się pod sąsiadami podczas nakładania box-shadow
+        '&:focus-visible': {
+          position: 'relative',
+          zIndex: 10,
+        },
         
         '& .MuiTableCell-root': {
           borderBottom: 'none',
@@ -50,4 +59,8 @@ export default function PositionedTableRow({
       {children}
     </TableRow>
   );
-}
+});
+
+PositionedTableRow.displayName = "PositionedTableRow";
+
+export default PositionedTableRow;

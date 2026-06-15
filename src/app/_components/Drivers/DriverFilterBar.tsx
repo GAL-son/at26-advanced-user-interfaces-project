@@ -11,6 +11,7 @@ interface DriverFilterBarProps {
   setSearch: (val: string) => void;
   sortBy: SortOption;
   setSortBy: (val: SortOption) => void;
+  onNavigateVertical: (direction: "up" | "down") => void;
 }
 
 export default function DriverFilterBar({
@@ -18,12 +19,33 @@ export default function DriverFilterBar({
   setSearch,
   sortBy,
   setSortBy,
+  onNavigateVertical,
 }: DriverFilterBarProps) {
   const t = useTranslations("Drivers");
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    const isBelowLg = window.matchMedia("(max-width: 1199px)").matches;
+
+    if (e.key === "ArrowLeft" && !isBelowLg) {
+      e.preventDefault();
+      const activeTab = document.getElementById(`tab-driver-sort-${sortBy}`);
+      activeTab?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (isBelowLg) {
+        const activeTab = document.getElementById(`tab-driver-sort-${sortBy}`);
+        activeTab?.focus();
+      } else {
+        onNavigateVertical("up");
+      }
+    } else if (e.key === "ArrowDown" || (e.key === "ArrowRight" && isBelowLg)) {
+      e.preventDefault();
+      onNavigateVertical("down");
+    }
+  };
+
   return (
     <Box
-      // WCAG: Definiujemy rolę "search" lub "form" (jeśli to zestaw filtrów), aby czytniki ułatwiły nawigację
       component="div"
       role="search"
       aria-label={t("filter.barAriaLabel")}
@@ -32,26 +54,32 @@ export default function DriverFilterBar({
         backgroundColor: "var(--color-brand-navy-dark)",
         border: "1px solid var(--color-brand-navy-light)",
         borderRadius: "var(--radius-brand-card)",
-        transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
-      {/* Przekazujemy label, aby kontener nawigacji wewnątrz tabsów miał jasny cel */}
-      <DriverOrderTabs 
-        sortBy={sortBy} 
-        setSortBy={setSortBy} 
-        ariaLabel={t("filter.sortGroupLabel")}
-      />
+      <Box className="flex-grow w-full">
+        <DriverOrderTabs 
+          sortBy={sortBy} 
+          setSortBy={setSortBy} 
+          ariaLabel={t("filter.sortGroupLabel")}
+          onNavigateVertical={onNavigateVertical}
+        />
+      </Box>
       
-      <Box className="w-full lg:w-80 flex-shrink-0">
+      <Box 
+        id="driver-search-container"
+        className="w-full lg:w-80 flex-shrink-0"
+        onKeyDown={handleSearchKeyDown}
+      >
         <UniversalSearch
           value={search}
           onChange={setSearch}
           label={t("filter.searchLabel")}
           placeholder={t("filter.searchPlaceholder")}
-          // Przekazujemy dodatkowy opis, np. informację, że wyniki filtrują się automatycznie
           ariaDescribedBy="search-hint"
+          results={[]}
+          onSelectResult={() => {}}
+          renderItem={() => null}
         />
-        {/* Niewidoczna informacja techniczna dla czytnika */}
         <span id="search-hint" className="sr-only">
           {t("filter.searchHint")}
         </span>

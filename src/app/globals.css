@@ -65,13 +65,17 @@ body {
 }
 
 @utility focus-brand {
-  &:focus-visible {
-    outline: 2px solid var(--color-brand-yellow);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent);
-  }
+  /* Całkowity reset domyślnego zachowania focusu dla przeglądarki i MUI */
   &:focus {
-    outline: none;
+    outline: none !important;
+    box-shadow: none;
+  }
+
+  /* Nasz spersonalizowany styl, który czyści potencjalne pozostałości po MUI */
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-yellow) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent) !important;
   }
 }
 

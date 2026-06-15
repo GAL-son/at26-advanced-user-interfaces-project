@@ -22,11 +22,22 @@ interface RaceResultExtended {
   combo: number;
 }
 
+// 1. Rozszerzamy interfejs o brakujące właściwości z hooka nawigacji
 interface ResultListItemProps {
+  id?: string;
   row: RaceResultExtended;
+  index: number;
+  onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void;
+  registerRef: (el: HTMLElement | null) => void;
 }
 
-export default function ResultListItem({ row }: ResultListItemProps) {
+export default function ResultListItem({ 
+  id, 
+  row, 
+  index, 
+  onKeyDown, 
+  registerRef 
+}: ResultListItemProps) {
   const t = useTranslations("Results.table");
   const router = useRouter();
 
@@ -34,11 +45,16 @@ export default function ResultListItem({ row }: ResultListItemProps) {
     router.push(`/drivers/${row.guid}`);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // 2. Łączymy lokalną obsługę Enter/Spacji z globalną obsługą strzałek z hooka
+  const handleCombinedKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleNavigation();
+      return;
     }
+    
+    // Przekazujemy zdarzenie dalej do hooka (strzałki góra/dół)
+    onKeyDown(e);
   };
 
   const formatTime = (ms: number) => {
@@ -52,17 +68,17 @@ export default function ResultListItem({ row }: ResultListItemProps) {
 
   return (
     <PositionedTableRow 
+      id={id} // 3. Przekazujemy unikalne ID komponentu
+      ref={registerRef} // 4. Podpinamy referencję z hooka do elementu DOM
       onClick={handleNavigation}
-      onKeyDown={handleKeyDown}
+      onKeyDown={handleCombinedKeyDown} // 5. Używamy połączonej funkcji obsługi klawiszy
       tabIndex={0}
       role="link"
       aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}
       sx={{ display: { xs: 'none', md: 'table-row' }, cursor: 'pointer', outline: 'none' }}
     >
-      {/* JAWNE I REUŻYWALNE WSTRZYKNIĘCIE KOMÓRKI POZYCJI */}
       <PositionTableCell position={row.pos} />
 
-      {/* REZTA TWOICH KOMÓREK BEZ ZMIAN */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
           <span style={{ color: 'var(--color-brand-text-muted)' }}>{row.name}</span>
@@ -70,7 +86,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         </Box>
       </TableCell>
       
-      {/* COL 3: ZMIANA ELO */}
       <TableCell>
         <Box className="flex items-center gap-2 font-mono text-sm">
           <span style={{ color: 'var(--color-brand-text)' }}>
@@ -94,7 +109,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         </Box>
       </TableCell>
 
-      {/* COL 4: SAMOCHÓD */}
       <TableCell 
         className="font-medium text-xs tracking-wide uppercase"
         style={{ color: 'var(--color-brand-text-muted)' }}
@@ -102,7 +116,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {row.car}
       </TableCell>
 
-      {/* COL 5: OKRĄŻENIA */}
       <TableCell 
         className="font-mono text-center hidden md:table-cell"
         style={{ color: 'var(--color-brand-text-muted)' }}
@@ -110,7 +123,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {row.laps}
       </TableCell>
 
-      {/* COL 6: CZAS ŁĄCZNY */}
       <TableCell 
         className="font-mono font-medium"
         style={{ color: 'var(--color-brand-text)' }}
@@ -118,7 +130,6 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {formatTime(row.totalTime)}
       </TableCell>
 
-      {/* COL 7: STRATA (GAP) / WINNER */}
       <TableCell className="font-mono text-xs">
         {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
           <Box 

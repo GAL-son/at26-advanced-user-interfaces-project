@@ -8,6 +8,7 @@ import DriverRowMobile from "./DriverRowMobile";
 import { FormattedDriver } from "./DriverRow";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
+import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 
 interface DriverListProps {
   drivers: FormattedDriver[];
@@ -16,6 +17,8 @@ interface DriverListProps {
   hasMore: boolean;
   sortBy: SortOption;
   observerTargetRef: React.RefObject<HTMLDivElement | null>;
+  onNavigateVertical: (direction: "up" | "down") => void;
+  loadMoreDrivers: () => void;
 }
 
 export default function DriverList({
@@ -24,17 +27,33 @@ export default function DriverList({
   isInitialLoad,
   hasMore,
   sortBy,
-  observerTargetRef
+  observerTargetRef,
+  onNavigateVertical,
+  loadMoreDrivers
 }: DriverListProps) {
   const t = useTranslations("Drivers");
   const [isMounted, setIsMounted] = useState(false);
   const theme = useTheme();
-  
   const isMobile = useMediaQuery(theme.breakpoints.down(768));
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const { registerItem, handleKeyDown } = useKeyboardNavigation({
+    itemCount: drivers.length,
+    orientation: "vertical",
+    loop: false,
+    onLeave: (direction) => {
+      if (direction === "prev") {
+        // Kliknięcie ArrowUp na pierwszym wierszu wyjeżdża w górę do filtrów
+        onNavigateVertical("up");
+      } else if (direction === "next" && hasMore && !loading) {
+        // Kliknięcie ArrowDown na ostatnim wierszu dociąga nową paczkę stronnicowania
+        loadMoreDrivers();
+      }
+    }
+  });
 
   const headerClass = "font-bold text-xs uppercase tracking-wider py-3";
 
@@ -51,12 +70,9 @@ export default function DriverList({
       }}
       className="shadow-xl"
     >
-      {/* WCAG: Zawsze przekazujemy unikalną etykietę dla tabeli */}
       <Table aria-label={t("list.ariaLabel")}>
         <TableHead 
           sx={{ 
-            // WCAG FIX: Zamiast display: 'none', który wycina nagłówki z czytników,
-            // na mobile stosujemy technikę wizualnego ukrycia. Czytnik nadal widzi strukturę tabeli!
             ...(isMounted && isMobile ? {
               position: 'absolute',
               width: '1px',
@@ -78,19 +94,16 @@ export default function DriverList({
           }}
         >
           <TableRow>
-            {/* WCAG: Dodano scope="col", aby powiązać nagłówek z komórkami w kolumnie */}
             <TableCell scope="col" align="center" className={`${headerClass} w-16`}>
               {t("list.headers.pos")}
             </TableCell>
             <TableCell scope="col" className={headerClass}>
               {t("list.headers.profile")}
             </TableCell>
-            
             <TableCell
               scope="col"
               align="center"
               className={`${headerClass} w-36`}
-              // WCAG: Informujemy czytnik, czy kolumna jest aktualnie sortowana
               aria-sort={sortBy === 'races' ? 'descending' : 'none'}
               sx={{
                 color: sortBy === 'races' ? 'var(--color-brand-yellow-text) !important' : 'inherit',
@@ -99,7 +112,6 @@ export default function DriverList({
             >
               {t("list.headers.races")}
             </TableCell>
-
             <TableCell
               scope="col"
               align="center"
@@ -112,7 +124,6 @@ export default function DriverList({
             >
               {t("list.headers.lastActive")}
             </TableCell>
-
             <TableCell
               scope="col"
               align="right"
@@ -129,28 +140,29 @@ export default function DriverList({
         </TableHead>
         
         <TableBody>
-          {drivers.map((driver) => {
-            if (!isMounted) {
-              return <DriverRow key={driver.guid} driver={driver} />;
-            }
+          {drivers.map((driver, index) => {
+            const keyProps = {
+              driver: driver,
+              index: index,
+              onKeyDown: handleKeyDown,
+              registerRef: registerItem(index)
+            };
 
-            return isMobile ? (
-              <DriverRowMobile key={driver.guid} driver={driver} />
+            return isMounted && isMobile ? (
+              <DriverRowMobile key={driver.guid} {...keyProps} />
             ) : (
-              <DriverRow key={driver.guid} driver={driver} />
+              <DriverRow key={driver.guid} {...keyProps} />
             );
           })}
         </TableBody>
       </Table>
 
-      {/* INITIAL LOADER */}
       {isInitialLoad && (
         <Box className="py-12 flex justify-center w-full" role="status" aria-live="polite">
           <LoadingSpinner text={t("list.loadingInitial")} />
         </Box>
       )}
 
-      {/* PUSTY STAN */}
       {!isInitialLoad && !loading && drivers.length === 0 && (
         <Typography
           variant="body1"
@@ -163,8 +175,6 @@ export default function DriverList({
         </Typography>
       )}
 
-      {/* BOTTOM LOADER DLA INFINITE SCROLL */}
-      {/* Zmieniono na div i dodano ukryty region statusu, by uniknąć chaosu w czytniku */}
       <div
         ref={observerTargetRef}
         className="w-full py-6 flex justify-center"

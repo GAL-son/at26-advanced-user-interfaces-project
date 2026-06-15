@@ -8,15 +8,17 @@ import { RaceResultExtended } from '../[id]/page';
 import ResultListItem from './ResultListItem';
 import ResultListItemMobile from './ResultListItemMobile';
 import { useTranslations } from 'next-intl';
+import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 
 interface ResultListProps {
   results: RaceResultExtended[];
+  onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
 type SortField = 'pos' | 'eloChange';
 type SortOrder = 'asc' | 'desc';
 
-export default function ResultList({ results }: ResultListProps) {
+export default function ResultList({ results, onNavigateVertical }: ResultListProps) {
   const t = useTranslations("Results.table");
   const [orderBy, setOrderBy] = useState<SortField>('pos');
   const [order, setOrder] = useState<SortOrder>('asc');
@@ -45,7 +47,22 @@ export default function ResultList({ results }: ResultListProps) {
     });
   }, [results, orderBy, order]);
 
-  // Funkcja pomocnicza do określania stanu aria-sort dla WCAG
+  // Podpinamy hook nawigacji klawiaturą dla wierszy wyników
+  const { registerItem, handleKeyDown } = useKeyboardNavigation({
+    itemCount: sortedResults.length,
+    orientation: "vertical",
+    loop: false,
+    onLeave: (direction) => {
+      if (direction === "prev" && onNavigateVertical) {
+        // Wyjście strzałką w górę z pierwszego elementu tabeli
+        onNavigateVertical("up");
+      } else if (direction === "next" && onNavigateVertical) {
+        // Wyjście strzałką w dół z ostatniego elementu tabeli
+        onNavigateVertical("down");
+      }
+    }
+  });
+
   const getAriaSort = (field: SortField) => {
     if (orderBy !== field) return 'none';
     return order === 'asc' ? 'ascending' : 'descending';
@@ -122,17 +139,22 @@ export default function ResultList({ results }: ResultListProps) {
         </TableHead>
         
         <TableBody>
-          {sortedResults.map((row) => {
+          {sortedResults.map((row, index) => {
             const rowKey = row.guid || row.name;
+            const uniqueId = `result-row-${rowKey}`;
 
-            if (!isMounted) {
-              return <ResultListItem key={rowKey} row={row} />;
-            }
+            const keyProps = {
+              id: uniqueId,
+              row: row,
+              index: index,
+              onKeyDown: handleKeyDown,
+              registerRef: registerItem(index)
+            };
 
-            return isMobile ? (
-              <ResultListItemMobile key={rowKey} row={row} />
+            return isMounted && isMobile ? (
+              <ResultListItemMobile key={rowKey} {...keyProps} />
             ) : (
-              <ResultListItem key={rowKey} row={row} />
+              <ResultListItem key={rowKey} {...keyProps} />
             );
           })}
         </TableBody>
