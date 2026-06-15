@@ -2,10 +2,16 @@
 
 import React from "react";
 import { Box } from "@mui/material";
-import { SearchResultItem } from "@/app/_components/UniversalSearch";
+
+// Definiujemy lekki, dedykowany interfejs dla tej konkretnej, szybkiej wyszukiwarki
+interface FastSearchDriver {
+  guid: string;
+  mainName: string;
+  currentElo?: number; // Opcjonalne, bo zależy nam na prędkości i mniejszej ilości danych
+}
 
 interface SearchDriverItemProps {
-  item: SearchResultItem;
+  item: FastSearchDriver;
 }
 
 export default function SearchDriverItem({ item }: SearchDriverItemProps) {
@@ -14,32 +20,34 @@ export default function SearchDriverItem({ item }: SearchDriverItemProps) {
       sx={{ 
         display: "flex", 
         alignItems: "center", 
-        justifyContent: "space-between", // 🛠️ POPRAWIONE: Poprawna wartość flexbox dla rozstrzelenia zawartości
+        justifyContent: "space-between", 
         width: "100%",
         gap: 2,
         transition: "color 0.3s ease"
       }}
     >
       {/* Główna nazwa użytkownika */}
-      <span 
-        className="font-bold uppercase tracking-wide text-xs sm:text-sm truncate pr-2" // 🛠️ Docięte do jednej linii na mniejszych ekranach
-        style={{ color: "var(--color-brand-text)" }}
-        title={item.mainName} // Podpowiedź hover z pełną nazwą w razie ucięcia
+      <Box 
+        component="span"
+        className="font-bold uppercase tracking-wide text-xs sm:text-sm truncate pr-2"
+        sx={{ color: "var(--color-brand-text)" }}
+        title={item.mainName}
       >
         {item.mainName}
-      </span>
+      </Box>
 
-      {/* Sekcja ELO */}
+      {/* Sekcja ELO - renderuje się tylko, jeśli API je zwróciło w szybkim pakiecie danych */}
       {item.currentElo !== undefined && (
-        <span 
+        <Box 
+          component="span"
           className="text-[10px] sm:text-xs font-mono font-black px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0"
-          style={{ 
+          sx={{ 
             color: "var(--color-brand-yellow-text)",
             backgroundColor: "color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)"
           }}
         >
-          ELO: {item.currentElo}
-        </span>
+          ELO: {Math.round(item.currentElo)}
+        </Box>
       )}
     </Box>
   );

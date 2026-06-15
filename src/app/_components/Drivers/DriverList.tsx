@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { useTranslations } from "next-intl";
 import DriverRow from "./DriverRow";
 import DriverRowMobile from "./DriverRowMobile";
 import { FormattedDriver } from "./DriverRow";
@@ -25,10 +26,10 @@ export default function DriverList({
   sortBy,
   observerTargetRef
 }: DriverListProps) {
+  const t = useTranslations("Drivers");
   const [isMounted, setIsMounted] = useState(false);
   const theme = useTheme();
   
-  // Detekcja ekranu mobilnego (poniżej 768px)
   const isMobile = useMediaQuery(theme.breakpoints.down(768));
 
   useEffect(() => {
@@ -50,11 +51,25 @@ export default function DriverList({
       }}
       className="shadow-xl"
     >
-      <Table aria-label="Drivers global standings">
-        {/* Nagłówek ukrywa się całkowicie na mobile */}
+      {/* WCAG: Zawsze przekazujemy unikalną etykietę dla tabeli */}
+      <Table aria-label={t("list.ariaLabel")}>
         <TableHead 
           sx={{ 
-            display: isMounted && isMobile ? 'none' : 'table-header-group',
+            // WCAG FIX: Zamiast display: 'none', który wycina nagłówki z czytników,
+            // na mobile stosujemy technikę wizualnego ukrycia. Czytnik nadal widzi strukturę tabeli!
+            ...(isMounted && isMobile ? {
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              padding: 0,
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0, 0, 0, 0)',
+              whiteSpace: 'nowrap',
+              border: 0,
+            } : {
+              display: 'table-header-group',
+            }),
             backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 3%, var(--color-brand-navy-dark))',
             '& .MuiTableCell-head': {
               color: 'var(--color-brand-text-muted)',
@@ -63,40 +78,52 @@ export default function DriverList({
           }}
         >
           <TableRow>
-            <TableCell align="center" className={`${headerClass} w-16`}>Pos</TableCell>
-            <TableCell className={headerClass}>Driver Profile</TableCell>
+            {/* WCAG: Dodano scope="col", aby powiązać nagłówek z komórkami w kolumnie */}
+            <TableCell scope="col" align="center" className={`${headerClass} w-16`}>
+              {t("list.headers.pos")}
+            </TableCell>
+            <TableCell scope="col" className={headerClass}>
+              {t("list.headers.profile")}
+            </TableCell>
             
             <TableCell
+              scope="col"
               align="center"
               className={`${headerClass} w-36`}
+              // WCAG: Informujemy czytnik, czy kolumna jest aktualnie sortowana
+              aria-sort={sortBy === 'races' ? 'descending' : 'none'}
               sx={{
                 color: sortBy === 'races' ? 'var(--color-brand-yellow-text) !important' : 'inherit',
                 fontWeight: sortBy === 'races' ? '900 !important' : 'inherit'
               }}
             >
-              Races
+              {t("list.headers.races")}
             </TableCell>
 
             <TableCell
+              scope="col"
               align="center"
               className={`${headerClass} w-44`}
+              aria-sort={sortBy === 'lastRaced' ? 'descending' : 'none'}
               sx={{
                 color: sortBy === 'lastRaced' ? 'var(--color-brand-yellow-text) !important' : 'inherit',
                 fontWeight: sortBy === 'lastRaced' ? '900 !important' : 'inherit'
               }}
             >
-              Last Active
+              {t("list.headers.lastActive")}
             </TableCell>
 
             <TableCell
+              scope="col"
               align="right"
               className={`${headerClass} w-36`}
+              aria-sort={sortBy === 'elo' ? 'descending' : 'none'}
               sx={{
                 color: sortBy === 'elo' ? 'var(--color-brand-yellow-text) !important' : 'inherit',
                 fontWeight: sortBy === 'elo' ? '900 !important' : 'inherit'
               }}
             >
-              ELO Rating
+              {t("list.headers.elo")}
             </TableCell>
           </TableRow>
         </TableHead>
@@ -118,8 +145,8 @@ export default function DriverList({
 
       {/* INITIAL LOADER */}
       {isInitialLoad && (
-        <Box className="py-12 flex justify-center w-full">
-          <LoadingSpinner text={"Loading drivers leaderboard..."} />
+        <Box className="py-12 flex justify-center w-full" role="status" aria-live="polite">
+          <LoadingSpinner text={t("list.loadingInitial")} />
         </Box>
       )}
 
@@ -127,34 +154,39 @@ export default function DriverList({
       {!isInitialLoad && !loading && drivers.length === 0 && (
         <Typography
           variant="body1"
+          role="status"
+          aria-live="polite"
           className="text-center py-12 font-medium"
           sx={{ color: 'var(--color-brand-text-muted)' }}
         >
-          No drivers found matching this combination.
+          {t("list.noDrivers")}
         </Typography>
       )}
 
       {/* BOTTOM LOADER DLA INFINITE SCROLL */}
-      <Box
+      {/* Zmieniono na div i dodano ukryty region statusu, by uniknąć chaosu w czytniku */}
+      <div
         ref={observerTargetRef}
         className="w-full py-6 flex justify-center"
-        sx={{ 
+        style={{ 
           backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 1.5%, transparent)',
           borderTop: '1px solid var(--color-brand-navy-light)'
         }}
       >
         {loading && !isInitialLoad && (
-          <LoadingSpinner text={"Loading more drivers..."} />
+          <Box role="status" aria-live="polite">
+            <LoadingSpinner text={t("list.loadingMore")} />
+          </Box>
         )}
         {!hasMore && drivers.length > 0 && (
           <span 
             className="text-[10px] font-mono uppercase tracking-widest font-black"
             style={{ color: 'var(--color-brand-text-muted)', opacity: 0.5 }}
           >
-            Grid terminal reached
+            {t("list.terminalReached")}
           </span>
         )}
-      </Box>
+      </div>
     </TableContainer>
   );
 }

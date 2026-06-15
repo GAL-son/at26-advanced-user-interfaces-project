@@ -1,16 +1,19 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+// WAŻNE: Zmiana importu Link na wersję obsługującą i18n
+import { Link, useRouter, usePathname } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { AppBar, Box, Toolbar, IconButton, Typography, Button, Container } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SpeedIcon from "@mui/icons-material/Speed";
+import LanguageIcon from "@mui/icons-material/Language";
 import DebugThemeToggle from "@/app/_components/DebugThemeToggle";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 import { focusFlatSection } from "@/app/_utils/navigation";
 
 interface NavItem {
-  label: string;
+  label: string; // Klucz tłumaczenia, np. "drivers", "events", "compare"
   path: string;
   icon: React.ReactNode;
 }
@@ -29,6 +32,16 @@ export default function TopBarMenu({
   currentPageSections 
 }: TopBarMenuProps) {
   
+  const t = useTranslations("Menu");
+  const router = useRouter();
+  const currentPathname = usePathname();
+
+  // Funkcja zmieniająca język na przeciwny
+  const toggleLanguage = () => {
+    const nextLocale = t("currentLocale") === "pl" ? "en" : "pl";
+    router.replace(currentPathname, { locale: nextLocale });
+  };
+
   // Łączna liczba elementów na desktopie = Logo (1) + Linki (navItems.length)
   const totalDesktopItems = 1 + navItems.length;
 
@@ -80,7 +93,6 @@ export default function TopBarMenu({
             noWrap
             component={Link}
             href="/"
-            // REJESTRACJA LOGO W SYSTEMIE NAWIGACJI
             ref={registerItem(0)}
             onKeyDown={(e) => handleKeyDown(e, 0)}
             tabIndex={0}
@@ -136,19 +148,17 @@ export default function TopBarMenu({
           {/* LINKI NAWIGACJI: Desktop */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             {navItems.map((item, index) => {
-              const isActive = pathname.startsWith(item.path);
-              // Przesunięcie indeksów przycisków o +1, ponieważ indeks 0 zajmuje Logo
+              // Sprawdzamy aktywną ścieżkę (currentPathname nie zawiera przedrostka języka, więc pasuje idealnie)
+              const isActive = currentPathname.startsWith(item.path);
               const currentItemIndex = index + 1;
 
               return (
                 <Button
-                  key={item.label}
+                  key={item.path}
                   component={Link}
                   href={item.path}
-                  // Korzystamy z przesuniętego indeksu
                   ref={registerItem(currentItemIndex)}
                   onKeyDown={(e) => handleKeyDown(e, currentItemIndex)}
-                  // Tylko logo (indeks 0) ma tabIndex={0}, reszta chowa się za -1
                   tabIndex={-1}
                   className="focus-brand"
                   sx={{
@@ -169,15 +179,40 @@ export default function TopBarMenu({
                   }}
                 >
                   {item.icon}
-                  {item.label}
+                  {/* Tłumaczenie dynamiczne na podstawie klucza przekazanego w navItems */}
+                  {t(item.label)}
                 </Button>
               );
             })}
           </Box>
 
-          {/* PRZYCISK MOTYWU: Desktop */}
-          <Box sx={{ display: { xs: 'none', md: 'block' }, ml: 'auto' }}>
-            <DebugThemeToggle />
+          {/* PRZYCISKI FUNKCYJNE: Język i Motyw */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
+            
+            {/* PRZYCISK ZMIANY JĘZYKA */}
+            <Button
+              onClick={toggleLanguage}
+              variant="text"
+              size="small"
+              startIcon={<LanguageIcon />}
+              sx={{
+                color: 'var(--color-brand-text-muted)',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                '&:hover': {
+                  color: 'var(--color-brand-text)',
+                  bgcolor: 'color-mix(in srgb, var(--color-brand-text) 6%, transparent)'
+                }
+              }}
+            >
+              {t("switchLanguageTo")}
+            </Button>
+
+            {/* PRZYCISK MOTYWU: Desktop */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <DebugThemeToggle />
+            </Box>
+            
           </Box>
 
         </Toolbar>

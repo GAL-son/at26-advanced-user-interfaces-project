@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import Link from "next/link";
-import ComboBadge from "../Elo/ComboBadge";
+import { useTranslations } from "next-intl";
 import { TickerDriver } from "@/lib/services/drivers";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { IconButton } from "@mui/material";
+import ActiveDriverItem from "./ActiveDriverItem"; // Import wydzielonego komponentu
 
 interface ActiveDriversTickerProps {
   drivers: TickerDriver[];
@@ -13,8 +16,12 @@ interface ActiveDriversTickerProps {
 }
 
 export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVertical }: ActiveDriversTickerProps) {
+  const t = useTranslations("Home");
+
   const [isPaused, setIsPaused] = useState(false);
+  const [isHoverPaused, setIsHoverPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const preciseScrollLeftRef = useRef(0);
@@ -24,7 +31,6 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
   const hasDraggedRef = useRef(false);
   const requestRef = useRef<number | null>(null);
 
-  // 1. INICJALIZACJA UTWORZONEGO HOOKA (Zastępuje całą starą logikę handleLinkKeyDown)
   const { registerItem, handleKeyDown } = useKeyboardNavigation({
     itemCount: drivers.length,
     orientation: "horizontal",
@@ -47,7 +53,27 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
   });
 
   useEffect(() => {
-    if (!scrollContainerRef.current || !drivers || drivers.length === 0 || isDragging || isPaused) {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !scrollContainerRef.current || 
+      !drivers || 
+      drivers.length === 0 || 
+      isDragging || 
+      isPaused || 
+      isHoverPaused || 
+      prefersReducedMotion
+    ) {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       return;
     }
@@ -68,7 +94,6 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
       }
 
       container.scrollLeft = Math.floor(preciseScrollLeftRef.current);
-
       requestRef.current = requestAnimationFrame(animate);
     };
 
@@ -77,20 +102,12 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [isDragging, isPaused, drivers, scrollSpeed]);
+  }, [isDragging, isPaused, isHoverPaused, drivers, scrollSpeed, prefersReducedMotion]);
 
   if (!drivers || drivers.length === 0) return null;
 
   const duplicatedDrivers = [...drivers, ...drivers];
 
-  const handlePauseKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === " " || e.key === "Enter") {
-      e.preventDefault();
-      setIsPaused(!isPaused);
-    }
-  };
-
-  // --- LOGIKA POINTER EVENTS ---
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!scrollContainerRef.current) return;
 
@@ -138,75 +155,76 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
 
   return (
     <section
-      className="relative flex h-12 w-full items-center overflow-hidden bg-[var(--color-brand-navy-dark)] text-sm select-none"
-      aria-label="Ostatnio aktywni kierowcy"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => !isDragging && setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
+      className="relative flex h-12 w-full items-center overflow-hidden bg-[var(--color-brand-navy-dark)] text-sm border-b border-[var(--color-brand-navy-light)]"
+      aria-label={t("tickerAriaLabel")}
     >
-      <div className="z-20 flex h-full items-center bg-[var(--color-brand-navy)] px-4 font-bold uppercase tracking-wider text-[var(--color-brand-text)] shadow-md">
-        Last Active
+      <div className="z-20 flex h-full items-center bg-[var(--color-brand-navy)] px-4 font-bold uppercase tracking-wider text-[var(--color-brand-text)] shadow-md border-r border-[var(--color-brand-navy-light)] flex-shrink-0">
+        {t("lastActive")}
       </div>
 
-      <div className="relative flex-1 overflow-hidden h-full">
-        <div className="absolute top-0 left-0 z-10 h-full w-12 bg-gradient-to-r from-[var(--color-brand-navy)] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 z-10 h-full w-12 bg-gradient-to-l from-[var(--color-brand-navy)] to-transparent pointer-events-none" />
+      <div 
+        className="relative flex-1 overflow-hidden h-full"
+        onMouseEnter={() => setIsHoverPaused(true)}
+        onMouseLeave={() => {
+          setIsHoverPaused(false);
+          if (isDragging) setIsDragging(false);
+        }}
+      >
+        <div className="absolute top-0 left-0 z-10 h-full w-12 bg-gradient-to-r from-[var(--color-brand-navy-dark)] to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 z-10 h-full w-12 bg-gradient-to-l from-[var(--color-brand-navy-dark)] to-transparent pointer-events-none" />
 
         <div
           ref={scrollContainerRef}
           onPointerDown={handlePointerDown}
-          className={`flex w-full items-center h-full gap-8 pl-6 overflow-x-hidden whitespace-nowrap touch-none ${
+          role="list"
+          aria-label="Active drivers feed"
+          // Usunięto whitespace-nowrap stąd, ponieważ każdy potomek (ActiveDriverItem) dba o to sam na poziomie własnego linku
+          className={`flex w-full items-center h-full gap-8 pl-6 touch-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
-          } motion-reduce:overflow-x-auto`}
+          } ${prefersReducedMotion ? "overflow-x-auto" : "overflow-x-hidden"}`}
         >
           {duplicatedDrivers.map((driver, index) => {
             const isDuplicate = index >= drivers.length;
 
             return (
-              <Link
+              <ActiveDriverItem
                 key={`${driver.guid}-${index}`}
-                href={`/drivers/${driver.guid}`}
-                // REJESTRACJA ELEMENTU PRZEZ HOOK
-                ref={!isDuplicate ? registerItem(index) : undefined}
-                onClick={(e) => {
-                  if (hasDraggedRef.current) {
-                    e.preventDefault();
-                  }
-                }}
-                // ZMIANA: Wywołujemy handleKeyDown pochodzące bezpośrednio z hooka
-                onKeyDown={(e) => !isDuplicate && handleKeyDown(e, index)}
-                className="inline-flex items-center gap-2 rounded-sm px-2 py-1 transition-colors hover:bg-[var(--color-brand-navy-light)] focus-brand"
-                aria-hidden={isDuplicate}
-                tabIndex={isDuplicate ? -1 : 0}
-                draggable={false}
-              >
-                <span className="font-semibold text-[var(--color-brand-text)]">
-                  {driver.name}
-                </span>
-                <span className="rounded bg-[var(--color-brand-navy-light)] px-1.5 py-0.5 text-xs font-mono text-[var(--color-brand-yellow-text)]">
-                  {driver.elo}
-                </span>
-                {driver.combo > 0 && (
-                  <ComboBadge combo={driver.combo} />
-                )}
-                <span className="text-[10px] uppercase tracking-tight text-[var(--color-brand-text-muted)] opacity-70">
-                  {driver.lastActive}
-                </span>
-              </Link>
+                driver={driver}
+                index={index}
+                isDuplicate={isDuplicate}
+                prefersReducedMotion={prefersReducedMotion}
+                registerItem={registerItem}
+                handleKeyDown={handleKeyDown}
+                setIsHoverPaused={setIsHoverPaused}
+                hasDragged={hasDraggedRef.current}
+              />
             );
           })}
         </div>
       </div>
 
-      <button
-        onClick={() => setIsPaused(!isPaused)}
-        onKeyDown={handlePauseKeyDown}
-        className="sr-only focus:not-sr-only focus:absolute focus:bottom-1 focus:right-4 focus:z-30 focus:rounded focus:bg-[var(--color-brand-yellow)] focus:px-3 focus:py-1 focus:text-[var(--color-brand-navy-dark)] focus:font-medium focus:outline-none"
-        aria-pressed={isPaused}
-      >
-        {isPaused ? "Uruchom przewijanie karuzeli" : "Zatrzymaj przewijanie karuzeli"}
-      </button>
+      <div className="z-20 flex h-full items-center bg-[var(--color-brand-navy)] px-2 border-l border-[var(--color-brand-navy-light)] flex-shrink-0">
+        <IconButton
+          onClick={() => setIsPaused((prev) => !prev)}
+          size="small"
+          aria-pressed={isPaused}
+          aria-label={isPaused ? t("tickerPlay") : t("tickerPause")}
+          sx={{
+            color: isPaused ? "var(--color-brand-yellow)" : "var(--color-brand-text-muted)",
+            backgroundColor: isPaused ? "color-mix(in srgb, var(--color-brand-yellow) 10%, transparent)" : "transparent",
+            "&:hover": {
+              color: "var(--color-brand-text)",
+              backgroundColor: "color-mix(in srgb, var(--color-brand-text) 8%, transparent)",
+            },
+            "&:focus-visible": {
+              outline: "2px solid var(--color-brand-yellow)",
+              borderRadius: "4px"
+            }
+          }}
+        >
+          {isPaused ? <PlayArrowIcon fontSize="small" /> : <PauseIcon fontSize="small" />}
+        </IconButton>
+      </div>
     </section>
   );
 }

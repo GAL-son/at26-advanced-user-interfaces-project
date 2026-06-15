@@ -1,20 +1,30 @@
 "use client";
 import React from 'react';
 import { TableCell, Box, Typography } from '@mui/material';
-import { RaceResultExtended } from '../../(routes)/events/page';
+import { RaceResultExtended } from '../[id]/page';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
+import PositionTableCell from '@/app/_components/Common/PositionTableCell';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 interface ResultListItemMobileProps {
   row: RaceResultExtended;
 }
 
 export default function ResultListItemMobile({ row }: ResultListItemMobileProps) {
+  const t = useTranslations("Results.table");
   const router = useRouter();
 
-  const handleTableRowClick = () => {
+  const handleNavigation = () => {
     router.push(`/drivers/${row.guid}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleNavigation();
+    }
   };
 
   const formatTime = (ms: number) => {
@@ -28,20 +38,31 @@ export default function ResultListItemMobile({ row }: ResultListItemMobileProps)
 
   return (
     <PositionedTableRow 
-      position={row.pos} 
-      onClick={handleTableRowClick}
+      onClick={handleNavigation}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="link"
+      aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}
       sx={{
-        // Wiersz widoczny TYLKO na mobile (poniżej sm)
-        display: { xs: 'table-row', sm: 'none' },
+        display: { xs: 'table-row', md: 'none' },
         cursor: 'pointer',
-        '&:hover': {
-          backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 3%, var(--color-brand-navy-dark)) !important',
+        outline: 'none',
+        '&:focus-visible': {
+          backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 6%, var(--color-brand-navy-dark)) !important',
+          outline: '2px solid var(--color-brand-yellow)',
+          outlineOffset: '-2px'
         }
       }}
     >
-      {/* colSpan={6} wypełnia całą przestrzeń obok komórki pozycji z PositionedTableRow */}
+      {/* JAWNE I WSPÓŁDZIELONE WSTRZYKNIĘCIE KOMÓRKI POZYCJI */}
+      <PositionTableCell 
+        position={row.pos} 
+        className="!p-2"
+      />
+
+      {/* DANE KIEROWCY */}
       <TableCell
-        colSpan={6}
+        colSpan={5}
         sx={{
           p: 2,
           borderBottom: '1px solid var(--color-brand-navy-light)',
@@ -49,7 +70,7 @@ export default function ResultListItemMobile({ row }: ResultListItemMobileProps)
         }}
       >
         <Box className="flex flex-col gap-1.5 w-full">
-          {/* GÓRNA LINIA: Nazwa gracza + Combo oraz Wynik ELO (Największe) */}
+          {/* GÓRNA LINIA: Nazwa gracza + Combo oraz Wynik ELO */}
           <Box className="flex justify-between items-center w-full gap-4">
             <Box className="flex items-center gap-2 min-w-0">
               <Typography 
@@ -72,8 +93,11 @@ export default function ResultListItemMobile({ row }: ResultListItemMobileProps)
             </Box>
             
             {/* ELO i zmiana */}
-            <Box className="flex items-center gap-1.5 font-mono text-sm font-semibold flex-shrink-0">
-              <span style={{ color: 'var(--color-brand-text)' }}>{row.eloAfter}</span>
+            <Box 
+              className="flex items-center gap-1.5 font-mono text-sm font-semibold flex-shrink-0"
+              sx={{ color: 'var(--color-brand-text)' }}
+            >
+              <Box component="span">{row.eloAfter}</Box>
               <Box 
                 component="span" 
                 className="px-1.5 py-0.5 rounded text-xs font-bold border"
@@ -92,7 +116,7 @@ export default function ResultListItemMobile({ row }: ResultListItemMobileProps)
             </Box>
           </Box>
 
-          {/* DOLNA LINIA: Samochód, Laps, Czas i Gap (Mniejsze, stonowane) */}
+          {/* DOLNA LINIA: Samochód, Laps, Czas i Gap */}
           <Box className="flex justify-between items-center w-full text-xs font-medium">
             <Typography 
               variant="caption"
@@ -102,11 +126,14 @@ export default function ResultListItemMobile({ row }: ResultListItemMobileProps)
               {row.car}
             </Typography>
             
-            <Box className="flex items-center gap-1.5 font-mono text-[11px] flex-shrink-0" sx={{ color: 'var(--color-brand-text-muted)' }}>
-              <span>{row.laps}L</span>
-              <span className="opacity-30">•</span>
-              <span style={{ color: 'var(--color-brand-text)' }}>{formatTime(row.totalTime)}</span>
-              <span className="opacity-30">•</span>
+            <Box 
+              className="flex items-center gap-1.5 font-mono text-[11px] flex-shrink-0" 
+              sx={{ color: 'var(--color-brand-text-muted)' }}
+            >
+              <Box component="span">{row.laps}L</Box>
+              <Box component="span" className="opacity-30">•</Box>
+              <Box component="span" sx={{ color: 'var(--color-brand-text)' }}>{formatTime(row.totalTime)}</Box>
+              <Box component="span" className="opacity-30">•</Box>
               
               {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
                 <Box 
@@ -118,10 +145,10 @@ export default function ResultListItemMobile({ row }: ResultListItemMobileProps)
                     borderColor: 'color-mix(in srgb, var(--color-brand-yellow) 20%, transparent)',
                   }}
                 >
-                  Winner
+                  {t("winner")}
                 </Box>
               ) : (
-                <span>{row.gap}</span>
+                <Box component="span">{row.gap}</Box>
               )}
             </Box>
           </Box>

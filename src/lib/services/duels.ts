@@ -9,7 +9,7 @@ export interface DuelDriver {
 }
 
 export interface VirtualDuel {
-  categoryName: string;
+  // USUNIĘTO: categoryName
   categoryKey: 'top' | 'midfield' | 'rookies' | 'extended';
   driverA: DuelDriver;
   driverB: DuelDriver;
@@ -30,7 +30,7 @@ function isEloClose(eloA: number, eloB: number, maxPercent = 0.05): boolean {
 }
 
 // Funkcja pomocnicza: Wybiera parę spełniającą kryteria z listy kierowców
-function findMatch(drivers: any[], maxPercent = 0.05): VirtualDuel | null {
+function findMatch(drivers: any[], maxPercent = 0.05): Omit<VirtualDuel, 'categoryKey'> | null {
   if (drivers.length < 2) return null;
 
   // Szukamy par o najbliższym ELO
@@ -40,8 +40,6 @@ function findMatch(drivers: any[], maxPercent = 0.05): VirtualDuel | null {
 
     if (isEloClose(driverA.currentElo, driverB.currentElo, maxPercent)) {
       return {
-        categoryName: '', // Uzupełniane wyżej
-        categoryKey: 'top', 
         eloDifference: Math.abs(Math.round(driverA.currentElo - driverB.currentElo)),
         driverA: {
           guid: driverA.guid,
@@ -91,7 +89,7 @@ export async function getVirtualDuels(): Promise<DashboardDuels> {
         currentElo: true,
         combo: true,
         _count: {
-          select: { raceResult: true }, // Zwraca całkowitą liczbę wyścigów kierowcy (potrzebne do filtrowania poniżej)
+          select: { raceResult: true },
         },
       },
     });
@@ -101,24 +99,21 @@ export async function getVirtualDuels(): Promise<DashboardDuels> {
     const midfieldDrivers = activeDrivers.filter(d => d.currentElo < 1200 && d.currentElo >= 950 && (d._count?.raceResult ?? 0) > 10);
     const rookieDrivers = activeDrivers.filter(d => (d._count?.raceResult ?? 0) <= 10);
 
-    // 3. Dopasowywanie par pojedynkowych
-    const topDuel = findMatch(topDrivers, 0.05);
-    if (topDuel) {
-      topDuel.categoryName = "Top Split";
-      topDuel.categoryKey = "top";
-    }
+    // 3. Dopasowywanie par pojedynkowych i przypisywanie wyłącznie klucza
+    const topMatch = findMatch(topDrivers, 0.05);
+    const topDuel: VirtualDuel | null = topMatch 
+      ? { ...topMatch, categoryKey: "top" } 
+      : null;
 
-    const midfieldDuel = findMatch(midfieldDrivers, 0.05);
-    if (midfieldDuel) {
-      midfieldDuel.categoryName = "Midfield";
-      midfieldDuel.categoryKey = "midfield";
-    }
+    const midfieldMatch = findMatch(midfieldDrivers, 0.05);
+    const midfieldDuel: VirtualDuel | null = midfieldMatch 
+      ? { ...midfieldMatch, categoryKey: "midfield" } 
+      : null;
 
-    const rookiesDuel = findMatch(rookieDrivers, 0.08); // Wyższa tolerancja dla debiutantów
-    if (rookiesDuel) {
-      rookiesDuel.categoryName = "Rookies";
-      rookiesDuel.categoryKey = "rookies";
-    }
+    const rookiesMatch = findMatch(rookieDrivers, 0.08);
+    const rookiesDuel: VirtualDuel | null = rookiesMatch 
+      ? { ...rookiesMatch, categoryKey: "rookies" } 
+      : null;
 
     return {
       top: topDuel,

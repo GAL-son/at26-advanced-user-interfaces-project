@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Paper } from "@mui/material";
+import { Paper, Box } from "@mui/material";
 import UniversalSearch from "@/app/_components/UniversalSearch";
 import SearchDriverItem from "@/app/_components/Elo/SearchDriverItem";
 import SelectedDriversList, { DriverBasicInfo } from "@/app/_components/Elo/SelectedDriverList";
+import { useTranslations } from "next-intl";
 
 interface DriverSearchContainerProps {
   selectedDrivers: DriverBasicInfo[];
@@ -17,11 +18,14 @@ export default function DriverSearchContainer({
   onAddDriver,
   onRemoveDriver,
 }: DriverSearchContainerProps) {
+  const t = useTranslations("CompareDrivers.search");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DriverBasicInfo[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     if (!searchQuery.trim()) {
       setSearchResults([]);
       setIsSearching(false);
@@ -35,17 +39,23 @@ export default function DriverSearchContainer({
           `/api/drivers/search?q=${encodeURIComponent(searchQuery)}`,
         );
         const data = await res.json();
-        if (data.success && Array.isArray(data.results)) {
+        
+        if (active && data.success && Array.isArray(data.results)) {
           setSearchResults(data.results);
         }
       } catch (err) {
         console.error("Error searching drivers:", err);
       } finally {
-        setIsSearching(false);
+        if (active) {
+          setIsSearching(false);
+        }
       }
     }, 300);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      active = false;
+      clearTimeout(delayDebounceFn);
+    };
   }, [searchQuery]);
 
   const handleSelect = (driver: DriverBasicInfo) => {
@@ -53,10 +63,22 @@ export default function DriverSearchContainer({
     setSearchQuery("");
   };
 
+  // Dynamiczny komunikat dla czytników ekranu (WCAG Status Messages - Kryterium 4.1.3)
+  const getSearchStatusMessage = () => {
+    if (isSearching) return t("statusSearching");
+    if (searchQuery && searchResults.length === 0) return t("statusNoResults");
+    if (searchResults.length > 0) {
+      return t("statusFoundResults", { 
+        count: searchResults.length 
+      });
+    }
+    return "";
+  };
+
   return (
     <Paper
       elevation={0}
-      className="p-4 sm:p-6" // Mniejszy padding na mobile
+      className="p-4 sm:p-6"
       sx={{
         backgroundImage: "none",
         backgroundColor: "var(--color-brand-navy-dark)",
@@ -65,22 +87,27 @@ export default function DriverSearchContainer({
         transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
-      {/* 🚀 RESPONSYWNY GRID: 1 kolumna na mobile, 2 kolumny na desktopie */}
+      {/* Sekcja ukryta wizualnie, ale dostępna dla czytników (Aria Live Region) */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {getSearchStatusMessage()}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         
         {/* LEWA STRONA: Wyszukiwarka */}
         <div className="w-full">
-          <p
-            className="text-[10px] font-mono uppercase tracking-widest font-bold mb-2"
-            style={{ color: "var(--color-brand-text-muted)", opacity: 0.8 }}
+          <Box 
+            component="p"
+            className="text-[10px] font-mono uppercase tracking-widest font-bold mb-2 opacity-80"
+            sx={{ color: "var(--color-brand-text-muted)" }}
           >
-            Search & Add Drivers
-          </p>
+            {t("label")}
+          </Box>
 
           <UniversalSearch
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Type driver name..."
+            placeholder={t("placeholder")}
             isLoading={isSearching}
             results={searchResults}
             onSelectResult={handleSelect}
@@ -88,8 +115,8 @@ export default function DriverSearchContainer({
           />
         </div>
 
-        {/* PRAWA STRONA: Wybrani kierowcy (na mobile wskoczy pod spód) */}
-        <div className="w-full md:mt-0">
+        {/* PRAWA STRONA: Wybrani kierowcy */}
+        <div className="w-full">
           <SelectedDriversList 
             drivers={selectedDrivers} 
             onRemove={onRemoveDriver} 

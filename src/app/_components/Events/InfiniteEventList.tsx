@@ -3,68 +3,73 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Box, Typography, Alert } from "@mui/material";
 import EventRow from "./EventRow";
 import EventRowSkeleton from "./EventRowSkeleton";
-import UniversalSearch from "@/app/_components/UniversalSearch";
+import { useTranslations } from "next-intl";
+import { focusFlatSection } from "@/app/_utils/navigation";
 
 interface RaceEvent {
   id: string;
   server: string;
   track: string;
   date: string;
-  jsonUrl: string;
+  name: string;
 }
 
 interface InfiniteEventListProps {
   initialEvents: RaceEvent[];
   initialNextCursor: string | null;
+  searchQuery: string;
+  setSearchQuery: (val: string) => void;
+  pageSections: string[];
 }
 
 export default function InfiniteEventList({
   initialEvents,
   initialNextCursor,
+  searchQuery,
+  pageSections,
 }: InfiniteEventListProps) {
+  const t = useTranslations("Events");
+
   const [events, setEvents] = useState<RaceEvent[]>(initialEvents);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Stany dla wyszukiwarki
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
-
-  // Dynamiczna liczba skeletonów dostosowana do wiersza siatki
   const [skeletonCount, setSkeletonCount] = useState<number>(3);
-
+  
+  // KLUCZOWE: Dynamiczne śledzenie liczby kolumn siatki dla nawigacji klawiszowej
+  const [columnsCount, setColumnsCount] = useState<number>(3);
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  // Monitorowanie wielkości ekranu i dopasowanie liczby skeletonów do breakpointów Tailwinda
   useEffect(() => {
-    const mdQuery = window.matchMedia("(min-width: 768px)"); // md:grid-cols-3
-    const smQuery = window.matchMedia("(min-width: 640px)"); // sm:grid-cols-2
+    const mdQuery = window.matchMedia("(min-width: 768px)");
+    const smQuery = window.matchMedia("(min-width: 640px)");
 
-    const updateSkeletonCount = () => {
+    const updateLayoutMetrics = () => {
       if (mdQuery.matches) {
         setSkeletonCount(3);
+        setColumnsCount(3); // md -> grid-cols-3
       } else if (smQuery.matches) {
         setSkeletonCount(2);
+        setColumnsCount(2); // sm -> grid-cols-2
       } else {
         setSkeletonCount(1);
+        setColumnsCount(1); // mobile -> grid-cols-1
       }
     };
 
-    // Wywołanie na starcie po stronie klienta
-    updateSkeletonCount();
-
-    // Reakcja na zmianę szerokości ekranu
-    mdQuery.addEventListener("change", updateSkeletonCount);
-    smQuery.addEventListener("change", updateSkeletonCount);
+    updateLayoutMetrics();
+    mdQuery.addEventListener("change", updateLayoutMetrics);
+    smQuery.addEventListener("change", updateLayoutMetrics);
 
     return () => {
-      mdQuery.removeEventListener("change", updateSkeletonCount);
-      smQuery.removeEventListener("change", updateSkeletonCount);
+      mdQuery.removeEventListener("change", updateLayoutMetrics);
+      smQuery.removeEventListener("change", updateLayoutMetrics);
     };
   }, []);
 
-  // Debouncing dla wyszukiwarki (opóźnienie zapytania API o 400ms)
+  // Debouncing frazy wyszukiwania
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -73,7 +78,7 @@ export default function InfiniteEventList({
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Efekt reagujący na zmianę szukanej frazy
+  // Pobieranie przefiltrowanych danych
   useEffect(() => {
     if (debouncedSearch.trim() === "") {
       setEvents(initialEvents);
@@ -87,27 +92,31 @@ export default function InfiniteEventList({
       setError(null);
       try {
         const res = await fetch(`/api/events?limit=12&search=${encodeURIComponent(debouncedSearch)}`);
-        if (!res.ok) throw new Error("Failed to search race events.");
+        if (!res.ok) throw new Error(t("errors.searchFailed"));
 
         const json = await res.json();
         if (json.success && json.data) {
           setEvents(json.data);
           setNextCursor(json.nextCursor);
         } else {
-          throw new Error(json.error || "API data structure error.");
+          throw new Error(json.error || t("errors.unexpected"));
         }
       } catch (err: any) {
-        setError(err.message || "Network connection error.");
+        setError(err.message || t("errors.connection"));
         setEvents([]);
       } finally {
         setLoadingMore(false);
       }
     };
 
-    fetchFilteredEvents();
-  }, [debouncedSearch, initialEvents, initialNextCursor]);
+    const fetchHandler = setTimeout(() => {
+      fetchFilteredEvents();
+    }, 50);
 
-  // Funkcja ładowania kolejnych paczek (Infinite Scroll)
+    return () => clearTimeout(fetchHandler);
+  }, [debouncedSearch, initialEvents, initialNextCursor, t]);
+
+  // Pobieranie kolejnych stron (Infinite Scroll)
   const loadMoreEvents = useCallback(async () => {
     if (loadingMore || !nextCursor) return;
 
@@ -118,7 +127,7 @@ export default function InfiniteEventList({
       const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
       const res = await fetch(`/api/events?limit=12&cursor=${nextCursor}${searchParam}`);
       
-      if (!res.ok) throw new Error("Failed to load more race events.");
+      if (!res.ok) throw new Error(t("errors.loadMoreFailed"));
 
       const json = await res.json();
 
@@ -126,16 +135,16 @@ export default function InfiniteEventList({
         setEvents((prev) => [...prev, ...json.data]);
         setNextCursor(json.nextCursor);
       } else {
-        throw new Error(json.error || "API data structure error.");
+        throw new Error(json.error || t("errors.unexpected"));
       }
     } catch (err: any) {
-      setError(err.message || "Network connection error.");
+      setError(err.message || t("errors.connection"));
     } finally {
       setLoadingMore(false);
     }
-  }, [nextCursor, loadingMore, debouncedSearch]);
+  }, [nextCursor, loadingMore, debouncedSearch, t]);
 
-  // Konfiguracja Intersection Observer do wykrywania końca listy
+  // Konfiguracja Intersection Observer
   useEffect(() => {
     const currentLoader = loaderRef.current;
     if (!currentLoader || !nextCursor) return;
@@ -156,37 +165,92 @@ export default function InfiniteEventList({
     };
   }, [nextCursor, loadMoreEvents]);
 
+  // --- INTELIGENTNY MANEDŻER NAWIGACJI SIATKI 2D ---
+  const handleGridKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+    let targetIndex = -1;
+
+    switch (e.key) {
+      case "ArrowRight":
+        e.preventDefault();
+        if (currentIndex < events.length - 1) {
+          targetIndex = currentIndex + 1;
+        }
+        break;
+
+      case "ArrowLeft":
+        e.preventDefault();
+        if (currentIndex > 0) {
+          targetIndex = currentIndex - 1;
+        } else {
+          // Jeśli jesteśmy na zerowym elemencie i klikamy w lewo -> powrót do wyszukiwarki
+          focusFlatSection("events-list", "up", pageSections);
+        }
+        break;
+
+      case "ArrowDown":
+        e.preventDefault();
+        // Dynamiczny skok o wyliczoną szerokość kolumny (1, 2 lub 3)
+        if (currentIndex + columnsCount < events.length) {
+          targetIndex = currentIndex + columnsCount;
+        } else if (nextCursor) {
+          // Jesteśmy na ostatniej linii, ale są jeszcze dane na serwerze -> wywołaj doładowanie
+          loadMoreEvents();
+        }
+        break;
+
+      case "ArrowUp":
+        e.preventDefault();
+        if (currentIndex - columnsCount >= 0) {
+          targetIndex = currentIndex - columnsCount;
+        } else {
+          // Próba wyjścia w górę ponad pierwszy rząd owocuje przeniesieniem na nagłówek
+          focusFlatSection("events-list", "up", pageSections);
+        }
+        break;
+
+      default:
+        return; // Zostaw klawisze funkcyjne (np. Enter) w spokoju
+    }
+
+    // Jeśli wyznaczono poprawny indeks, przenieś focus
+    if (targetIndex !== -1) {
+      const targetElement = document.getElementById(`event-card-${events[targetIndex].id}`);
+      targetElement?.focus();
+    }
+  };
+
   return (
     <Box className="space-y-6">
-      {/* Sekcja wyszukiwarki */}
-      <Box className="max-w-md mx-auto sm:mx-0">
-        <UniversalSearch
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search tracks or servers..."
-          label="Filter Races"
-          isLoading={loadingMore && events.length === 0}
-        />
-      </Box>
-
-      {/* Stan pusty */}
+      
+      {/* STAN PUSTY */}
       {events.length === 0 && !loadingMore ? (
         <Typography
           variant="body1"
-          className="!text-brand-muted text-center py-12 font-medium"
+          role="status"
+          className="text-center py-12 font-medium text-[var(--color-brand-text-muted)]"
         >
-          No races found matching your criteria.
+          {t("list.emptyState")}
         </Typography>
       ) : (
         <Box
           component="ul"
-          aria-label="Simracing race events grid"
+          aria-label={t("list.gridAria")}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
           sx={{ listStyle: "none", p: 0, m: 0 }}
         >
-          {events.map((event) => (
-            <Box component="li" key={event.id} className="h-full">
-              <EventRow event={event} />
+          {events.map((event, index) => (
+            <Box 
+              component="li" 
+              key={event.id} 
+              className="h-full"
+              onKeyDown={(e) => handleGridKeyDown(e, index)}
+            >
+              {/* Przekazujemy unikalny identyfikator DOM do spięcia fokusu */}
+              <EventRow 
+                id={`event-card-${event.id}`} 
+                event={event} 
+                tabIndex={0}
+              />
             </Box>
           ))}
         </Box>
@@ -196,14 +260,17 @@ export default function InfiniteEventList({
         <Alert 
           severity="error" 
           role="alert"
-          className="mt-4 !bg-elo-loss/10 !text-elo-loss border border-elo-loss/20 font-medium rounded-xl"
-          sx={{ '& .MuiAlert-icon': { color: 'var(--color-elo-loss)' } }}
+          className="mt-4 font-medium rounded-xl border border-[color-mix(in_srgb,var(--color-elo-loss)_20%,transparent)]"
+          sx={{ 
+            backgroundColor: 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
+            color: 'var(--color-loss)',
+            '& .MuiAlert-icon': { color: 'var(--color-elo-loss)' } 
+          }}
         >
           {error}
         </Alert>
       )}
 
-      {/* Kontener loadera */}
       <Box
         ref={loaderRef}
         className="mt-4"
@@ -211,8 +278,7 @@ export default function InfiniteEventList({
         aria-busy={loadingMore}
       >
         {loadingMore && (
-          <Box component="div" aria-label="Loading more race events">
-            {/* Dynamiczna liczba dopasowana do szerokości ekranu */}
+          <Box component="div" aria-label={t("list.loadingMoreAria")}>
             <EventRowSkeleton count={skeletonCount} />
           </Box>
         )}
@@ -220,9 +286,10 @@ export default function InfiniteEventList({
         {!nextCursor && !loadingMore && events.length > 0 && (
           <Typography
             variant="body2"
-            className="!text-brand-muted/50 text-center py-8 font-mono text-xs uppercase tracking-widest font-bold"
+            role="status"
+            className="text-center py-8 font-mono text-xs uppercase tracking-widest font-bold text-[var(--color-brand-text-muted)] opacity-50"
           >
-            You have reached the end of the grid.
+            {t("list.endOfGrid")}
           </Typography>
         )}
       </Box>

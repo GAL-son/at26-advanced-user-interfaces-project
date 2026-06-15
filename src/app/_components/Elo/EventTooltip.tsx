@@ -1,13 +1,21 @@
+"use client";
+import React from 'react';
 import ComboBadge from "./ComboBadge";
 import { Box } from "@mui/material";
+import { useTranslations, useFormatter } from "next-intl";
 
 export interface EventTooltipProps {
-    active?: boolean; // Recharts czasami przekazuje active jako opcjonalne
-    payload?: any[];  // Podobnie payload
-    guids: string[];
+  active?: boolean;
+  payload?: any[];
+  guids: string[];
 }
 
 export default function EventTooltip({ active, payload, guids }: EventTooltipProps) {
+  // Pobieramy tłumaczenia z namespace "Elo" dla spójności danych wykresu
+  const tElo = useTranslations("Elo");
+  const tDrivers = useTranslations("Drivers");
+  const format = useFormatter();
+
   if (active && payload && payload.length) {
     const rawData = payload[0].payload;
 
@@ -16,7 +24,7 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
         className="p-3 shadow-2xl font-mono text-xs min-w-[220px] z-[100]"
         sx={{
           backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 96%, transparent)',
-          backdropFilter: 'blur(8px)', // Delikatny efekt rozmycia tła pod dymkiem
+          backdropFilter: 'blur(8px)',
           border: '1px solid var(--color-brand-navy-light)',
           borderRadius: 'var(--radius-brand-card)',
         }}
@@ -53,7 +61,7 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span 
                       className="font-bold truncate max-w-[115px]"
-                      style={{ color: 'var(--color-brand-text)' }} // Reaguje na tryb jasny/ciemny
+                      style={{ color: 'var(--color-brand-text)' }}
                     >
                       {meta.driverName}
                     </span>
@@ -64,7 +72,7 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
                     className="font-black text-right whitespace-nowrap"
                     style={{ color: 'var(--color-brand-text)' }}
                   >
-                    {elo} ELO
+                    {format.number(Math.round(elo))} {tDrivers("list.headers.elo")}
                   </span>
                 </div>
 
@@ -77,17 +85,26 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
                       opacity: meta.hasRaced ? 0.6 : 1
                     }}
                   >
-                    {meta.hasRaced ? "🔴 Participated" : "⚪ Skipped (Static)"}
+                    <span aria-hidden="true" className="mr-1">
+                      {meta.hasRaced ? "🔴" : "⚪"}
+                    </span>
+                    {meta.hasRaced ? tElo("chart.status.participated") : tElo("chart.status.skipped")}
                   </span>
                   
                   {meta.hasRaced && (
                     <span 
-                      className="font-bold"
+                      className="font-bold flex items-center"
                       style={{ 
                         color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)' 
                       }}
                     >
-                      {isGain ? `+${meta.eloChange}` : meta.eloChange}
+                      <span aria-hidden="true" className="mr-0.5 text-[8px]">
+                        {isGain ? "▲" : "▼"}
+                      </span>
+                      {isGain 
+                        ? `+${format.number(meta.eloChange)}` 
+                        : format.number(meta.eloChange)
+                      }
                     </span>
                   )}
                 </div>
