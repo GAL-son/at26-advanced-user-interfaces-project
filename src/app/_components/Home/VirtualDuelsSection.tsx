@@ -4,32 +4,33 @@ import React from "react";
 import Link from "next/link";
 import ComboBadge from "../Elo/ComboBadge";
 import { DashboardDuels, VirtualDuel } from "@/lib/services/duels";
-import SwordsIcon from "@mui/icons-material/FlashOn"; // Drapieżna ikona błyskawicy/starcia
+import SwordsIcon from "@mui/icons-material/FlashOn";
 
 interface VirtualDuelsSectionProps {
   duels: DashboardDuels;
 }
 
-export default function VirtualDuelsSection({ duels }: VirtualDuelsSectionProps) {
-  // Sprawdzamy, czy w ogóle mamy jakikolwiek pojedynek do wyświetlenia
+export default function VirtualDuelsSection({
+  duels,
+}: VirtualDuelsSectionProps) {
   const hasAnyDuel = duels.top || duels.midfield || duels.rookies;
   if (!hasAnyDuel) return null;
 
-  // Helper do renderowania pojedynczej karty pojedynku
+  // ... reszta kodu bez zmian
+
   const renderDuelCard = (duel: VirtualDuel | null) => {
     if (!duel) return null;
 
-    // Generujemy link do porównywarki na podstawie GUIDów obu kierowców
     const compareUrl = `/drivers/compare?guids=${duel.driverA.guid},${duel.driverB.guid}`;
 
     return (
       <Link
         key={duel.categoryKey}
         href={compareUrl}
-        className="group relative flex flex-col justify-between p-5 rounded-xl bg-[var(--color-brand-navy-dark)] border border-[var(--color-brand-navy-light)]/60 transition-all duration-200 hover:border-[var(--color-brand-yellow-hover)] hover:bg-[var(--color-brand-navy-light)]/30 hover:translate-y-[-2px]"
+        className="group relative flex flex-col p-4 rounded-xl bg-[var(--color-brand-navy-dark)] border border-[var(--color-brand-navy-light)]/60 hover:border-[var(--color-brand-yellow-hover)] hover:bg-[var(--color-brand-navy-light)]/30 overflow-hidden flex-1 h-full transition-colors duration-300"
       >
-        {/* Góra karty: Nazwa kategorii */}
-        <div className="flex items-center justify-between mb-4">
+        {/* SEKCJA TOP */}
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-brand-text-muted)] opacity-80">
             {duel.categoryName}
           </span>
@@ -38,72 +39,80 @@ export default function VirtualDuelsSection({ duels }: VirtualDuelsSectionProps)
           </span>
         </div>
 
-        {/* Środek karty: Starcie kierowców (Grid 3-kolumnowy) */}
-        <div className="grid grid-cols-7 items-center gap-2 my-2 w-full">
-          
-          {/* Kierowca A (Po lewej) */}
-          <div className="col-span-3 flex flex-col items-end text-right min-w-0">
-            <span className="font-bold text-sm sm:text-base text-[var(--color-brand-text)] group-hover:text-[var(--color-brand-yellow-hover)] transition-colors line-clamp-1">
+        {/* SEKCJA MIDDLE: Usunięto transition-all, skurczy się naturalnie i płynnie */}
+        <div className="grid grid-cols-7 items-center gap-3 w-full py-2 flex-1 min-h-0">
+          {/* LEWA STRONA: Kierowca A */}
+          <div className="col-span-3 flex items-center justify-end gap-3 min-w-0">
+            <span className="font-black text-lg sm:text-xl md:text-2xl text-[var(--color-brand-text)] group-hover:text-[var(--color-brand-yellow-hover)] transition-colors duration-300 line-clamp-1 text-right flex-1">
               {duel.driverA.mainName}
             </span>
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap justify-end">
-              {duel.driverA.combo > 0 && <ComboBadge combo={duel.driverA.combo} />}
-              <span className="font-mono text-xs font-bold text-[var(--color-brand-yellow-text)] bg-[var(--color-brand-navy)] px-1.5 py-0.5 rounded">
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <span className="font-mono text-xs font-bold text-[var(--color-brand-yellow-text)] bg-[var(--color-brand-navy)] px-1.5 py-0.5 rounded border border-[var(--color-brand-navy-light)]/40">
                 {Math.round(duel.driverA.currentElo)}
               </span>
+              {duel.driverA.combo > 0 && (
+                <div className="scale-90 origin-right">
+                  <ComboBadge combo={duel.driverA.combo} />
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Znacznik VS (Środek) */}
-          <div className="col-span-1 flex flex-col items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-brand-navy)] border border-[var(--color-brand-navy-light)] flex items-center justify-center font-black italic text-xs text-[var(--color-brand-yellow-hover)] group-hover:scale-110 transition-transform shadow-md">
+          {/* ŚRODEK: Kółko VS */}
+          <div className="col-span-1 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[var(--color-brand-navy)] border border-[var(--color-brand-navy-light)] flex items-center justify-center font-black italic text-xs text-[var(--color-brand-yellow-hover)] transition-transform duration-300 ease-in-out group-hover:scale-110 shadow-md z-10">
               VS
             </div>
           </div>
 
-          {/* Kierowca B (Po prawej) */}
-          <div className="col-span-3 flex flex-col items-start text-left min-w-0">
-            <span className="font-bold text-sm sm:text-base text-[var(--color-brand-text)] group-hover:text-[var(--color-brand-yellow-hover)] transition-colors line-clamp-1">
-              {duel.driverB.mainName}
-            </span>
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap justify-start">
-              <span className="font-mono text-xs font-bold text-[var(--color-brand-yellow-text)] bg-[var(--color-brand-navy)] px-1.5 py-0.5 rounded">
+          {/* PRAWA STRONA: Kierowca B */}
+          <div className="col-span-3 flex items-center justify-start gap-3 min-w-0">
+            <div className="flex flex-col items-start gap-1 flex-shrink-0">
+              <span className="font-mono text-xs font-bold text-[var(--color-brand-yellow-text)] bg-[var(--color-brand-navy)] px-1.5 py-0.5 rounded border border-[var(--color-brand-navy-light)]/40">
                 {Math.round(duel.driverB.currentElo)}
               </span>
-              {duel.driverB.combo > 0 && <ComboBadge combo={duel.driverB.combo} />}
+              {duel.driverB.combo > 0 && (
+                <div className="scale-90 origin-left">
+                  <ComboBadge combo={duel.driverB.combo} />
+                </div>
+              )}
             </div>
+            <span className="font-black text-lg sm:text-xl md:text-2xl text-[var(--color-brand-text)] group-hover:text-[var(--color-brand-yellow-hover)] transition-colors duration-300 line-clamp-1 flex-1 text-left">
+              {duel.driverB.mainName}
+            </span>
           </div>
-
         </div>
 
-        {/* Dół karty: Wezwanie do akcji */}
-        <div className="mt-4 pt-3 border-t border-[var(--color-brand-navy-light)]/40 text-center">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-brand-yellow-hover)] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            Zobacz porównanie h2h &rarr;
-          </span>
+        {/* SEKCJA BOTTOM */}
+        <div className="h2h-reveal grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-grid duration-300 ease-in-out w-full">
+          <div className="overflow-hidden">
+            <div className="pt-2 mt-2 border-t border-[var(--color-brand-navy-light)]/40 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out delay-100">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand-yellow-hover)]">
+                Zobacz porównanie h2h &rarr;
+              </span>
+            </div>
+          </div>
         </div>
       </Link>
     );
   };
 
   return (
-    <section 
-      className="w-full my-8 animate-fadeIn"
+    <section
+      className="w-full h-full flex flex-col animate-fadeIn"
       aria-labelledby="duels-heading"
     >
-      {/* Nagłówek sekcji */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 flex-shrink-0">
         <SwordsIcon className="text-[var(--color-brand-yellow-hover)]" />
-        <h2 
-          id="duels-heading" 
+        <h2
+          id="duels-heading"
           className="text-xl sm:text-2xl font-black uppercase tracking-wide text-[var(--color-brand-text)]"
         >
           Duels
         </h2>
       </div>
 
-      {/* Siatka z pojedynkami (Renders 1, 2 lub 3 kolumny w zależności od dostępności danych) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4 xl:gap-6 flex-1 min-h-0">
         {renderDuelCard(duels.top)}
         {renderDuelCard(duels.midfield)}
         {renderDuelCard(duels.rookies)}

@@ -1,5 +1,7 @@
+// src/app/_components/Home/LatestEventsSection.tsx
+
 import React from 'react';
-import EventRow from '../Events/EventRow'; // Dostosuj ścieżkę importu jeśli trzeba
+import EventRow from '../Events/EventRow';
 import { FormattedEvent } from '@/lib/services/events';
 
 interface LatestEventsSectionProps {
@@ -26,9 +28,8 @@ export default function LatestEventsSection({ events }: LatestEventsSectionProps
       {/* Siatka (Grid) z listą semantyczną dla czytników ekranu */}
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 m-0">
         {events.map((event) => (
-          <li key={event.id} className="h-full">
-            <EventRow event={event} />
-          </li>
+          /* DOBRZE: Usunęliśmy stąd tag <li>, EventRow sam jest elementem listy */
+          <EventRow key={event.id} event={event} />
         ))}
       </ul>
     </section>

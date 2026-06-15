@@ -14,7 +14,7 @@ import DrawerMenu from "@/app/_components/Menu/DrawerMenu";
 import GroupIcon from "@mui/icons-material/Group";
 import EventIcon from "@mui/icons-material/Event";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
-import "./globals.css";
+import "@/app/globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

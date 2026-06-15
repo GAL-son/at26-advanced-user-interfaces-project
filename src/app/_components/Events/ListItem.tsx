@@ -1,15 +1,24 @@
-// src/app/_components/ListItem.tsx
-
 "use client";
 import React from 'react';
 import { Box } from '@mui/material';
 
-interface ListItemProps {
+// Rozszerzamy interfejs o standardowe atrybuty elementu <li>,
+// ale dodajemy też opcjonalne propsy z MUI, które mogą "przypadkiem" spływać z EventRow,
+// dzięki czemu będziemy mogli je odizolować.
+interface ListItemProps extends React.ComponentPropsWithoutRef<typeof Box> {
   children: React.ReactNode;
   className?: string;
+  primaryTypographyProps?: any;
+  secondaryTypographyProps?: any;
 }
 
-export default function ListItem({ children, className }: ListItemProps) {
+export default function ListItem({ 
+  children, 
+  className, 
+  primaryTypographyProps,   // Wyciągamy i ignorujemy
+  secondaryTypographyProps, // Wyciągamy i ignorujemy
+  ...rest                   // Reszta bezpiecznych propsów (np. onClick, id)
+}: ListItemProps) {
   return (
     <Box 
       component="li" 
@@ -27,7 +36,8 @@ export default function ListItem({ children, className }: ListItemProps) {
           backgroundColor: 'var(--color-brand-navy-light) !important',
         },
       }}
-      className={`bg-brand-navy-dark ${className || ''}`}
+      className={`bg-[var(--color-brand-navy-dark)] ${className || ''}`}
+      {...rest} // Przekazujemy tylko bezpieczne atrybuty
     >
       {children}
     </Box>
