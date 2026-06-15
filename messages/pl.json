@@ -104,7 +104,8 @@
             "emptyState": "Nie znaleziono wyścigów spełniających kryteria filtrowania.",
             "gridAria": "Archiwum list telemetrycznych wyścigów",
             "loadingMoreAria": "Pobieranie kolejnych wyścigów z serwera",
-            "endOfGrid": "— Koniec bazy danych telemetrycznych —"
+            "endOfGrid": "— Koniec bazy danych telemetrycznych —",
+            "rowAriaLabel": "Wyścig: {name}, tor: {track}. Rozegrano: {date} na serwerze {server}. Kliknij, aby zobaczyć pełne wyniki i telemetrię."
         }
     },
     "Common": {

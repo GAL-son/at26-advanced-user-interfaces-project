@@ -9,6 +9,7 @@ import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import BackButton from "@/app/_components/Common/BackButton";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation"; // Dostosuj ścieżkę importu utila
+import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
 
 export interface RaceResultExtended {
   guid: string;
@@ -26,9 +27,10 @@ export interface RaceResultExtended {
 }
 
 // 1. Definiujemy płaską strukturę sekcji dla tej konkretnej strony
-const PAGE_SECTION_ORDER = ["back-action", "race-info", "results-list"];
+const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list"];
 
 export default function EventResultsPage() {
+  usePageInitialFocus()
   const t = useTranslations("Results");
   const params = useParams();
   const id = params?.id as string;
@@ -182,6 +184,7 @@ export default function EventResultsPage() {
             ariaLabel={t("backButton")} 
             tabIndex={0}
             data-focus-order="primary"
+            data-section-page-start="true"
           />
           
           <Typography
