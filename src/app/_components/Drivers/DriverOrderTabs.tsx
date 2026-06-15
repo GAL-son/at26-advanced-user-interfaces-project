@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Box, ButtonBase } from "@mui/material";
+import { useTranslations } from "next-intl";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
 import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
@@ -12,23 +13,26 @@ export type SortOption = "elo" | "races" | "name" | "lastRaced";
 interface DriverOrderTabsProps {
   sortBy: SortOption;
   setSortBy: (val: SortOption) => void;
+  ariaLabel?: string; // WCAG: Możliwość przekazania etykiety dostępności
 }
 
-export default function DriverOrderTabs({ sortBy, setSortBy }: DriverOrderTabsProps) {
+export default function DriverOrderTabs({ sortBy, setSortBy, ariaLabel }: DriverOrderTabsProps) {
+  const t = useTranslations("Drivers");
   
   const tabsConfig = [
-    { value: "elo", label: "Rating", icon: <EmojiEventsIcon sx={{ fontSize: "1.1rem" }} /> },
-    { value: "races", label: "Experience", icon: <MilitaryTechIcon sx={{ fontSize: "1.2rem" }} /> },
-    { value: "name", label: "A - Z", icon: <SortByAlphaIcon sx={{ fontSize: "1.1rem" }} /> },
-    { value: "lastRaced", label: "Last Active", icon: <AccessTimeIcon sx={{ fontSize: "1.1rem" }} /> },
+    { value: "elo", label: t("tabs.rating"), icon: <EmojiEventsIcon sx={{ fontSize: "1.1rem" }} /> },
+    { value: "races", label: t("tabs.experience"), icon: <MilitaryTechIcon sx={{ fontSize: "1.2rem" }} /> },
+    { value: "name", label: t("tabs.alphabetical"), icon: <SortByAlphaIcon sx={{ fontSize: "1.1rem" }} /> },
+    { value: "lastRaced", label: t("tabs.lastActive"), icon: <AccessTimeIcon sx={{ fontSize: "1.1rem" }} /> },
   ];
 
   return (
     <Box 
       className="flex-grow w-full"
+      role="tablist" // WCAG: Kontener zakładek musi mieć rolę tablist
+      aria-label={ariaLabel} // WCAG: Przekazanie etykiety opisującej grupę zakładek
       sx={{
         display: "grid",
-        // 🔄 KLUCZOWA ZMIANA: xs: 2 kolumny (siatka 2x2), md: 4 kolumny (pasek 1x4)
         gridTemplateColumns: { 
           xs: "repeat(2, 1fr)", 
           md: "repeat(4, 1fr)" 
@@ -46,6 +50,7 @@ export default function DriverOrderTabs({ sortBy, setSortBy }: DriverOrderTabsPr
         return (
           <ButtonBase
             key={tab.value}
+            id={`tab-driver-sort-${tab.value}`} // Dobre a11y: Unikalne ID ułatwiające mapowanie
             onClick={() => setSortBy(tab.value as SortOption)}
             focusRipple
             aria-selected={isSelected}
@@ -53,6 +58,7 @@ export default function DriverOrderTabs({ sortBy, setSortBy }: DriverOrderTabsPr
             sx={{
               display: "flex",
               flexDirection: "row",
+              // Usunięto literówkę: justifyDocument: "center"
               justifyContent: "center",
               alignItems: "center",
               gap: "8px",
@@ -94,7 +100,10 @@ export default function DriverOrderTabs({ sortBy, setSortBy }: DriverOrderTabsPr
               },
             }}
           >
-            {tab.icon}
+            {/* Ukrywamy ikonę przed czytnikiem, bo tekst w <span> załatwia sprawę */}
+            <span aria-hidden="true" className="flex items-center">
+              {tab.icon}
+            </span>
             <span>{tab.label}</span>
           </ButtonBase>
         );

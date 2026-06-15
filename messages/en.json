@@ -1,0 +1,184 @@
+{
+    "Common": {
+        "searchPlaceholder": "Search...",
+        "noResults": "[NO TELEMETRY FOUND]",
+        "back": "Go back"
+    },
+    "Menu": {
+        "currentLocale": "en",
+        "switchLanguageTo": "pl",
+        "drivers": "Drivers",
+        "events": "Events",
+        "compare": "Comparison"
+    },
+    "Home": {
+        "latestEvents": "Latest Events",
+        "topDrivers": "Top Drivers",
+        "virtualDuels": "Virtual Duels",
+        "globalStats": "Global Statistics",
+        "socialsAndServers": "Community & Servers",
+        "lastActive": "Last Active",
+        "tickerAriaLabel": "Recently active drivers",
+        "tickerPlay": "Start carousel scrolling",
+        "tickerPause": "Stop carousel scrolling",
+        "noRaces": "No races recorded",
+        "podiumAriaLabel": "Podium finishers",
+        "remainingAriaLabel": "Further leaderboard positions",
+        "viewH2h": "View H2H comparison",
+        "duelAriaLabel": "{category}. {driverA} ({eloA} ELO points) versus {driverB} ({eloB} ELO points). Rating difference is {diff} points. {action}.",
+        "categories": {
+            "top": "Top Duels",
+            "midfield": "Midfield Battles",
+            "rookies": "Rookies Duels"
+        },
+        "stats": {
+            "ariaLabel": "General platform statistics",
+            "registeredDrivers": "Registered Drivers",
+            "totalRaces": "Races Completed",
+            "averageElo": "Average Grid ELO"
+        },
+        "community": {
+            "ariaLabel": "Our community and servers",
+            "joinTitle": "Join the Community",
+            "discordBtn": "Discord Server",
+            "discordAriaLabel": "Join our Discord server (opens in a new tab)",
+            "serversTitle": "Our AC Servers",
+            "signUp": "Sign up",
+            "serverAriaLabel": "Go to server {name} (opens in a new tab)"
+        }
+    },
+    "Drivers": {
+        "title": "Driver Standings",
+        "filter": {
+            "searchLabel": "Search driver or alias...",
+            "searchPlaceholder": "Type here..."
+        },
+        "tabs": {
+            "rating": "Rating",
+            "experience": "Experience",
+            "alphabetical": "A - Z",
+            "lastActive": "Last Active"
+        },
+        "list": {
+            "ariaLabel": "Drivers global standings",
+            "loadingInitial": "Loading drivers leaderboard...",
+            "loadingMore": "Loading more drivers...",
+            "noDrivers": "No drivers found matching this combination.",
+            "terminalReached": "Grid terminal reached",
+            "aliases": "Aliases",
+            "notAvailable": "N/A",
+            "rowAriaLabel": "Driver {name}, view profile",
+            "headers": {
+                "pos": "Pos",
+                "profile": "Driver Profile",
+                "races": "Races",
+                "lastActive": "Last Active",
+                "elo": "ELO Rating"
+            }
+        },
+        "profile": {
+            "loadingTelemetry": "Loading telemetry stream...",
+            "connectionError": "[CRITICAL] Connection lost. Failed to fetch telemetry data.",
+            "backToLeaderboard": "Back to drivers leaderboard",
+            "statsSummary": "Driver statistics overview",
+            "totalExperience": "Total Experience",
+            "racesUnit": "races",
+            "lastSync": "Last Activity",
+            "chartSection": "Historical ELO performance timeline"
+        }
+    },
+    "Events": {
+        "title": "Race Events History",
+        "searchPlaceholder": "Search by track or server...",
+        "searchLabel": "Filter race events",
+        "loadingAria": "Loading historical events database stream",
+        "buttons": {
+            "refresh": "Refresh",
+            "refreshing": "Refreshed",
+            "refreshAria": "Reload race events list",
+            "refreshingAria": "Rebuilding telemetry list database"
+        },
+        "errors": {
+            "fetchFailed": "Failed to connect to events core API.",
+            "searchFailed": "Search query stream dropped by the API.",
+            "loadMoreFailed": "Could not synchronize the next batch of historical events.",
+            "unexpected": "An unexpected synchronization anomaly occurred.",
+            "connection": "Network timeout. Check your connection telemetry data."
+        },
+        "list": {
+            "emptyState": "No events found matching your filter criteria.",
+            "gridAria": "Race telemetry archive list",
+            "loadingMoreAria": "Fetching more archived races from the server",
+            "endOfGrid": "— End of telemetry database —"
+        }
+    },
+    "Elo": {
+        "comboTooltip": "Win streak: {streak} races. Next race point multiplier bonus: +{multiplier}%",
+        "chart": {
+            "performanceTitle": "ELO Performance Timeline",
+            "comparisonTitle": "ELO Performance Comparison",
+            "scrollInstruction": "Drag or scroll horizontally to load historical telemetry data",
+            "legendAria": "Chart drivers legend",
+            "compareButton": "Compare drivers",
+            "syncingTimeline": "Syncing timeline stream...",
+            "tableFallbackTitle": "Historical performance data table",
+            "tableEvent": "Event (Date)",
+            "noDataFallback": "N/A",
+            "status": {
+                "participated": "Active telemetry",
+                "skipped": "No show / Skipped"
+            }
+        }
+    },
+    "Results": {
+        "metaTitle": "Race Results",
+        "metaLoading": "Synchronizing event data feed...",
+        "metaNotFound": "Race Event Missing",
+        "notFoundMessage": "Telemetry data for this event could not be recovered or found.",
+        "backButton": "Return to Archive",
+        "unknownDriver": "Anonymous Competitor",
+        "unknownCar": "Prototype Class Spec",
+        "lapsCount": "{count, plural, =1 {lap} other {laps}}",
+        "info": {
+            "unnamedEvent": "Unnamed session",
+            "track": "Circuit",
+            "raceDate": "Timestamp",
+            "serverStatus": "Server",
+            "joinServer": "Establish link to server",
+            "newWindow": "opens in a new tab"
+        },
+        "table": {
+            "tableAria": "Race classifications leaderboard",
+            "pos": "Pos",
+            "driver": "Driver",
+            "rating": "Rating ELO",
+            "car": "Vehicle",
+            "laps": "Laps completed",
+            "totalTime": "Total duration",
+            "gap": "Interval",
+            "winner": "Winner"
+        }
+    },
+    "CompareDrivers": {
+        "title": "Driver Cross-Analysis",
+        "subtitle": "Correlate dynamic ELO rating records between multiplayer competitors",
+        "backButtonAria": "Navigate back to core directory",
+        "loadingText": "Acquiring telemetry index datasets...",
+        "driverFallback": "Competitor",
+        "emptyState": {
+            "title": "No drivers selected ",
+            "description": "Utilize the interface search node above to stage competitor profiles for evaluation."
+        },
+        "search": {
+            "label": "Przeszukaj rejestr kierowców",
+            "placeholder": "Wpisz pseudonim zawodnika...",
+            "currentlyComparing": "Wybrane profile do porównania",
+            "noDriversSelected": "Nie wybrano żadnego kierowcy do weryfikacji",
+            "statusSearching": "Przeszukiwanie bazy danych rejestru...",
+            "statusNoResults": "Nie odnaleziono pasujących rekordów kierowców.",
+            "statusFoundResults": "Znaleziono {count} pasujących pozycji. Użyj strzałek klawiatury, aby poruszać się po liście.",
+            "listAriaLabel": "Wybrani kierowcy do porównania",
+            "driverChipAriaLabel": "Kierowca {driverName}, naciśnij backspace lub delete, aby usunąć z porównania"
+        }
+    }
+}

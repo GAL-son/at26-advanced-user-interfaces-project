@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Box, IconButton } from "@mui/material";
+import { Box, IconButton, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GroupIcon from "@mui/icons-material/Group";
 
@@ -12,18 +12,25 @@ import DriverSearchContainer from "@/app/_components/Elo/DriverSearchContainer";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EloChart from "@/app/_components/Elo/EloChart";
 import { DriverBasicInfo } from "@/app/_components/Elo/SelectedDriverList";
+import { useTranslations } from "next-intl";
 
 function CompareDriversContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("CompareDrivers");
 
   const [selectedDrivers, setSelectedDrivers] = useState<DriverBasicInfo[]>([]);
 
-  // Pobieranie początkowych kierowców z URL params
+  // Pobieranie początkowych kierowców z URL params z zabezpieczeniem przed Race Condition
   useEffect(() => {
+    let active = true;
     const guidsParam = searchParams.get("guids");
-    if (!guidsParam) return;
+    
+    if (!guidsParam) {
+      setSelectedDrivers([]);
+      return;
+    }
 
     const guids = guidsParam.split(",").filter(Boolean);
 
@@ -39,20 +46,28 @@ function CompareDriversContent() {
               currentElo: data.driver.currentElo,
             };
           }
-          return { guid, mainName: `Driver (${guid.substring(0, 5)})` };
+          return { guid, mainName: `${t("driverFallback")} (${guid.substring(0, 5)})` };
         });
 
         const drivers = await Promise.all(promises);
-        setSelectedDrivers(drivers);
+        
+        // Aktualizuj stan tylko, jeśli ten efekt jest wciąż aktualny
+        if (active) {
+          setSelectedDrivers(drivers);
+        }
       } catch (err) {
         console.error("Error fetching initial drivers for comparison:", err);
       }
     }
 
     fetchInitialDrivers();
-  }, [searchParams]);
 
-  // Synchronizacja stanu z URL params
+    return () => {
+      active = false; // Funkcja czyszcząca (cleanup) przerywa nadpisanie stanu
+    };
+  }, [searchParams, t]);
+
+  // Synchronizacja stanu z URL params (scroll: false zapobiega skakaniu okna przy zmianie chipów)
   const updateUrlParams = (drivers: DriverBasicInfo[]) => {
     const params = new URLSearchParams(searchParams.toString());
     if (drivers.length > 0) {
@@ -61,7 +76,7 @@ function CompareDriversContent() {
     } else {
       params.delete("guids");
     }
-    router.replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const handleAddDriver = (driver: DriverBasicInfo) => {
@@ -94,6 +109,7 @@ function CompareDriversContent() {
         <div className="flex items-center gap-4 mb-8">
           <IconButton
             onClick={() => router.back()}
+            aria-label={t("backButtonAria")}
             sx={{
               border: '1px solid var(--color-brand-navy-light)',
               color: 'var(--color-brand-text-muted)',
@@ -108,23 +124,26 @@ function CompareDriversContent() {
             <ArrowBackIcon />
           </IconButton>
           <div>
-            <h1 
+            <Typography 
+              component="h1"
               className="text-3xl font-black uppercase tracking-tight leading-tight flex items-center gap-3"
-              style={{ color: 'var(--color-brand-text)' }}
+              sx={{ color: 'var(--color-brand-text)' }}
             >
               <GroupIcon fontSize="large" sx={{ color: 'var(--color-brand-yellow-hover)' }} />{" "}
-              Telemetry Comparison
-            </h1>
-            <p 
+              {t("title")}
+            </Typography>
+            <Typography 
+              variant="caption"
+              component="p"
               className="text-xs mt-1"
-              style={{ color: 'var(--color-brand-text-muted)' }}
+              sx={{ color: 'var(--color-brand-text-muted)' }}
             >
-              Compare multiple drivers' ELO performance over time
-            </p>
+              {t("subtitle")}
+            </Typography>
           </div>
         </div>
 
-        {/* WYSZUKIWARKA I PANEL KONTROLNY (TERAZ JAKO JEDEN KOMPONENT) */}
+        {/* WYSZUKIWARKA I PANEL KONTROLNY */}
         <div className="grid grid-cols-1 gap-6 mb-8">
           <DriverSearchContainer
             selectedDrivers={selectedDrivers}
@@ -143,18 +162,20 @@ function CompareDriversContent() {
               backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)',
             }}
           >
-            <p 
+            <Typography 
+              component="p"
               className="text-sm font-mono font-bold tracking-wider"
-              style={{ color: 'var(--color-brand-text-muted)' }}
+              sx={{ color: 'var(--color-brand-text-muted)' }}
             >
-              [AWAITING DATA INPUT]
-            </p>
-            <p 
-              className="text-xs mt-1"
-              style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+              {t("emptyState.title")}
+            </Typography>
+            <Typography 
+              component="p"
+              className="text-xs mt-1 opacity-70"
+              sx={{ color: 'var(--color-brand-text-muted)' }}
             >
-              Select at least one driver to mount the ELO tracking module.
-            </p>
+              {t("emptyState.description")}
+            </Typography>
           </Box>
         ) : (
           <EloChart guids={selectedGuids} />
@@ -165,6 +186,8 @@ function CompareDriversContent() {
 }
 
 export default function CompareDriversPage() {
+  const t = useTranslations("CompareDrivers");
+
   return (
     <Suspense
       fallback={
@@ -173,7 +196,7 @@ export default function CompareDriversPage() {
           sx={{ backgroundColor: 'var(--color-brand-navy)' }}
         >
           <LoadingSpinner
-            text="Initializing multi-node tracking..."
+            text={t("loadingText")}
             size={20}
             className="py-2 px-4"
           />

@@ -217,7 +217,8 @@ export async function getRecentlyActiveDrivers({
         name: result.driver.mainName,
         elo: result.driver.currentElo,
         combo: result.driver.combo,
-        lastActive: formatRelativeTime(result.createdAt)
+        // Zwracamy surowy string daty ISO zamiast przetłumaczonego tekstu:
+        lastActive: result.createdAt.toISOString()
       });
     }
 

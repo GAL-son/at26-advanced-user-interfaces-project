@@ -1,13 +1,16 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { Box, Drawer, Typography, Divider, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
+// WAŻNE: Podmieniamy domyślny Link oraz importujemy narzędzia nawigacji i18n
+import { Link, useRouter, usePathname } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import { Box, Drawer, Typography, Divider, List, ListItem, ListItemButton, ListItemText, Button } from "@mui/material";
 import SpeedIcon from "@mui/icons-material/Speed";
+import LanguageIcon from "@mui/icons-material/Language";
 import DebugThemeToggle from "@/app/_components/DebugThemeToggle";
 
 interface NavItem {
-    label: string;
+    label: string; // Przekazujemy tu klucze tłumaczeń: "drivers", "events", "compare"
     path: string;
     icon: React.ReactNode;
 }
@@ -20,6 +23,16 @@ interface DrawerMenuProps {
 }
 
 export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerToggle }: DrawerMenuProps) {
+    const t = useTranslations("Menu");
+    const router = useRouter();
+    const currentPathname = usePathname();
+
+    // Funkcja do przełączania języka w wersji mobilnej
+    const toggleLanguage = () => {
+        const nextLocale = t("currentLocale") === "pl" ? "en" : "pl";
+        router.replace(currentPathname, { locale: nextLocale });
+    };
+
     return (
         <Box component="nav">
             <Drawer
@@ -27,7 +40,6 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
                 open={mobileOpen}
                 onClose={onDrawerToggle}
                 ModalProps={{ keepMounted: true }}
-                // Definiujemy czas trwania animacji (opcjonalnie, domyślny w MUI jest już bardzo płynny)
                 transitionDuration={{ enter: 400, exit: 300 }}
                 sx={{
                     display: { xs: 'block', md: 'none' },
@@ -35,13 +47,11 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
                         boxSizing: 'border-box',
                         width: 260,
                         borderRight: '1px solid var(--color-brand-navy-light)',
-                        // KLUCZOWE: Tło przypisujemy do Paper, dzięki czemu cała karta płynnie się wysuwa
                         bgcolor: 'var(--color-brand-navy-dark)',
                         color: 'var(--color-brand-text)',
                     },
                 }}
             >
-                {/* Usunęliśmy stąd bgcolor i color, bo Drawer-paper teraz to kontroluje */}
                 <Box
                     sx={{
                         display: 'flex',
@@ -63,7 +73,7 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
                         <Divider sx={{ borderColor: 'var(--color-brand-navy-light)', mb: 2 }} />
                         <List>
                             {navItems.map((item) => {
-                                const isActive = pathname.startsWith(item.path);
+                                const isActive = currentPathname.startsWith(item.path);
                                 return (
                                     <ListItem key={item.label} disablePadding>
                                         <ListItemButton
@@ -85,7 +95,11 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
                                             }}
                                         >
                                             {item.icon}
-                                            <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: isActive ? 700 : 500 }} />
+                                            {/* Dynamiczne wyciąganie przetłumaczonego tekstu z pliku JSON */}
+                                            <ListItemText 
+                                                primary={t(item.label)} 
+                                                primaryTypographyProps={{ fontWeight: isActive ? 700 : 500 }} 
+                                            />
                                         </ListItemButton>
                                     </ListItem>
                                 );
@@ -93,8 +107,38 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
                         </List>
                     </Box>
 
-                    {/* Dół menu mobilnego */}
-                    <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--color-brand-navy-light)' }}>
+                    {/* Dół menu mobilnego z selektorem motywu i języka */}
+                    <Box 
+                        sx={{ 
+                            p: 2, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            gap: 2,
+                            borderTop: '1px solid var(--color-brand-navy-light)' 
+                        }}
+                    >
+                        {/* MOBILNY PRZYCISK ZMIANY JĘZYKA */}
+                        <Button
+                            onClick={toggleLanguage}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            startIcon={<LanguageIcon />}
+                            sx={{
+                                color: 'var(--color-brand-text)',
+                                borderColor: 'var(--color-brand-navy-light)',
+                                textTransform: 'uppercase',
+                                fontWeight: 600,
+                                '&:hover': {
+                                    borderColor: 'var(--color-brand-text)',
+                                    bgcolor: 'color-mix(in srgb, var(--color-brand-text) 4%, transparent)'
+                                }
+                            }}
+                        >
+                            {t("switchLanguageTo")}
+                        </Button>
+
                         <DebugThemeToggle />
                     </Box>
                 </Box>

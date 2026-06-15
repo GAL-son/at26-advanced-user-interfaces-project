@@ -1,120 +1,110 @@
 "use client";
 import React from 'react';
-import ListWrapper from '@/app/_components/Events/ListItem';
+import ListItem from '@/app/_components/Events/ListItem';
 import { Box, Typography } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import EventIcon from '@mui/icons-material/Event';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
+import { useFormatter, useTranslations } from 'next-intl';
 
-interface EventRowProps {
+interface EventRowProps extends Omit<React.ComponentPropsWithoutRef<typeof ListItem>, 'children' | 'href'> {
   event: {
     id: string;
     name: string;
     server: string;
     track: string;
     date: string;
-    jsonUrl: string;
   };
   onKeyDown?: (e: React.KeyboardEvent<HTMLElement>) => void;
+  id?: string;
 }
 
-const EventRow = React.forwardRef<HTMLLIElement, EventRowProps>(
-  ({ event, onKeyDown }, ref) => {
-    const readableName = event.name || "Unnamed Event";
+const EventRow = React.forwardRef<HTMLAnchorElement, EventRowProps>(
+  ({ event, onKeyDown, id, ...rest }, ref) => {
+    const format = useFormatter();
+    const t = useTranslations("Events");
+
+    const readableName = event.name || t("unnamedEvent");
     const readableTrack = event.track.replace(/_/g, ' ');
     const cleanServer = event.server.replace('https://', '');
-    const formattedDate = new Date(event.date).toLocaleString('pl-PL', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    });
 
     const targetUrl = `/events/${event.id}`;
 
+    const dateObj = new Date(event.date);
+    const formattedDate = isNaN(dateObj.getTime())
+      ? "N/A"
+      : format.dateTime(dateObj, {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+
     return (
-      <ListWrapper 
-        className="h-full !p-0 focus-brand rounded-[var(--radius-brand-card,12px)]"
-        ref={ref} // ZMIANA: Przekazujemy standardowy ref zamiast customowego domRef
+      <ListItem
+        ref={ref} // Teraz typ ref w EventRow (HTMLAnchorElement) idealnie pasuje do ref w ListItem
+        id={id}
+        href={targetUrl}
         onKeyDown={onKeyDown}
-        tabIndex={0}
+        aria-label={t("eventAriaLabel", { /* ... variables ... */ })}
+        className="p-6 items-start justify-between gap-6 text-left h-full"
+        draggable={false}
+        {...rest}
       >
-        <Link
-          href={targetUrl}
-          aria-label={`Event: ${readableName}, Track: ${readableTrack}, Date: ${formattedDate}, Server: ${cleanServer}. View detailed results.`}
-          className="cursor-pointer group flex flex-col p-6 items-start justify-between gap-6 text-left w-full h-full rounded-[var(--radius-brand-card,12px)] transition-colors duration-200 outline-none"
-          style={{ textDecoration: 'none' }}
-          draggable={false}
-        >
-          {/* Góra kafelka: Nazwa, Tor oraz Data */}
-          <Box className="flex flex-col gap-2 w-full min-w-0">
-            {/* NAZWA EVENTU */}
-            <Typography
-              variant="body1"
-              component="h2"
-              className="font-black tracking-wide uppercase transition-colors duration-200 text-base sm:text-lg overflow-hidden text-ellipsis group-hover:text-[var(--color-brand-yellow-hover)]"
-              sx={{
-                color: 'var(--color-brand-text)',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                whiteSpace: 'normal',
-              }}
-            >
-              {readableName}
-            </Typography>
+        {/* Wnętrze kafelka (Box z Typography, Górna sekcja, Dolna sekcja) */}
+        <Box className="flex flex-col gap-2 w-full min-w-0">
+          <Typography variant="body1" component="h2" className="font-black uppercase text-base sm:text-lg group-hover:text-[var(--color-brand-yellow-hover)] group-focus-visible:text-[var(--color-brand-yellow-hover)] transition-colors duration-200">
+            {readableName}
+          </Typography>
 
-            {/* NAZWA TORU */}
-            <Typography
-              variant="body2"
-              className="font-semibold tracking-normal text-xs sm:text-sm flex items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap"
+          <Typography
+            variant="body2"
+            className="font-semibold tracking-normal text-xs sm:text-sm flex items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap"
+            sx={{
+              color: 'var(--color-brand-text-muted)',
+              opacity: 0.9
+            }}
+          >
+            <LocationOnIcon
+              fontSize="small"
+              aria-hidden="true"
               sx={{
-                color: 'var(--color-brand-text-muted)',
-                opacity: 0.9
+                color: 'var(--color-brand-yellow-hover)',
+                fontSize: '1.1rem',
+                flexShrink: 0,
               }}
-            >
-              <LocationOnIcon
-                fontSize="small"
-                aria-hidden="true"
-                sx={{
-                  color: 'var(--color-brand-yellow-hover)',
-                  fontSize: '1.1rem',
-                  flexShrink: 0,
-                }}
-              />
-              {readableTrack}
-            </Typography>
+            />
+            {readableTrack}
+          </Typography>
 
-            {/* DATA WYŚCIGU */}
-            <Typography
-              variant="body2"
-              className="font-mono text-xs flex items-center gap-1.5 mt-1"
-              sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
-            >
-              <EventIcon sx={{ fontSize: '1rem', color: 'var(--color-brand-text-muted)' }} aria-hidden="true" />
-              <Box component="span" className="hidden">Race date: </Box>
-              {formattedDate}
-            </Typography>
-          </Box>
+          <Typography
+            variant="body2"
+            className="font-mono text-xs flex items-center gap-1.5 mt-1"
+            sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+          >
+            <EventIcon sx={{ fontSize: '1rem', color: 'var(--color-brand-text-muted)' }} aria-hidden="true" />
+            <Box component="span" className="hidden">{t("raceDate")}: </Box>
+            {formattedDate}
+          </Typography>
+        </Box>
 
-          {/* Dół kafelka: Tag serwera */}
-          <Box className="w-full pt-2 border-t border-[var(--color-brand-navy-light)]/40 flex-shrink-0">
-            <Typography
-              variant="body2"
-              component="div"
-              className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 w-fit max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
-              sx={{
-                color: 'var(--color-brand-text-muted)',
-                backgroundColor: 'var(--color-brand-navy)',
-                border: '1px solid var(--color-brand-navy-light)',
-              }}
-            >
-              <StorageIcon sx={{ fontSize: '0.9rem', color: 'var(--color-brand-text-muted)' }} aria-hidden="true" />
-              <Box component="span" className="hidden">Server: </Box>
-              {cleanServer}
-            </Typography>
-          </Box>
-        </Link>
-      </ListWrapper>
+        {/* Dół kafelka: Tag serwera */}
+        <Box className="w-full pt-2 border-t border-[var(--color-brand-navy-light)]/40 flex-shrink-0">
+          <Typography
+            variant="body2"
+            component="div"
+            className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 w-fit max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+            sx={{
+              color: 'var(--color-brand-text-muted)',
+              backgroundColor: 'var(--color-brand-navy)',
+              border: '1px solid var(--color-brand-navy-light)',
+            }}
+          >
+            <StorageIcon sx={{ fontSize: '0.9rem', color: 'var(--color-brand-text-muted)' }} aria-hidden="true" />
+            <Box component="span" className="hidden">{t("server")}: </Box>
+            {cleanServer}
+          </Typography>
+        </Box>
+      </ListItem>
     );
   }
 );

@@ -15,6 +15,7 @@ import EventTooltip from "@/app/_components/Elo/EventTooltip";
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import { useRouter } from "next/navigation";
+import { useTranslations, useFormatter } from "next-intl";
 
 const DRIVER_COLORS = [
   "var(--color-brand-yellow-hover)",
@@ -43,11 +44,14 @@ interface DriverGroup {
 
 interface EloChartProps {
   guids: string[];
-  isComparable?: boolean; // NOWY PARAMETR
+  isComparable?: boolean;
 }
 
 export default function EloChart({ guids, isComparable = false }: EloChartProps) {
   const router = useRouter();
+  const t = useTranslations("Elo"); // Przeniesione do dedykowanego namespace "Elo"
+  const format = useFormatter();
+
   const [chartData, setChartData] = useState<any[]>([]);
   const [driversMeta, setDriversMeta] = useState<{ guid: string; name: string; color: string }[]>([]);
   const [page, setPage] = useState(0);
@@ -55,7 +59,6 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
   const [loading, setLoading] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | undefined>(undefined);
 
-  // STAN WSKAŹNIKÓW PRZEWIJANIA (GRADIENTY)
   const [scrollMasks, setScrollMasks] = useState({ left: false, right: false });
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -68,7 +71,6 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // LOGIKA AKTUALIZACJI GRADIENTÓW
   const updateScrollMasks = () => {
     if (!scrollContainerRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
@@ -208,7 +210,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
 
   const chronologicalData = [...chartData].reverse().map((point) => ({
     ...point,
-    displayDate: new Date(point.eventDate).toLocaleDateString("en-US", {
+    displayDate: format.dateTime(new Date(point.eventDate), {
       day: "2-digit",
       month: "2-digit",
     }),
@@ -222,13 +224,14 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
   const yMin = allEloValues.length ? Math.min(...allEloValues) - 40 : 900;
   const yMax = allEloValues.length ? Math.max(...allEloValues) + 40 : 1200;
 
-  // Funkcja obsługująca przekierowanie do porównywarki
   const handleCompareClick = () => {
     router.push(`/drivers/compare?guids=${guidsString}`);
   };
 
   return (
     <Box
+      component="section"
+      aria-labelledby="chart-title"
       className="p-6 shadow-xl relative overflow-hidden"
       sx={{
         backgroundColor: "var(--color-brand-navy-dark)",
@@ -238,18 +241,20 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
     >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-lg font-bold uppercase tracking-wider text-[var(--color-brand-text)]">
-            {guids.length > 1 ? "ELO Comparison Graph" : "ELO Performance Graph"}
+          <h2 id="chart-title" className="text-lg font-bold uppercase tracking-wider text-[var(--color-brand-text)]">
+            {guids.length > 1 ? t("chart.comparisonTitle") : t("chart.performanceTitle")}
           </h2>
           <p className="text-xs font-mono text-[var(--color-brand-text-muted)] opacity-70">
-            ← Scroll left to load older competitive history
+            {t("chart.scrollInstruction")}
           </p>
         </div>
 
-        {/* GRUPA KONTROLEK Z LEGENDA I PRZYCISKIEM */}
+        {/* LEGENDA */}
         <div className="flex flex-wrap items-center gap-3">
           {driversMeta.length > 0 && (
             <Box
+              role="legend"
+              aria-label={t("chart.legendAria")}
               className="flex flex-wrap gap-3 p-2 rounded"
               sx={{
                 backgroundColor: "var(--color-brand-navy)",
@@ -258,14 +263,14 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
             >
               {driversMeta.map((m) => (
                 <div key={m.guid} className="flex items-center gap-2 font-mono text-xs">
-                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
+                  <span className="w-3 h-3 rounded-full flex-shrink-0" aria-hidden="true" style={{ backgroundColor: m.color }} />
                   <span className="font-bold text-[var(--color-brand-text)]">{m.name}</span>
                 </div>
               ))}
             </Box>
           )}
 
-          {/* DYNAMICZNY PRZYCISK PORÓWNANIA */}
+          {/* PRZYCISK PORÓWNANIA */}
           {isComparable && (
             <Button
               variant="outlined"
@@ -286,23 +291,51 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
                 },
               }}
             >
-              Compare
+              {t("chart.compareButton")}
             </Button>
           )}
         </div>
 
-        {loading && <LoadingSpinner text="Syncing timeline..." />}
+        {loading && <LoadingSpinner text={t("chart.syncingTimeline")} />}
       </div>
 
-      {/* GŁÓWNY KONTENER WYKRESU Z ABSOLUTNYMI GRADIENTAMI */}
+      {/* WCAG: Ukryta tabela dla czytników ekranu dająca alternatywny dostęp do danych wykresu */}
+      <div className="sr-only">
+        <h3>{t("chart.tableFallbackTitle")}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>{t("chart.tableEvent")}</th>
+              {driversMeta.map(m => <th key={m.guid}>{m.name} ELO</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {chronologicalData.map((point) => (
+              <tr key={point.eventId}>
+                <td>{point.eventName} ({point.displayDate})</td>
+                {driversMeta.map(m => (
+                  <td key={m.guid}>
+                    {point[`elo_${m.guid}`] !== undefined 
+                      ? format.number(Math.round(point[`elo_${m.guid}`])) 
+                      : t("chart.noDataFallback")}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* KONTENER GRAPHX */}
       <Box
+        role="img"
+        aria-labelledby="chart-title"
         className="relative flex rounded-lg p-2 overflow-hidden"
         sx={{
           backgroundColor: "var(--color-brand-navy)",
           border: "1px solid var(--color-brand-navy-light)",
         }}
       >
-        {/* GRADIENT LEWY */}
         {scrollMasks.left && (
           <Box
             className="absolute top-0 bottom-0 z-20 pointer-events-none w-12"
@@ -313,7 +346,6 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
           />
         )}
 
-        {/* GRADIENT PRAWY */}
         {scrollMasks.right && (
           <Box
             className="absolute top-0 bottom-0 right-0 z-20 pointer-events-none w-12"
@@ -326,6 +358,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
         {/* LEWA OŚ Y */}
         <Box
           className="w-12 h-[340px] flex-shrink-0 z-30 select-none"
+          aria-hidden="true"
           sx={{
             backgroundColor: "var(--color-brand-navy)",
             borderRight: "1px solid var(--color-brand-navy-light)",
@@ -356,7 +389,7 @@ export default function EloChart({ guids, isComparable = false }: EloChartProps)
           </ResponsiveContainer>
         </Box>
 
-        {/* SCROLLOWALNY TRZON WYKRESU */}
+        {/* TRZON WYKRESU */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}

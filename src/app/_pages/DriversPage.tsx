@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Box } from "@mui/material";
+import { useTranslations } from "next-intl";
 import DriverFilterBar, { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
 import DriverList from "@/app/_components/Drivers/DriverList";
 import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
 
 export default function DriversPage() {
+  const t = useTranslations("Drivers");
+  
   const [drivers, setDrivers] = useState<FormattedDriver[]>([]);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
@@ -15,6 +18,9 @@ export default function DriversPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Stan dla komunikatów dynamicznych (Aria Live Region)
+  const [srAnnouncement, setSrAnnouncement] = useState("");
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -50,21 +56,35 @@ export default function DriversPage() {
             racesCount: d.racesCount,
             combo: d.combo,
             currentElo: d.currentElo || 0,
-            lastRaced: d.lastRaced || "N/A"
+            lastRaced: d.lastRaced || "N/A" 
           }));
 
           setDrivers(prev => (page === 0 ? mappedDrivers : [...prev, ...mappedDrivers]));
           setHasMore(data.hasMore);
+
+          // WCAG FIX: Inteligentne powiadomienia głosowe
+          if (page === 0) {
+            if (mappedDrivers.length === 0) {
+              setSrAnnouncement(t("list.noDrivers"));
+            } else {
+              setSrAnnouncement(t("sr.resultsFound", { count: data.drivers.length }));
+            }
+          } else {
+            // Informujemy dyskretnie o zmianie liczby elementów na liście, zamiast spamu tekstowego
+            setSrAnnouncement(t("sr.loadedMore", { total: drivers.length + mappedDrivers.length }));
+          }
         }
       } catch (err) {
         console.error("Error fetching drivers leaderboard:", err);
+        setSrAnnouncement(t("sr.errorLoading"));
       } finally {
         setLoading(false);
         setIsInitialLoad(false);
       }
     }
     fetchDrivers();
-  }, [page, debouncedSearch, sortBy]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedSearch, sortBy, t]);
 
   useEffect(() => {
     const currentTarget = observerTarget.current;
@@ -85,35 +105,45 @@ export default function DriversPage() {
 
   return (
     <Box 
+      component="main" 
+      id="main-content" 
       className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
       sx={{
         backgroundColor: 'var(--color-brand-navy)',
         color: 'var(--color-brand-text)',
       }}
     >
-      <div className="container mx-auto max-w-5xl">
+      {/* Aria Live Region - anonsuje zmiany stanu bez przerywania operacji użytkownika */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {srAnnouncement}
+      </div>
 
+      <div className="container mx-auto max-w-5xl">
         <h1 className="text-3xl font-black uppercase tracking-tight mb-6" style={{ color: 'var(--color-brand-text)' }}>
-          Driver Standings
+          {t("title")}
         </h1>
 
-        <DriverFilterBar
-          search={search}
-          setSearch={setSearch}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-        />
+        {/* Sekcja filtrów oznaczona dla czytnika jako region wyszukiwania */}
+        <section aria-label={t("sr.filtersSection")}>
+          <DriverFilterBar
+            search={search}
+            setSearch={setSearch}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+          />
+        </section>
 
-        {/* NOWY WYDZIELONY KOMPONENT LISTY */}
-        <DriverList 
-          drivers={drivers}
-          loading={loading}
-          isInitialLoad={isInitialLoad}
-          hasMore={hasMore}
-          sortBy={sortBy}
-          observerTargetRef={observerTarget}
-        />
-
+        {/* Sekcja z listą kierowców */}
+        <section aria-label={t("sr.listSection")} className="mt-4">
+          <DriverList 
+            drivers={drivers}
+            loading={loading}
+            isInitialLoad={isInitialLoad}
+            hasMore={hasMore}
+            sortBy={sortBy}
+            observerTargetRef={observerTarget}
+          />
+        </section>
       </div>
     </Box>
   );

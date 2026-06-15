@@ -4,9 +4,10 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, 
   TableRow, TableSortLabel, useMediaQuery, useTheme 
 } from '@mui/material';
-import { RaceResultExtended } from '../../(routes)/events/page';
+import { RaceResultExtended } from '../[id]/page';
 import ResultListItem from './ResultListItem';
 import ResultListItemMobile from './ResultListItemMobile';
+import { useTranslations } from 'next-intl';
 
 interface ResultListProps {
   results: RaceResultExtended[];
@@ -16,14 +17,13 @@ type SortField = 'pos' | 'eloChange';
 type SortOrder = 'asc' | 'desc';
 
 export default function ResultList({ results }: ResultListProps) {
+  const t = useTranslations("Results.table");
   const [orderBy, setOrderBy] = useState<SortField>('pos');
   const [order, setOrder] = useState<SortOrder>('asc');
   
   const [isMounted, setIsMounted] = useState(false);
   const theme = useTheme();
   
-  // 🔄 ZMIANA: Zamiast 'sm' (640px) ustawiamy sztywną granicę 768px (odpowiednik md w Tailwind)
-  // Hook zwróci `true` dla wszystkich ekranów o szerokości mniejszej niż 768px
   const isMobile = useMediaQuery(theme.breakpoints.down(768));
 
   useEffect(() => {
@@ -45,6 +45,12 @@ export default function ResultList({ results }: ResultListProps) {
     });
   }, [results, orderBy, order]);
 
+  // Funkcja pomocnicza do określania stanu aria-sort dla WCAG
+  const getAriaSort = (field: SortField) => {
+    if (orderBy !== field) return 'none';
+    return order === 'asc' ? 'ascending' : 'descending';
+  };
+
   return (
     <TableContainer 
       className="rounded-xl overflow-hidden shadow-xl"
@@ -54,8 +60,7 @@ export default function ResultList({ results }: ResultListProps) {
         transition: 'background-color 0.3s ease, border-color 0.3s ease',
       }}
     >
-      <Table aria-label="Race results table with ELO changes">
-        {/* Nagłówek automatycznie ukryje się poniżej 768px dzięki nowej wartości isMobile */}
+      <Table aria-label={t("tableAria")}>
         <TableHead 
           sx={{ 
             display: isMounted && isMobile ? 'none' : 'table-header-group',
@@ -64,46 +69,70 @@ export default function ResultList({ results }: ResultListProps) {
           }}
         >
           <TableRow>
-            <TableCell className="w-20 text-center py-3.5" sx={headerCellSx}>
+            <TableCell 
+              className="w-20 text-center py-3.5" 
+              sx={headerCellSx}
+              aria-sort={getAriaSort('pos')}
+            >
               <TableSortLabel
                 active={orderBy === 'pos'}
                 direction={orderBy === 'pos' ? order : 'asc'}
                 onClick={() => handleSort('pos')}
                 sx={sortLabelSx}
               >
-                Pos
+                {t("pos")}
               </TableSortLabel>
             </TableCell>
-            <TableCell className="py-3.5" sx={headerCellSx}>Driver</TableCell>
+            
             <TableCell className="py-3.5" sx={headerCellSx}>
+              {t("driver")}
+            </TableCell>
+            
+            <TableCell 
+              className="py-3.5" 
+              sx={headerCellSx}
+              aria-sort={getAriaSort('eloChange')}
+            >
               <TableSortLabel
                 active={orderBy === 'eloChange'}
                 direction={orderBy === 'eloChange' ? order : 'asc'}
                 onClick={() => handleSort('eloChange')}
                 sx={sortLabelSx}
               >
-                Rating
+                {t("rating")}
               </TableSortLabel>
             </TableCell>
-            <TableCell className="py-3.5" sx={headerCellSx}>Car</TableCell>
-            {/* Ukrywanie kolumny Laps na jeszcze mniejszych desktopach, jeśli zajdzie potrzeba */}
-            <TableCell className="text-center py-3.5 hidden md:table-cell" sx={headerCellSx}>Laps</TableCell>
-            <TableCell className="py-3.5" sx={headerCellSx}>Total Time</TableCell>
-            <TableCell className="py-3.5" sx={headerCellSx}>Gap</TableCell>
+            
+            <TableCell className="py-3.5" sx={headerCellSx}>
+              {t("car")}
+            </TableCell>
+            
+            <TableCell className="text-center py-3.5 hidden md:table-cell" sx={headerCellSx}>
+              {t("laps")}
+            </TableCell>
+            
+            <TableCell className="py-3.5" sx={headerCellSx}>
+              {t("totalTime")}
+            </TableCell>
+            
+            <TableCell className="py-3.5" sx={headerCellSx}>
+              {t("gap")}
+            </TableCell>
           </TableRow>
         </TableHead>
         
         <TableBody>
           {sortedResults.map((row) => {
+            const rowKey = row.guid || row.name;
+
             if (!isMounted) {
-              return <ResultListItem key={row.name} row={row} />;
+              return <ResultListItem key={rowKey} row={row} />;
             }
 
-            // Warunek automatycznie przełączy komponenty przy 768px
             return isMobile ? (
-              <ResultListItemMobile key={row.name} row={row} />
+              <ResultListItemMobile key={rowKey} row={row} />
             ) : (
-              <ResultListItem key={row.name} row={row} />
+              <ResultListItem key={rowKey} row={row} />
             );
           })}
         </TableBody>

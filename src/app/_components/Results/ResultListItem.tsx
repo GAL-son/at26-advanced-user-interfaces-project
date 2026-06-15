@@ -1,20 +1,44 @@
 "use client";
 import React from 'react';
 import { TableCell, Box } from '@mui/material';
-import { RaceResultExtended } from '../../(routes)/events/page';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import PositionTableCell from '../Common/PositionTableCell';
+
+interface RaceResultExtended {
+  guid: string;
+  pos: number;
+  name: string;
+  car: string;
+  laps: number;
+  totalTime: number;
+  bestLap: number;
+  gap: string;
+  eloBefore: number;
+  eloAfter: number;
+  eloChange: number;
+  combo: number;
+}
 
 interface ResultListItemProps {
   row: RaceResultExtended;
 }
 
 export default function ResultListItem({ row }: ResultListItemProps) {
+  const t = useTranslations("Results.table");
   const router = useRouter();
 
-  const handleTableRowClick = () => {
+  const handleNavigation = () => {
     router.push(`/drivers/${row.guid}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleNavigation();
+    }
   };
 
   const formatTime = (ms: number) => {
@@ -28,36 +52,25 @@ export default function ResultListItem({ row }: ResultListItemProps) {
 
   return (
     <PositionedTableRow 
-      position={row.pos} 
-      onClick={handleTableRowClick}
-      sx={{
-        // Wiersz ukryty na mobile, widoczny od punktu sm (640px)
-        display: { xs: 'none', sm: 'table-row' },
-        cursor: 'pointer',
-        '&:hover': {
-          backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 3%, var(--color-brand-navy-dark)) !important',
-        }
-      }}
+      onClick={handleNavigation}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="link"
+      aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}
+      sx={{ display: { xs: 'none', md: 'table-row' }, cursor: 'pointer', outline: 'none' }}
     >
-      {/* NAZWA KIEROWCY */}
+      {/* JAWNE I REUŻYWALNE WSTRZYKNIĘCIE KOMÓRKI POZYCJI */}
+      <PositionTableCell position={row.pos} />
+
+      {/* REZTA TWOICH KOMÓREK BEZ ZMIAN */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
-          <span 
-            className="font-semibold tracking-wide transition-colors duration-200"
-            style={{ color: 'var(--color-brand-text-muted)' }}
-            sx={{
-              '.group:hover &': {
-                color: 'var(--color-brand-yellow-hover) !important'
-              }
-            }}
-          >
-            {row.name}
-          </span>
+          <span style={{ color: 'var(--color-brand-text-muted)' }}>{row.name}</span>
           {row.combo > 0 && <ComboBadge combo={row.combo} />}
         </Box>
       </TableCell>
       
-      {/* ZMIANA ELO */}
+      {/* COL 3: ZMIANA ELO */}
       <TableCell>
         <Box className="flex items-center gap-2 font-mono text-sm">
           <span style={{ color: 'var(--color-brand-text)' }}>
@@ -81,7 +94,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         </Box>
       </TableCell>
 
-      {/* SAMOCHÓD */}
+      {/* COL 4: SAMOCHÓD */}
       <TableCell 
         className="font-medium text-xs tracking-wide uppercase"
         style={{ color: 'var(--color-brand-text-muted)' }}
@@ -89,7 +102,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {row.car}
       </TableCell>
 
-      {/* OKRĄŻENIA (Tablet hide, Desktop show) */}
+      {/* COL 5: OKRĄŻENIA */}
       <TableCell 
         className="font-mono text-center hidden md:table-cell"
         style={{ color: 'var(--color-brand-text-muted)' }}
@@ -97,7 +110,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {row.laps}
       </TableCell>
 
-      {/* CZAS ŁĄCZNY */}
+      {/* COL 6: CZAS ŁĄCZNY */}
       <TableCell 
         className="font-mono font-medium"
         style={{ color: 'var(--color-brand-text)' }}
@@ -105,7 +118,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         {formatTime(row.totalTime)}
       </TableCell>
 
-      {/* STRATA (GAP) / WINNER */}
+      {/* COL 7: STRATA (GAP) / WINNER */}
       <TableCell className="font-mono text-xs">
         {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
           <Box 
@@ -117,7 +130,7 @@ export default function ResultListItem({ row }: ResultListItemProps) {
               borderColor: 'color-mix(in srgb, var(--color-brand-yellow) 20%, transparent)',
             }}
           >
-            Winner
+            {t("winner")}
           </Box>
         ) : (
           <span style={{ color: 'var(--color-brand-text-muted)' }}>
