@@ -14,13 +14,14 @@ interface RaceInfoProps {
     date: string;
     server: string;
   };
+  // NOWOŚĆ: Przekazujemy callback do nawigacji pionowej z poziomu strony nadrzędnej
+  onNavigateVertical: (direction: "up" | "down") => void;
 }
 
-export default function RaceInfo({ info }: RaceInfoProps) {
+export default function RaceInfo({ info, onNavigateVertical }: RaceInfoProps) {
   const t = useTranslations("Results.info");
   const locale = useLocale();
 
-  // Formatowanie daty dostosowane do języka wybranego w systemie i18n
   const formattedDate = new Date(info.date).toLocaleString(locale, {
     dateStyle: 'medium',
     timeStyle: 'short'
@@ -28,6 +29,17 @@ export default function RaceInfo({ info }: RaceInfoProps) {
 
   const readableTrack = info.track.replace(/_/g, ' ');
   const serverUrl = info.server.startsWith('http') ? info.server : `https://${info.server}`;
+
+  // Ręczna obsługa wyjścia z kafelka-linku w pionie
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      onNavigateVertical("down");
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      onNavigateVertical("up");
+    }
+  };
 
   return (
     <Paper
@@ -117,10 +129,19 @@ export default function RaceInfo({ info }: RaceInfoProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${t("joinServer")}: ${info.server} (${t("newWindow")})`}
-            className="rounded-lg p-3 flex items-center gap-3 w-full sm:flex-1 md:w-[220px] transition-all no-underline"
+            tabIndex={0} // Zapewnia, że element wchodzi do sekwencji tabowania klawiatury
+            onKeyDown={handleKeyDown}
+            // Implementacja klasy focus-brand dla spójnego wyglądu obwódki
+            className="rounded-lg p-3 flex items-center gap-3 w-full sm:flex-1 md:w-[220px] transition-all no-underline focus-brand"
             sx={{
               backgroundColor: 'var(--color-brand-navy)',
               border: '1px solid var(--color-brand-navy-light)',
+              
+              // Wyczyszczenie domyślnych stylów focusu dla linku
+              "&:focus, &:focus-visible": {
+                outline: "none",
+              },
+
               '&:hover': {
                 borderColor: 'var(--color-brand-yellow-hover)',
               },

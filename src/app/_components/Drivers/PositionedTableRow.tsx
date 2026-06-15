@@ -31,17 +31,18 @@ const PositionedTableRow = forwardRef<HTMLTableRowElement, PositionedTableRowPro
       tabIndex={tabIndex}
       aria-label={ariaLabel}
       role={role}
-      // Klasa focus-brand zarządza teraz całością zachowania focusu
       className={`group focus-brand ${className}`}
       sx={{
         backgroundColor: 'var(--color-brand-navy-dark)',
         borderBottom: '1px solid var(--color-brand-navy-light)',
         transition: 'background-color 0.15s ease',
         
-        // Bezpieczny z-index przeniesiony bezpośrednio do głównego stanu, 
-        // aby zogniskowany wiersz nie chował się pod sąsiadami podczas nakładania box-shadow
-        '&:focus-visible': {
-          position: 'relative',
+        // Stabilizacja kontekstu pozycjonowania (zapobiega skokom układu)
+        position: 'relative',
+        
+        // Zwiększamy z-index tylko na focus, aby zewnętrzny box-shadow / outline 
+        // nie nakładał się pod sąsiednie komórki w tabeli
+        '&:focus-visible, &:focus': {
           zIndex: 10,
         },
         

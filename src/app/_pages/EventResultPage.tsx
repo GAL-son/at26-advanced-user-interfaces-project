@@ -8,6 +8,7 @@ import ResultList from "@/app/_components/Results/ResultList";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import BackButton from "@/app/_components/Common/BackButton";
 import { useTranslations } from "next-intl";
+import { focusFlatSection } from "@/app/_utils/navigation"; // Dostosuj ścieżkę importu utila
 
 export interface RaceResultExtended {
   guid: string;
@@ -23,6 +24,9 @@ export interface RaceResultExtended {
   eloChange: number;
   combo: number;
 }
+
+// 1. Definiujemy płaską strukturę sekcji dla tej konkretnej strony
+const PAGE_SECTION_ORDER = ["back-action", "race-info", "results-list"];
 
 export default function EventResultsPage() {
   const t = useTranslations("Results");
@@ -94,7 +98,6 @@ export default function EventResultsPage() {
       });
   }, [id, t]);
 
-  // WCAG: Dynamiczne zarządzanie tytułem dokumentu
   useEffect(() => {
     if (raceInfo?.name) {
       document.title = `${t("metaTitle")} - ${raceInfo.name}`;
@@ -104,6 +107,11 @@ export default function EventResultsPage() {
       document.title = t("metaNotFound");
     }
   }, [raceInfo, loading, t]);
+
+  // 2. Wspólna funkcja obsługująca przerzucanie focusu między sekcjami pionowymi
+  const handleSectionNavigation = (currentSection: string, direction: "up" | "down") => {
+    focusFlatSection(currentSection, direction, PAGE_SECTION_ORDER);
+  };
 
   // STAN ŁADOWANIA
   if (loading) {
@@ -158,9 +166,23 @@ export default function EventResultsPage() {
     >
       <Container maxWidth="lg" component="main" className="p-0!">
 
-        {/* Sekcja przycisku powrotu */}
-        <Box className="mb-6 flex items-center gap-3">
-          <BackButton fallbackHref="/events" ariaLabel={t("backButton")} />
+        {/* 3. Sekcja przycisku powrotu */}
+        <Box 
+          data-section="back-action"
+          className="mb-6 flex items-center gap-3 outline-none"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              handleSectionNavigation("back-action", "down");
+            }
+          }}
+        >
+          <BackButton 
+            fallbackHref="/events" 
+            ariaLabel={t("backButton")} 
+            tabIndex={0}
+            data-focus-order="primary"
+          />
           
           <Typography
             variant="caption"
@@ -172,11 +194,27 @@ export default function EventResultsPage() {
           </Typography>
         </Box>
 
-        {/* Sekcja informacji o wyścigu */}
-        <RaceInfo info={raceInfo} />
+        {/* 4. Sekcja informacji o wyścigu */}
+        <Box 
+          data-section="race-info" 
+          className="outline-none"
+        >
+          <RaceInfo 
+            info={raceInfo} 
+            onNavigateVertical={(direction) => handleSectionNavigation("race-info", direction)}
+          />
+        </Box>
 
-        {/* Tabela z wynikami */}
-        <ResultList results={results} />
+        {/* 5. Tabela z wynikami */}
+        <Box 
+          data-section="results-list" 
+          className="outline-none"
+        >
+          <ResultList 
+            results={results} 
+            onNavigateVertical={(direction) => handleSectionNavigation("results-list", direction)}
+          />
+        </Box>
 
       </Container>
     </Box>
