@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Chip } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -16,15 +17,17 @@ interface SelectedDriversListProps {
 }
 
 export default function SelectedDriversList({ drivers, onRemove }: SelectedDriversListProps) {
+  const t = useTranslations("CompareDrivers.search");
+
   return (
     <div className="md:mt-0">
       <h2 className="text-[10px] font-mono uppercase tracking-widest text-brand-text-muted font-bold mb-3">
-        Currently Comparing
+        {t("currentlyComparing")}
       </h2>
-      <div className="flex flex-wrap gap-2" role="list" aria-label="Selected drivers for comparison">
+      <div className="flex flex-wrap gap-2" role="list" aria-label={t("listAriaLabel")}>
         {drivers.length === 0 ? (
           <p className="text-xs text-brand-text-muted/60 font-mono italic" role="status">
-            No drivers selected. Use the search bar above to populate telemetry.
+            {t("noDriversSelected")}
           </p>
         ) : (
           drivers.map((driver) => (
@@ -32,12 +35,12 @@ export default function SelectedDriversList({ drivers, onRemove }: SelectedDrive
               <Chip
                 label={`${driver.mainName} ${driver.currentElo ? `(${Math.round(driver.currentElo)})` : ""}`}
                 onDelete={() => onRemove(driver.guid)}
-                // WCAG 1.3.1 & 4.1.2: Każdy przycisk usuwania ma unikalny label słowny zamiast samego ikony graficznej
-                aria-label={`Driver ${driver.mainName}, press backspace or delete to remove from comparison`}
+                // 🌐 Dynamiczna interpolacja parametrów i18n gwarantuje poprawną składnię w każdym języku
+                aria-label={t("driverChipAriaLabel", { driverName: driver.mainName })}
                 deleteIcon={
                   <CloseIcon
                     className="!text-brand-text-muted hover:!text-brand-yellow"
-                    aria-hidden="true" // Ukrywamy samą ikonę przed syntezatorem, bo label jest na poziomie całego delete action chipa
+                    aria-hidden="true"
                   />
                 }
                 className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light font-mono text-xs uppercase !p-1"
@@ -47,7 +50,6 @@ export default function SelectedDriversList({ drivers, onRemove }: SelectedDrive
                   "&:hover": {
                     borderColor: "var(--color-brand-yellow-hover)",
                   },
-                  // Zapewnienie widocznego focusu podczas nawigacji klawiaturą (Tab)
                   "&:focus-visible": {
                     outline: "2px solid var(--color-brand-yellow-hover) !important",
                     outlineOffset: "1px"

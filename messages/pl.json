@@ -170,13 +170,15 @@
             "description": "Użyj powyższego modułu wyszukiwania, aby wybrać profile zawodników do analizy."
         },
         "search": {
-            "label": "Przeszukaj rejestr kierowców",
-            "placeholder": "Wpisz pseudonim zawodnika...",
-            "currentlyComparing": "Wybrane profile do porównania",
-            "noDriversSelected": "Nie wybrano żadnego kierowcy do weryfikacji",
-            "statusSearching": "Przeszukiwanie bazy danych rejestru...",
-            "statusNoResults": "Nie odnaleziono pasujących rekordów kierowców.",
-            "statusFoundResults": "Znaleziono {count} pasujących pozycji. Użyj strzałek klawiatury, aby poruszać się po liście."
+            "label": "Query driver registry",
+            "placeholder": "Input competitive driver alias...",
+            "currentlyComparing": "Staged index targets",
+            "noDriversSelected": "No profiles selected for cross-evaluation",
+            "statusSearching": "Querying registry database...",
+            "statusNoResults": "No matching driver records found.",
+            "statusFoundResults": "Retrieved {count} records. Use keyboard arrow elements to review options.",
+            "listAriaLabel": "Selected drivers for comparison",
+            "driverChipAriaLabel": "Driver {driverName}, press backspace or delete to remove from comparison"
         }
     }
 }
