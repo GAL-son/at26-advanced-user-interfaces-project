@@ -33,17 +33,17 @@ export async function getDriversList({
   search = '',
   sortBy = 'elo'
 }: GetDriversParams = {}): Promise<{ drivers: ExtendedDriver[]; hasMore: boolean }> {
-  
+
   const offset = page * limit;
 
   // Dynamiczne budowanie warunku wyszukiwania
   const where: Prisma.DriverWhereInput = search
     ? {
-        OR: [
-          { mainName: { contains: search } },
-          { altNames: { contains: search } }
-        ]
-      }
+      OR: [
+        { mainName: { contains: search } },
+        { altNames: { contains: search } }
+      ]
+    }
     : {};
 
   // Definiowanie sortowania
@@ -103,9 +103,9 @@ export async function getDriversList({
 
       // Wyciągamy najnowszą datę wyścigu
       const lastRacedDate = driver.raceResult.length > 0
-        ? driver.raceResult.reduce((latest, current) => 
-            current.createdAt > latest.createdAt ? current : latest
-          ).createdAt
+        ? driver.raceResult.reduce((latest, current) =>
+          current.createdAt > latest.createdAt ? current : latest
+        ).createdAt
         : null;
 
       return {
@@ -152,29 +152,40 @@ export async function getRecentlyActiveDrivers({
   sinceParam = '14d', // Zmieniłem domyślnie na 14d, bo tak chciałeś na początku
   limitParam = 10
 }: GetRecentlyActiveParams = {}): Promise<TickerDriver[]> {
-  
+
   const limit = Math.min(limitParam, 50);
-  const now = new Date();
-  let sinceDate = new Date();
+
+  // 1. Dodajemy await, aby pobrać dane z bazy, a nie samą obietnicę (Promise)
+  const result = await prisma.event.findFirst({
+    select: { date: true },
+    orderBy: { date: 'desc' }
+  });
+
+  // 2. Wyciągamy datę (warto zabezpieczyć się na wypadek, gdyby baza była pusta)
+  const now = result ? result.date : new Date();
+
+  // POPRAWKA: Tworzymy kopię daty 'now', zamiast brać aktualny czas systemowy
+  let sinceDate = new Date(now.getTime());
 
   const match = sinceParam.match(/^(\d+)([hdw])$/);
   if (match) {
     const value = parseInt(match[1], 10);
     const unit = match[2];
 
-    if (unit === 'h') sinceDate.setHours(now.getHours() - value);
-    else if (unit === 'd') sinceDate.setDate(now.getDate() - value);
-    else if (unit === 'w') sinceDate.setDate(now.getDate() - value * 7);
+    // Operujemy na skopiowanej dacie 'now'
+    if (unit === 'h') sinceDate.setHours(sinceDate.getHours() - value);
+    else if (unit === 'd') sinceDate.setDate(sinceDate.getDate() - value);
+    else if (unit === 'w') sinceDate.setDate(sinceDate.getDate() - value * 7);
   } else {
     const parsedDate = Date.parse(sinceParam);
     if (!isNaN(parsedDate)) {
       sinceDate = new Date(parsedDate);
     } else {
+      // Tutaj też używamy bazy 'now'
       sinceDate.setDate(now.getDate() - 14);
     }
   }
 
-  // Zapytanie do bazy przez Prismę
   const recentResults = await prisma.raceResult.findMany({
     where: {
       createdAt: { gte: sinceDate }

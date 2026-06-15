@@ -13,12 +13,14 @@ export default async function Page() {
     getVirtualDuels() // <-- Pobieranie pojedynków z serwisu
   ]);
 
+  console.log(activeDrivers);
+
   return (
     <HomePage 
       activeDrivers={activeDrivers} 
       latestEvents={latestEvents} 
       topDrivers={leaderboardData.drivers} 
-      dashboardDuels={virtualDuels} // <-- Przekazanie do strony
+      dashboardDuels={virtualDuels}
     />
   );
 }
