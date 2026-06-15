@@ -6,7 +6,6 @@ import {
   Line,
   XAxis,
   YAxis,
-  Tooltip,
   CartesianGrid,
 } from "recharts";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
@@ -42,7 +41,6 @@ interface DriverGroup {
   data: RaceDataPoint[];
 }
 
-// Rozszerzamy o standardowe atrybuty sekcji HTML (w tym data-* props)
 interface EloChartProps extends React.HTMLAttributes<HTMLElement> {
   guids: string[];
   isComparable?: boolean;
@@ -53,7 +51,7 @@ export default function EloChart({
   guids,
   isComparable = false,
   onNavigateVertical,
-  ...props // Zbieramy resztę propsów, w tym kluczowe data-focus-order
+  ...props
 }: EloChartProps) {
   const router = useRouter();
   const t = useTranslations("Elo");
@@ -224,51 +222,60 @@ export default function EloChart({
     };
   }, [page, guidsString]);
 
+  // NOWOŚĆ: Wyciąganie pozycji wprost z wyrenderowanych węzłów SVG (Zero zgadywania)
   const updateKeyboardTooltipPosition = (index: number) => {
     if (!scrollContainerRef.current || chronologicalData.length === 0) return;
 
     const container = scrollContainerRef.current;
-    const paddingLeft = 40; // Margines lewej osi
-    const chartHeight = 340;
-    const paddingTop = 15;
-    const paddingBottom = 40; // Miejsce na oś X na dole
 
-    // 1. Wyliczenie pozycji X
-    const targetX = paddingLeft + (index * ((calculatedWidth - paddingLeft - 10) / (chronologicalData.length - 1 || 1)));
+    // Szukamy kropek wyrenderowanych dla aktualnego indeksu. Recharts grupuje je w serie danych.
+    // Wyciągamy dowolną kropkę odpowiadającą wybranemu indeksowi serii danych.
+    const dots = container.querySelectorAll(`.recharts-line-dot`);
 
-    // 2. Wyliczenie ŚREDNIEJ pozycji Y ze wszystkich dostępnych serii danych (kierowców)
-    const point = chronologicalData[index];
+    let targetX = 0;
+    let targetY = 150; // Wartość awaryjna (środek)
 
-    // Zbieramy wartości ELO tylko od tych kierowców, którzy mają dane w tym konkretnym punkcie
-    const availableElos = guids
-      .map(g => point[`elo_${g}`])
-      .filter((elo): elo is number => elo !== undefined);
+    // Recharts renderuje kropki po kolei dla każdej linii. 
+    // Indeks kropki w drzewie DOM to: (numer_linii * całkowita_liczba_punktów) + index
+    // Szukamy pierwszej kropki, która ma poprawny indeks w swojej serii:
+    const pointsPerLine = chronologicalData.length;
+    let foundDot: SVGCircleElement | null = null;
 
-    // Jeśli z jakiegoś powodu brak danych, dajemy środek osi, w przeciwnym wypadku liczymy średnią arytmetyczną
-    const averageElo = availableElos.length > 0
-      ? availableElos.reduce((sum, val) => sum + val, 0) / availableElos.length
-      : (yMin + yMax) / 2;
-
-    // Proporcjonalne zmapowanie uśrednionej wartości ELO na piksele wykresu (odwrócona oś Y w SVG)
-    const usableHeight = chartHeight - paddingTop - paddingBottom;
-    const eloPercentage = (averageElo - yMin) / (yMax - yMin || 1);
-    const dotY = chartHeight - paddingBottom - (eloPercentage * usableHeight);
-
-    // Wymiary tooltipa do korekcji marginesów
-    const tooltipWidth = 240;
-    const tooltipHeight = 60 + guids.length * 38;
-
-    // KOREKCJA X (zwiększamy margines, gdy tooltip ląduje po lewej stronie kropki)
-    let calculatedX = targetX + 25; // Domyślnie po prawej stronie kropki (+25px)
-
-    if (calculatedX + tooltipWidth > container.scrollLeft + container.clientWidth) {
-      // Jeśli nie mieści się po prawej, przerzucamy na lewą stronę kropki.
-      // Zmieniamy z -25 na -40 (lub więcej), aby całkowicie odsłonić powiększoną kropkę oraz jej obwódkę.
-      calculatedX = targetX - tooltipWidth - 45;
+    for (let i = 0; i < guids.length; i++) {
+      const dotIndex = (i * pointsPerLine) + index;
+      const dotEl = dots[dotIndex] as SVGCircleElement;
+      if (dotEl) {
+        foundDot = dotEl;
+        break;
+      }
     }
 
-    // Korekcja Y (centrowanie tooltipa względem wyliczonego środka ciężkości)
-    let calculatedY = dotY - (tooltipHeight / 2);
+    if (foundDot) {
+      // Wyciągamy bezwzględne współrzędne cx oraz cy z SVG elementu kropki
+      targetX = foundDot.cx.baseVal.value;
+      targetY = foundDot.cy.baseVal.value;
+    } else {
+      // Rezerwowe obliczenie matematyczne (fall-back w razie opóźnienia w DOM)
+      const paddingLeft = 40;
+      const paddingRight = 10;
+      const availableWidth = calculatedWidth - paddingLeft - paddingRight;
+      const stepsCount = chronologicalData.length - 1 || 1;
+      targetX = paddingLeft + (index * (availableWidth / stepsCount));
+    }
+
+    const tooltipWidth = 280;
+    const tooltipHeight = 60 + guids.length * 38;
+    const chartHeight = 340;
+
+    let calculatedX = targetX + 25;
+
+    // Korekta X (gdy tooltip wychodzi poza prawy ekran)
+    if (calculatedX + tooltipWidth > container.scrollLeft + container.clientWidth) {
+      calculatedX = targetX - tooltipWidth - 25;
+    }
+
+    // Korekta Y (wyśrodkowanie pionowe względem kropki)
+    let calculatedY = targetY - (tooltipHeight / 2);
     calculatedY = Math.max(10, Math.min(calculatedY, chartHeight - tooltipHeight - 15));
 
     setTooltipPos({
@@ -280,9 +287,20 @@ export default function EloChart({
   const scrollActivePointIntoView = (index: number) => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const paddingLeft = 40;
 
-    const pointX = paddingLeft + (index * ((calculatedWidth - paddingLeft - 10) / (chronologicalData.length - 1 || 1)));
+    const dots = container.querySelectorAll(`.recharts-line-dot`);
+    const pointsPerLine = chronologicalData.length;
+    const dotEl = dots[index] as SVGCircleElement; // bierzemy z pierwszej serii
+
+    let pointX = 0;
+    if (dotEl) {
+      pointX = dotEl.cx.baseVal.value;
+    } else {
+      const paddingLeft = 40;
+      const paddingRight = 10;
+      const availableWidth = calculatedWidth - paddingLeft - paddingRight;
+      pointX = paddingLeft + (index * (availableWidth / (chronologicalData.length - 1 || 1)));
+    }
 
     const minVisible = container.scrollLeft + 80;
     const maxVisible = container.scrollLeft + container.clientWidth - 80;
@@ -298,18 +316,20 @@ export default function EloChart({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (chronologicalData.length === 0) return;
 
-    // Strzałki pionowe -> wyjście z sekcji wykresu
     if ((e.key === "ArrowUp" || e.key === "ArrowDown") && onNavigateVertical) {
       e.preventDefault();
-      e.stopPropagation(); // Zatrzymujemy bąbelkowanie, by rodzic nie dublował akcji
+      e.stopPropagation();
       setIsKeyboardActive(false);
       setTooltipPos(undefined);
       onNavigateVertical(e.key === "ArrowUp" ? "up" : "down");
-      return; // Natychmiast przerywamy dalsze sprawdzanie
+      return;
     }
 
     if (focusedIndex === null) {
-      setFocusedIndex(chronologicalData.length - 1);
+      const lastIdx = chronologicalData.length - 1;
+      setFocusedIndex(lastIdx);
+      setIsKeyboardActive(true);
+      setTimeout(() => updateKeyboardTooltipPosition(lastIdx), 30);
       return;
     }
 
@@ -369,18 +389,22 @@ export default function EloChart({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onFocus={() => {
-        if (focusedIndex === null && chronologicalData.length > 0) {
+        if (chronologicalData.length > 0) {
           const lastIndex = chronologicalData.length - 1;
           setFocusedIndex(lastIndex);
           setIsKeyboardActive(true);
-          setTimeout(() => updateKeyboardTooltipPosition(lastIndex), 50);
+          // 50ms opóźnienia daje czas przeglądarce na pełne ułożenie layoutu SVG po złapaniu focusu
+          setTimeout(() => {
+            updateKeyboardTooltipPosition(lastIndex);
+          }, 50);
         }
       }}
       onBlur={() => {
         setIsKeyboardActive(false);
         setTooltipPos(undefined);
+        setFocusedIndex(null);
       }}
-      {...props} // KLUCZOWA ZMIANA: Przekazujemy "data-focus-order" na kontener sekcji wykresu
+      {...props}
       sx={{
         backgroundColor: "var(--color-brand-navy-dark)",
         border: "1px solid var(--color-brand-navy-light)",
@@ -481,7 +505,7 @@ export default function EloChart({
         ref={chartWrapperRef}
         role="img"
         aria-labelledby="chart-title"
-        className="relative flex rounded-lg p-2 overflow-hidden"
+        className="relative flex rounded-lg p-2"
         sx={{
           backgroundColor: "var(--color-brand-navy)",
           border: "1px solid var(--color-brand-navy-light)",
@@ -544,17 +568,36 @@ export default function EloChart({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="w-full min-w-0 overflow-x-auto overflow-y-hidden z-10"
+          className="w-full min-w-0 overflow-x-auto overflow-y-hidden z-10 relative"
         >
-          <div style={{ width: `${calculatedWidth}px`, height: "340px" }}>
+          <div style={{ width: `${calculatedWidth}px`, height: "340px" }} className="relative">
+
+            {/* W pełni kontrolowany Tooltip HTML pozycjonowany na podstawie atrybutów SVG geometrii Recharts */}
+            {focusedIndex !== null && tooltipPos && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${tooltipPos.x}px`,
+                  top: `${tooltipPos.y}px`,
+                  zIndex: 9999,
+                  pointerEvents: "none",
+                  transition: "left 0.08s ease-out, top 0.08s ease-out"
+                }}
+              >
+                <EventTooltip
+                  guids={guids}
+                  keyboardRawData={chronologicalData[focusedIndex]}
+                />
+              </div>
+            )}
+
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart
                 data={chronologicalData}
                 margin={{ top: 15, right: 10, left: 0, bottom: 5 }}
                 onMouseMove={(e) => {
-                  if (isKeyboardActive) return;
-
                   if (e && e.activeCoordinate) {
+                    setIsKeyboardActive(false);
                     const { x, y } = e.activeCoordinate;
                     if (!scrollContainerRef.current) return;
 
@@ -566,10 +609,14 @@ export default function EloChart({
                     const tooltipHeight = 60 + guids.length * 38;
                     const chartHeight = 340;
 
+                    // 1. targetX obliczamy bezpośrednio z x (które jest pozycją wewnątrz szerokiego kontenera SVG)
                     let targetX = x + 20;
+
+                    // 2. Korekta jeśli wychodzi poza prawą krawędź widocznego obszaru
                     if (targetX + tooltipWidth > scrollLeft + visibleWidth) {
                       targetX = x - tooltipWidth - 20;
                     }
+                    // 3. Korekta jeśli wychodzi poza lewą krawędź widocznego obszaru
                     if (targetX < scrollLeft + 5) {
                       targetX = scrollLeft + 5;
                     }
@@ -580,10 +627,11 @@ export default function EloChart({
                     }
                     targetY = Math.max(10, Math.min(targetY, chartHeight - tooltipHeight - 10));
 
-                    if (e.activeTooltipIndex !== undefined) {
+                    if (e.activeTooltipIndex !== undefined && e.activeTooltipIndex !== null) {
                       setFocusedIndex(e.activeTooltipIndex);
+                      // USUNIĘTO "+ scrollLeft" — przekazujemy czyste targetX
+                      setTooltipPos({ x: targetX, y: targetY });
                     }
-                    setTooltipPos({ x: targetX, y: targetY });
                   }
                 }}
                 onMouseLeave={() => {
@@ -608,40 +656,6 @@ export default function EloChart({
 
                 <YAxis domain={[yMin, yMax]} hide />
 
-                <Tooltip
-                  // ZMIANA: Przekazujemy aktualny punkt bezpośrednio jako prop "keyboardRawData"
-                  content={
-                    <EventTooltip
-                      guids={guids}
-                      keyboardRawData={
-                        isKeyboardActive && focusedIndex !== null
-                          ? chronologicalData[focusedIndex]
-                          : undefined
-                      }
-                    />
-                  }
-                  cursor={{ stroke: "var(--color-brand-navy-light)", strokeWidth: 1 }}
-                  position={tooltipPos}
-                  active={(focusedIndex !== null && tooltipPos !== undefined) || isKeyboardActive}
-                  activeTooltipIndex={focusedIndex ?? undefined}
-                  allowEscapeViewBox={{ x: true, y: true }}
-                  wrapperStyle={{
-                    zIndex: 100,
-                    pointerEvents: "none",
-                    display: (isKeyboardActive || tooltipPos) ? "block" : "none",
-                    opacity: (isKeyboardActive || tooltipPos) ? 1 : 0,
-                    visibility: (isKeyboardActive || tooltipPos) ? "visible" : "hidden"
-                  }}
-                  style={{
-                    display: "block",
-                    opacity: 1
-                  }}
-                  payload={
-                    isKeyboardActive && focusedIndex !== null && chronologicalData[focusedIndex]
-                      ? [{ payload: chronologicalData[focusedIndex] }]
-                      : undefined
-                  }
-                />
                 {guids.map((guid, index) => (
                   <Line
                     key={guid}
@@ -655,11 +669,10 @@ export default function EloChart({
                         guid={guid}
                         color={DRIVER_COLORS[index % DRIVER_COLORS.length]}
                         isMobile={isMobile}
-                        // Przekazujemy aktualny indeks z klawiatury, aby kropka wiedziała kiedy urosnąć
                         keyboardFocusedIndex={focusedIndex}
                       />
                     }
-                    activeDot={{ r: isMobile ? 6.5 : 5, strokeWidth: 1 }}
+                    activeDot={false}
                     isAnimationActive={false}
                   />
                 ))}
