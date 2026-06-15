@@ -41,6 +41,7 @@ export default function InfiniteEventList({
   // KLUCZOWE: Dynamiczne śledzenie liczby kolumn siatki dla nawigacji klawiszowej
   const [columnsCount, setColumnsCount] = useState<number>(3);
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLUListElement | null>(null);
 
   useEffect(() => {
     const mdQuery = window.matchMedia("(min-width: 768px)");
@@ -68,6 +69,39 @@ export default function InfiniteEventList({
       smQuery.removeEventListener("change", updateLayoutMetrics);
     };
   }, []);
+
+  useEffect(() => {
+  const currentGrid = gridRef.current;
+  if (!currentGrid) return;
+
+  const updateColumns = () => {
+    // Pobieramy wyliczone style siatki z przeglądarki
+    const computedStyle = window.getComputedStyle(currentGrid);
+    const gridTemplateColumns = computedStyle.getPropertyValue("grid-template-columns");
+
+    // gridTemplateColumns zwraca wartości oddzielone spacją dla każdej kolumny, np. "300px 300px"
+    const currentColumns = gridTemplateColumns.split(" ").filter(Boolean).length;
+
+    if (currentColumns > 0) {
+      setColumnsCount(currentColumns);
+      setSkeletonCount(currentColumns);
+    }
+  };
+
+  // Obserwujemy zmiany rozmiaru elementu ul
+  const resizeObserver = new ResizeObserver(() => {
+    updateColumns();
+  });
+
+  resizeObserver.observe(currentGrid);
+  
+  // Pierwsze wywołanie na start
+  updateColumns();
+
+  return () => {
+    resizeObserver.disconnect();
+  };
+}, []);
 
   // Debouncing frazy wyszukiwania
   useEffect(() => {
@@ -233,6 +267,7 @@ export default function InfiniteEventList({
         </Typography>
       ) : (
         <Box
+          ref={gridRef}
           component="ul"
           aria-label={t("list.gridAria")}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
