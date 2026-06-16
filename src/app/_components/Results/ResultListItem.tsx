@@ -23,10 +23,20 @@ interface RaceResultExtended {
 }
 
 interface ResultListItemProps {
+  id?: string;
   row: RaceResultExtended;
+  index: number;
+  onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void;
+  registerRef: (el: HTMLElement | null) => void;
 }
 
-export default function ResultListItem({ row }: ResultListItemProps) {
+export default function ResultListItem({
+  id,
+  row,
+  index,
+  onKeyDown,
+  registerRef
+}: ResultListItemProps) {
   const t = useTranslations("Results.table");
   const router = useRouter();
 
@@ -34,11 +44,13 @@ export default function ResultListItem({ row }: ResultListItemProps) {
     router.push(`/drivers/${row.guid}`);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleCombinedKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleNavigation();
+      return;
     }
+    onKeyDown(e);
   };
 
   const formatTime = (ms: number) => {
@@ -51,41 +63,47 @@ export default function ResultListItem({ row }: ResultListItemProps) {
   const isGain = row.eloChange >= 0;
 
   return (
-    <PositionedTableRow 
+    <PositionedTableRow
+      id={id}
+      ref={registerRef}
       onClick={handleNavigation}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
+      onKeyDown={handleCombinedKeyDown}
+      tabIndex={0} 
       role="link"
       aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}
-      sx={{ display: { xs: 'none', md: 'table-row' }, cursor: 'pointer', outline: 'none' }}
+      className="focus-brand" 
+      sx={{
+        display: { xs: 'none', md: 'table-row' },
+        cursor: 'pointer',
+        "&:focus, &:focus-visible": {
+          outline: "none",
+        }
+      }}
     >
-      {/* JAWNE I REUŻYWALNE WSTRZYKNIĘCIE KOMÓRKI POZYCJI */}
       <PositionTableCell position={row.pos} />
 
-      {/* REZTA TWOICH KOMÓREK BEZ ZMIAN */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
           <span style={{ color: 'var(--color-brand-text-muted)' }}>{row.name}</span>
           {row.combo > 0 && <ComboBadge combo={row.combo} />}
         </Box>
       </TableCell>
-      
-      {/* COL 3: ZMIANA ELO */}
+
       <TableCell>
         <Box className="flex items-center gap-2 font-mono text-sm">
           <span style={{ color: 'var(--color-brand-text)' }}>
             {row.eloAfter}
           </span>
-          <Box 
-            component="span" 
+          <Box
+            component="span"
             className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold border"
             sx={{
-              backgroundColor: isGain 
-                ? 'color-mix(in srgb, var(--color-elo-gain) 10%, transparent)' 
+              backgroundColor: isGain
+                ? 'color-mix(in srgb, var(--color-elo-gain) 10%, transparent)'
                 : 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
               color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)',
-              borderColor: isGain 
-                ? 'color-mix(in srgb, var(--color-elo-gain) 20%, transparent)' 
+              borderColor: isGain
+                ? 'color-mix(in srgb, var(--color-elo-gain) 20%, transparent)'
                 : 'color-mix(in srgb, var(--color-elo-loss) 20%, transparent)',
             }}
           >
@@ -94,34 +112,30 @@ export default function ResultListItem({ row }: ResultListItemProps) {
         </Box>
       </TableCell>
 
-      {/* COL 4: SAMOCHÓD */}
-      <TableCell 
+      <TableCell
         className="font-medium text-xs tracking-wide uppercase"
         style={{ color: 'var(--color-brand-text-muted)' }}
       >
         {row.car}
       </TableCell>
 
-      {/* COL 5: OKRĄŻENIA */}
-      <TableCell 
+      <TableCell
         className="font-mono text-center hidden md:table-cell"
         style={{ color: 'var(--color-brand-text-muted)' }}
       >
         {row.laps}
       </TableCell>
 
-      {/* COL 6: CZAS ŁĄCZNY */}
-      <TableCell 
+      <TableCell
         className="font-mono font-medium"
         style={{ color: 'var(--color-brand-text)' }}
       >
         {formatTime(row.totalTime)}
       </TableCell>
 
-      {/* COL 7: STRATA (GAP) / WINNER */}
       <TableCell className="font-mono text-xs">
         {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
-          <Box 
+          <Box
             component="span"
             className="font-semibold text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border"
             sx={{

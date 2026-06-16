@@ -4,7 +4,7 @@ import React from 'react';
 import { TableCell } from '@mui/material';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
-import PositionTableCell from '@/app/_components/Common/PositionTableCell'; // Import nowej współdzielonej komórki
+import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
 import { useTranslations, useFormatter } from 'next-intl';
 
@@ -21,9 +21,12 @@ export interface FormattedDriver {
 
 interface DriverRowProps {
   driver: FormattedDriver;
+  index: number;
+  onKeyDown: (e: React.KeyboardEvent<HTMLElement>, index: number) => void;
+  registerRef: (el: HTMLElement | null) => void;
 }
 
-export default function DriverRow({ driver }: DriverRowProps) {
+export default function DriverRow({ driver, index, onKeyDown, registerRef }: DriverRowProps) {
   const router = useRouter();
   const t = useTranslations("Drivers");
   const format = useFormatter();
@@ -36,7 +39,9 @@ export default function DriverRow({ driver }: DriverRowProps) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleNavigation();
+      return;
     }
+    onKeyDown(e, index);
   };
 
   const hasValidDate = driver.lastRaced && driver.lastRaced !== "N/A";
@@ -46,6 +51,7 @@ export default function DriverRow({ driver }: DriverRowProps) {
 
   return (
     <PositionedTableRow 
+      ref={registerRef}
       onClick={handleNavigation}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -54,7 +60,6 @@ export default function DriverRow({ driver }: DriverRowProps) {
       className="group cursor-pointer"
       sx={{
         outline: 'none',
-        // Zunifikowany i bezkonfliktowy focus-ring dla MUI z zachowaniem Twoich kolorów systemowych
         '&:focus-visible': {
           backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 6%, var(--color-brand-navy-dark)) !important',
           outline: '2px solid var(--color-brand-yellow-hover)',
@@ -64,10 +69,8 @@ export default function DriverRow({ driver }: DriverRowProps) {
         }
       }}
     >
-      {/* JAWNE I REUŻYWALNE WSTRZYKNIĘCIE KOMÓRKI POZYCJI DLA KIEROWCY */}
       <PositionTableCell position={driver.position} />
 
-      {/* PROFIL KIEROWCY */}
       <TableCell className="py-0 h-full">
         <div className="flex flex-col justify-center h-[48px] max-w-md">
           <div className="flex items-center gap-2">
@@ -76,7 +79,6 @@ export default function DriverRow({ driver }: DriverRowProps) {
             </span>
             <ComboBadge combo={driver.combo} />
           </div>
-
           {driver.altNames && driver.altNames !== driver.mainName && (
             <div className="text-xs !text-brand-text-muted mt-0.5 truncate leading-none">
               {t("list.aliases")}: {driver.altNames}
@@ -85,7 +87,6 @@ export default function DriverRow({ driver }: DriverRowProps) {
         </div>
       </TableCell>
 
-      {/* STATYSTYKI */}
       <TableCell align="center" className="!text-brand-text font-mono font-medium">
         <span className="sr-only">{t("list.headers.races")}: </span>
         {format.number(driver.racesCount)}

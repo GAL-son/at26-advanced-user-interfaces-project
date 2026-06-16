@@ -68,6 +68,7 @@
             "aliases": "Aliases",
             "notAvailable": "N/A",
             "rowAriaLabel": "Driver {name}, view profile",
+            "loadMore": "See more drivers",
             "headers": {
                 "pos": "Pos",
                 "profile": "Driver Profile",
@@ -88,28 +89,30 @@
         }
     },
     "Events": {
-        "title": "Race Events History",
-        "searchPlaceholder": "Search by track or server...",
-        "searchLabel": "Filter race events",
-        "loadingAria": "Loading historical events database stream",
+        "title": "Event Archive",
+        "searchPlaceholder": "Search track or server...",
+        "searchLabel": "Filter sessions",
+        "loadingAria": "Querying historical event registry stream",
         "buttons": {
             "refresh": "Refresh",
-            "refreshing": "Refreshed",
-            "refreshAria": "Reload race events list",
-            "refreshingAria": "Rebuilding telemetry list database"
+            "refreshing": "Refreshing",
+            "refreshAria": "Reload race event registry",
+            "refreshingAria": "Rebuilding telemetry database index"
         },
         "errors": {
-            "fetchFailed": "Failed to connect to events core API.",
-            "searchFailed": "Search query stream dropped by the API.",
-            "loadMoreFailed": "Could not synchronize the next batch of historical events.",
-            "unexpected": "An unexpected synchronization anomaly occurred.",
-            "connection": "Network timeout. Check your connection telemetry data."
+            "fetchFailed": "Connection error with core race API.",
+            "searchFailed": "Search pipeline aborted by interface.",
+            "loadMoreFailed": "Failed to synchronize next historical batch.",
+            "unexpected": "Unexpected anomaly during data synchronization.",
+            "connection": "Network timeout exceeded. Verify connection parameters."
         },
         "list": {
-            "emptyState": "No events found matching your filter criteria.",
-            "gridAria": "Race telemetry archive list",
-            "loadingMoreAria": "Fetching more archived races from the server",
-            "endOfGrid": "— End of telemetry database —"
+            "emptyState": "No races found matching search parameters.",
+            "gridAria": "Race telemetry list archive",
+            "loadingMoreAria": "Fetching next scheduled items from database",
+            "endOfGrid": "— End of telemetry records database —",
+            "rowAriaLabel": "Race: {name}, track: {track}. Conducted on: {date} via server {server}. Click to inspect complete telemetry results.",
+            "loadMore": "See more events"
         }
     },
     "Elo": {

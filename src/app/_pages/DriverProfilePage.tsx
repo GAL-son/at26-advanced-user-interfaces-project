@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Box, Paper, Typography } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -10,6 +10,7 @@ import BackButton from "@/app/_components/Common/BackButton";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EloChart from "@/app/_components/Elo/EloChart";
 import { useTranslations, useFormatter } from "next-intl";
+import { focusFlatSection } from "@/app/_utils/navigation";
 
 interface DriverStats {
   guid: string;
@@ -21,6 +22,13 @@ interface DriverStats {
   lastRaced: string;
 }
 
+// Definicja kolejności sekcji dla tej konkretnej strony
+const SECTION_ORDER = [
+  "menu",
+  "driver-back",
+  "driver-chart"
+];
+
 export default function DriverProfilePage() {
   const { guid } = useParams() as { guid: string };
   const router = useRouter();
@@ -29,6 +37,9 @@ export default function DriverProfilePage() {
 
   const [driver, setDriver] = useState<DriverStats | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  const backButtonRef = useRef<HTMLButtonElement | null>(null);
+  const chartSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function fetchDriverProfile() {
@@ -46,6 +57,27 @@ export default function DriverProfilePage() {
     }
     fetchDriverProfile();
   }, [guid]);
+
+  // Globalny przechwytywacz strzałek w lewo/prawo do aktywacji wykresu
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const activeEl = document.activeElement;
+        if (activeEl?.tagName === "INPUT" || activeEl?.tagName === "TEXTAREA") {
+          return;
+        }
+
+        const chartInteractiveZone = chartSectionRef.current?.querySelector('[tabindex="0"]') as HTMLElement;
+        
+        if (chartInteractiveZone && document.activeElement !== chartInteractiveZone) {
+          chartInteractiveZone.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
 
   // EKRAN ŁADOWANIA WSTĘPNEGO
   if (loadingProfile) {
@@ -100,9 +132,26 @@ export default function DriverProfilePage() {
     >
       <div className="container mx-auto max-w-5xl">
         
-        {/* NAGŁÓWEK / POWRÓT */}
-        <div className="flex items-center gap-4 mb-8">
-          <BackButton ariaLabel={t("profile.backToLeaderboard")} />
+        {/* SEKCJA: Przycisk powrotu */}
+        <div 
+          data-section="driver-back"
+          data-section-page-start="true"
+          className="flex items-center gap-4 mb-8"
+        >
+          <BackButton 
+            ref={backButtonRef}
+            ariaLabel={t("profile.backToLeaderboard")} 
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                focusFlatSection("driver-back", "next", SECTION_ORDER);
+              }
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                focusFlatSection("driver-back", "prev", SECTION_ORDER);
+              }
+            }}
+          />
           <div>
             <h1 
               className="text-3xl font-black uppercase tracking-tight leading-tight"
@@ -247,10 +296,17 @@ export default function DriverProfilePage() {
           </div>
         </section>
 
-        {/* ASYNCHRONICZNY WYKRES ELO KIEROWCY */}
-        <section aria-label={t("profile.chartSection")}>
-          <EloChart guids={[guid]} isComparable={true} />
-        </section>
+        {/* SEKCJA: Wykres ELO */}
+        <div data-section="driver-chart" ref={chartSectionRef}>
+          <EloChart 
+            data-focus-order="driver-chart"
+            guids={[guid]} 
+            isComparable={true} 
+            onNavigateVertical={(direction) => {
+              focusFlatSection("driver-chart", direction === "up" ? "prev" : "next", SECTION_ORDER);
+            }}
+          />
+        </div>
 
       </div>
     </Box>

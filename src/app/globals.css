@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import "./typography.css";
 /* 1. Rejestracja motywu i zmiennych (Tailwind v4) */
 @theme {
   --breakpoint-sm: 600px;
@@ -15,7 +15,7 @@
   --color-brand-yellow: #eab308;
   --color-brand-yellow-hover: #ca8a04;
   --color-brand-yellow-text: #854d0e;
-  
+
   --color-race-gold: #d97706;
   --color-race-gold-text: #b45309;
   --color-race-silver: #475569;
@@ -64,14 +64,23 @@ body {
   transition-property: grid-template-rows;
 }
 
+@utility fade-in-out {
+  transition: opacity 300ms ease-in-out;
+}
+
 @utility focus-brand {
-  &:focus-visible {
-    outline: 2px solid var(--color-brand-yellow);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent);
-  }
+
+  /* Całkowity reset domyślnego zachowania focusu dla przeglądarki i MUI */
   &:focus {
-    outline: none;
+    outline: none !important;
+    box-shadow: none;
+  }
+
+  /* Nasz spersonalizowany styl, który czyści potencjalne pozostałości po MUI */
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-yellow) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent) !important;
   }
 }
 
@@ -79,4 +88,87 @@ body {
 html.theme-toggling,
 html.theme-toggling * {
   transition: color 300ms ease, background-color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease !important;
+}
+
+@utility custom-scrollbar {
+  /* Wsparcie dla Firefox (podstawowe kolory, bez strzałek) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-yellow) var(--color-brand-navy-light);
+
+  /* Konstrukcja paska dla Chrome, Safari i Edge */
+  &::-webkit-scrollbar {
+    width: 14px;
+    /* Szerokość paska pionowego */
+    height: 14px;
+    /* Wysokość paska poziomego */
+  }
+
+  /* Tło ścieżki scrollbara */
+  &::-webkit-scrollbar-track {
+    background: var(--color-brand-navy-light);
+    border-radius: var(--radius-brand-card);
+  }
+
+  /* Suwak (Handle) */
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-brand-yellow);
+    border-radius: 10px;
+    /* Sprytny trik: border tworzy efekt "paddingu" wokół suwaka */
+    border: 3px solid var(--color-brand-navy-light);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-brand-yellow-hover);
+  }
+
+  /* Konstrukcja przycisków (strzałek) */
+  &::-webkit-scrollbar-button:single-button {
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 10px;
+    height: 14px;
+    width: 14px;
+  }
+
+  /* Strzałki - Motyw Jasny (Domyślny) - kolor #eab308 (%23eab308) */
+  &::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
+  }
+
+  &::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+  }
+
+  &::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z'/></svg>");
+  }
+
+  &::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z'/></svg>");
+  }
+}
+
+html[data-mui-color-scheme="dark"] {
+
+  /* Kolor zmieniony na #fff200 (%23fff200) */
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:vertical:decrement,
+  &::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
+  }
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:vertical:increment,
+  &::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+  }
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:horizontal:decrement,
+  &::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z'/></svg>");
+  }
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:horizontal:increment,
+  &::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z'/></svg>");
+  }
 }

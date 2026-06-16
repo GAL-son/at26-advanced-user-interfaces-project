@@ -8,6 +8,8 @@ export interface EventDotProps {
   guid: string;
   color: string;
   isMobile?: boolean;
+  index?: number;                // Wstrzykiwane automatycznie przez Recharts
+  keyboardFocusedIndex?: number | null; // Przekazywane przez nas z EloChart
 }
 
 export default function EventDot({
@@ -17,6 +19,8 @@ export default function EventDot({
   guid,
   color,
   isMobile = false,
+  index,
+  keyboardFocusedIndex,
 }: EventDotProps) {
   if (!payload || cx === undefined || cy === undefined) return null;
 
@@ -25,32 +29,33 @@ export default function EventDot({
   // Jeśli kierowca nie jechał w tym wyścigu, nie renderujemy punktu
   if (!meta || !meta.hasRaced) return null;
 
+  // Sprawdzamy, czy ta konkretna kropka jest aktualnie podświetlona klawiaturą
+  const isFocusedByKeyboard = keyboardFocusedIndex !== null && keyboardFocusedIndex === index;
+
   return (
-    // Pakujemy w grupę <g> i ukrywamy przed czytnikiem (cała tabela jest już w sr-only wyżej)
     <g aria-hidden="true">
-      {/* WCAG FIX: Niewidzialny, powiększony obszar dotykowy (Pointer Target).
-        Zapewnia łatwiejsze najechanie myszką lub tąpnięcie palcem na mobile,
-        nie psując przy tym minimalistycznego designu wykresu.
-      */}
+      {/* Niewidzialny obszar dotykowy */}
       <circle
         cx={cx}
         cy={cy}
-        r={isMobile ? 14 : 8} // Znacznie większy promień przechwytywania zdarzeń
+        r={isMobile ? 14 : 8}
         fill="transparent"
         style={{ cursor: 'pointer' }}
       />
       
-      {/* Wizualna, pierwotna kropka wykresu */}
+      {/* Wizualna kropka wykresu */}
       <circle
         cx={cx}
         cy={cy}
-        r={isMobile ? 5 : 3.5}
-        fill="var(--color-brand-navy-dark)"
+        // NOWOŚĆ: Jeśli punkt jest aktywny na klawiaturze, powiększamy go (symulacja hoveru)
+        r={isFocusedByKeyboard ? (isMobile ? 7.5 : 6) : (isMobile ? 5 : 3.5)}
+        fill={isFocusedByKeyboard ? color : "var(--color-brand-navy-dark)"}
         stroke={color}
-        strokeWidth={isMobile ? 2.5 : 2}
+        // Pogrubienie ramki dla aktywnego elementu
+        strokeWidth={isFocusedByKeyboard ? 2 : (isMobile ? 2.5 : 2)}
         style={{
-          transition: "stroke 0.3s ease",
-          pointerEvents: "none", // Blokujemy zdarzenia myszy na małej kropce, by to ta duża zbierała hover
+          transition: "all 0.15s ease-out", // Płynne animowanie powiększenia z klawiatury
+          pointerEvents: "none",
         }}
       />
     </g>

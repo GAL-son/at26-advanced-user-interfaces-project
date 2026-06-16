@@ -8,16 +8,20 @@ export interface EventTooltipProps {
   active?: boolean;
   payload?: any[];
   guids: string[];
+  keyboardRawData?: any; // NOWOŚĆ: Bezpośrednie dane przekazywane z klawiatury
 }
 
-export default function EventTooltip({ active, payload, guids }: EventTooltipProps) {
-  // Pobieramy tłumaczenia z namespace "Elo" dla spójności danych wykresu
+export default function EventTooltip({ active, payload, guids, keyboardRawData }: EventTooltipProps) {
   const tElo = useTranslations("Elo");
   const tDrivers = useTranslations("Drivers");
   const format = useFormatter();
 
-  if (active && payload && payload.length) {
-    const rawData = payload[0].payload;
+  // Sprawdzamy, czy mamy dane z klawiatury LUB standardowy payload z myszki
+  const hasData = keyboardRawData || (active && payload && payload.length);
+  
+  if (hasData) {
+    // Wybieramy odpowiednie źródło danych
+    const rawData = keyboardRawData ? keyboardRawData : payload![0].payload;
 
     return (
       <Box 

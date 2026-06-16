@@ -53,10 +53,16 @@ export default function ClientLayoutView({ children }: { children: React.ReactNo
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, md: 4 },
           width: '100%',
           maxWidth: '1280px',
-          mx: 'auto'
+          mx: 'auto',
+          // ZMIANA: Wyzerowanie górnego paddingu i marginesu
+          pt: 0,
+          mt: 0,
+          // Jeśli chcesz usunąć boki, zmień poniższe na `p: 0`. 
+          // Jeśli boki mają zostać, zostawiamy tylko padowanie boczne:
+          px: { xs: 2, md: 4 },
+          pb: { xs: 2, md: 4 }
         }}
       >
         {children}

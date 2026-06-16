@@ -1,0 +1,17 @@
+/* typography.css */
+@theme {
+  /* Twój własny system nazewnictwa wielkości czcionek */
+  --text-display: 2.5rem;
+  --text-display-letter-spacing: -0.02em;
+  --text-display-line-height: 3rem;
+
+  --text-heading-xl: 2rem;
+  --text-heading-xl-line-height: 2.5rem;
+
+  --text-heading-lg: 1.5rem;
+  --text-heading-md: 1.25rem;
+  
+  --text-body-normal: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-body-xs: 0.75rem;
+}

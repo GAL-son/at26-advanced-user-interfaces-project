@@ -8,6 +8,7 @@ import EventRowSkeleton from "@/app/_components/Events/EventRowSkeleton";
 import UniversalSearch from "@/app/_components/UniversalSearch";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
+import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
 
 interface RaceEvent {
   id: string;
@@ -21,6 +22,7 @@ const SECTION_ORDER = ["menu", "events-header", "events-list"];
 
 export default function EventsPage() {
   const t = useTranslations("Events");
+  usePageInitialFocus();
 
   const [initialData, setInitialData] = useState<{
     data: RaceEvent[];
@@ -137,6 +139,7 @@ export default function EventsPage() {
                 placeholder={t("searchPlaceholder")}
                 label={t("searchLabel")}
                 isLoading={loading || refreshing}
+                data-section-page-start="true"
                 data-focus-order="primary"
               />
             </Box>

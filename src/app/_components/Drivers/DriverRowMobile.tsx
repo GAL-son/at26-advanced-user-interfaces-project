@@ -4,16 +4,19 @@ import React from 'react';
 import { TableCell, Box } from '@mui/material';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
-import PositionTableCell from '@/app/_components/Common/PositionTableCell'; // Import naszej nowej komórki podium
+import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
 import { FormattedDriver } from './DriverRow';
 import { useTranslations, useFormatter } from 'next-intl';
 
 interface DriverRowMobileProps {
   driver: FormattedDriver;
+  index: number;
+  onKeyDown: (e: React.KeyboardEvent<HTMLElement>, index: number) => void;
+  registerRef: (el: HTMLElement | null) => void;
 }
 
-export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
+export default function DriverRowMobile({ driver, index, onKeyDown, registerRef }: DriverRowMobileProps) {
   const router = useRouter();
   const t = useTranslations("Drivers");
   const format = useFormatter();
@@ -26,7 +29,9 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleNavigation();
+      return;
     }
+    onKeyDown(e, index);
   };
 
   const hasValidDate = driver.lastRaced && driver.lastRaced !== "N/A";
@@ -36,6 +41,7 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
 
   return (
     <PositionedTableRow 
+      ref={registerRef}
       onClick={handleNavigation}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -44,7 +50,6 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
       className="group cursor-pointer"
       sx={{
         outline: 'none',
-        // Zunifikowany focus-ring w sx dla MUI
         '&:focus-visible': {
           backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 6%, var(--color-brand-navy-dark)) !important',
           outline: '2px solid var(--color-brand-yellow-hover)',
@@ -54,17 +59,10 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
         }
       }}
     >
-      {/* JAWNA I WSPÓŁDZIELONA KOMÓRKA POZYCJI DLA WERSJI MOBILNEJ */}
-      <PositionTableCell 
-        position={driver.position} 
-        className="!p-2" // Lekkie zmniejszenie paddingu na mobile, by dopasować wysokość
-      />
+      <PositionTableCell position={driver.position} className="!p-2" />
 
-      {/* DANE KIEROWCY (Zmniejszamy colSpan z 4 na 3, zwalniając miejsce dla pozycji) */}
       <TableCell colSpan={3} className="p-4 border-b border-[var(--color-brand-navy-light)]">
         <Box className="flex flex-col gap-3">
-          
-          {/* GÓRNY WIERSZ: Nazwa i ELO */}
           <Box className="flex items-start justify-between gap-2">
             <Box className="flex items-center gap-2 min-w-0">
               <Box className="flex flex-col min-w-0">
@@ -82,7 +80,6 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
               </Box>
             </Box>
 
-            {/* Punkty ELO */}
             <Box className="text-right flex-shrink-0">
               <span className="text-xs uppercase font-bold tracking-wider block text-[var(--color-brand-text-muted)] opacity-60 text-[9px]">
                 {t("list.headers.elo")}
@@ -93,7 +90,6 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
             </Box>
           </Box>
 
-          {/* DOLNY WIERSZ: Szybkie Statystyki */}
           <Box className="grid grid-cols-2 gap-2 pt-2 border-t border-[color-mix(in srgb,var(--color-brand-navy-light)_50%,transparent)] text-xs">
             <Box>
               <span className="text-[10px] uppercase font-bold text-[var(--color-brand-text-muted)] block">
@@ -112,7 +108,6 @@ export default function DriverRowMobile({ driver }: DriverRowMobileProps) {
               </span>
             </Box>
           </Box>
-
         </Box>
       </TableCell>
     </PositionedTableRow>
