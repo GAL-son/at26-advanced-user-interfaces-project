@@ -7,12 +7,16 @@ import DriverFilterBar, { SortOption } from "@/app/_components/Drivers/DriverFil
 import DriverList from "@/app/_components/Drivers/DriverList";
 import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
 import { focusFlatSection } from "@/app/_utils/navigation";
+import { usePageInitialFocus } from "../_hooks/usePageInitialFocus"; // NOWOŚĆ: Import hooka
 
 const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list"];
 
 export default function DriversPage() {
   const t = useTranslations("Drivers");
   
+  // NOWOŚĆ: Aktywacja automatycznego zarządzania focusem po wejściu na stronę
+  usePageInitialFocus();
+
   const [drivers, setDrivers] = useState<FormattedDriver[]>([]);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
@@ -120,7 +124,14 @@ export default function DriversPage() {
           {t("title")}
         </h1>
 
-        <div data-section="drivers-filters" className="w-full">
+        {/* NOWOŚĆ: Dodany atrybut data-section-page-start="true". 
+          Hook znajdzie ten kontener i przekaże focus do pierwszego interaktywnego elementu wewnątrz (np. inputu wyszukiwarki).
+        */}
+        <div 
+          data-section="drivers-filters" 
+          data-section-page-start="true" 
+          className="w-full"
+        >
           <DriverFilterBar
             search={search}
             setSearch={setSearch}

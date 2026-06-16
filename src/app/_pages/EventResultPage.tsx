@@ -30,7 +30,6 @@ export interface RaceResultExtended {
 const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list"];
 
 export default function EventResultsPage() {
-  usePageInitialFocus()
   const t = useTranslations("Results");
   const params = useParams();
   const id = params?.id as string;
@@ -134,12 +133,12 @@ export default function EventResultsPage() {
   // STAN BŁĘDU / BRAKU DANYCH
   if (!raceInfo || results.length === 0) {
     return (
-      <Box 
+      <Box
         className="min-h-screen flex items-center justify-center p-4"
         sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}
       >
-        <Container 
-          maxWidth="md" 
+        <Container
+          maxWidth="md"
           className="p-8 text-center shadow-xl border flex flex-col items-center gap-4"
           sx={{
             backgroundColor: 'var(--color-brand-navy-dark)',
@@ -147,13 +146,13 @@ export default function EventResultsPage() {
             borderRadius: 'var(--radius-brand-card)'
           }}
         >
-          <Typography 
-            variant="h6" 
+          <Typography
+            variant="h6"
             className="font-bold text-[var(--color-elo-loss)]"
           >
             {t("notFoundMessage")}
           </Typography>
-          
+
           <BackButton fallbackHref="/events" ariaLabel={t("backButton")} />
         </Container>
       </Box>
@@ -162,14 +161,14 @@ export default function EventResultsPage() {
 
   // WŁAŚCIWY LAYOUT STRONY
   return (
-    <Box 
+    <Box
       className="min-h-screen py-8 px-4 sm:px-6 lg:px-8"
       sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}
     >
       <Container maxWidth="lg" component="main" className="p-0!">
 
         {/* 3. Sekcja przycisku powrotu */}
-        <Box 
+        <Box
           data-section="back-action"
           className="mb-6 flex items-center gap-3 outline-none"
           onKeyDown={(e) => {
@@ -179,14 +178,14 @@ export default function EventResultsPage() {
             }
           }}
         >
-          <BackButton 
-            fallbackHref="/events" 
-            ariaLabel={t("backButton")} 
+          <BackButton
+            fallbackHref="/events"
+            ariaLabel={t("backButton")}
             tabIndex={0}
             data-focus-order="primary"
             data-section-page-start="true"
           />
-          
+
           <Typography
             variant="caption"
             aria-hidden="true"
@@ -198,23 +197,23 @@ export default function EventResultsPage() {
         </Box>
 
         {/* 4. Sekcja informacji o wyścigu */}
-        <Box 
-          data-section="race-info" 
+        <Box
+          data-section="race-info"
           className="outline-none"
         >
-          <RaceInfo 
-            info={raceInfo} 
+          <RaceInfo
+            info={raceInfo}
             onNavigateVertical={(direction) => handleSectionNavigation("race-info", direction)}
           />
         </Box>
 
         {/* 5. Tabela z wynikami */}
-        <Box 
-          data-section="results-list" 
+        <Box
+          data-section="results-list"
           className="outline-none"
         >
-          <ResultList 
-            results={results} 
+          <ResultList
+            results={results}
             onNavigateVertical={(direction) => handleSectionNavigation("results-list", direction)}
           />
         </Box>

@@ -7,8 +7,7 @@ import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 
-// Importujemy interaktywną część kliencką, którą stworzymy za chwilę
-import ClientLayoutView from "@/app/_components/ClientLayoutView"; 
+import ClientLayoutView from "@/app/_components/ClientLayoutView";
 import "@/app/globals.css";
 
 const geistSans = Geist({
@@ -30,28 +29,25 @@ export default async function RootLayout({
 }>) {
   const { locale } = await params;
 
-  // Sprawdzenie czy język z URL jest prawidłowy
   if (!routing.locales.includes(locale as any)) {
     notFound();
   }
-
-  // Pobranie paczki tłumaczeń na serwerze dla danego języka
   const messages = await getMessages();
 
   return (
     <html
-      lang={locale} // Dynamiczny język w HTML!
+      lang={locale}
       data-mui-color-scheme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased custom-scrollbar`}
     >
       <head>
         <InitColorSchemeScript attribute="data-mui-color-scheme" defaultMode="dark" />
       </head>
-      <body 
-        className="min-h-full flex flex-col transition-colors duration-300" 
+      {/* DODANO: m-0 p-0 do klasy body */}
+      <body
+        className="min-h-full m-0 p-0 flex flex-col transition-colors duration-300"
         style={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}
       >
-        {/* TO JEST TEN PROVIDER, O KTÓRY PYTASZ: */}
         <NextIntlClientProvider messages={messages}>
           <ClientLayoutView>
             {children}
