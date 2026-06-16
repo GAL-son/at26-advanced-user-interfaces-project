@@ -49,7 +49,7 @@ export default async function RootLayout({
       className={`${rajdhaniSans.variable} ${shareTechMono.variable} ${orbitronDisplay.variable} h-full antialiased custom-scrollbar`}
     >
       <head>
-        <InitColorSchemeScript attribute="class" defaultMode="dark" />
+        <InitColorSchemeScript attribute="data-mui-color-scheme" defaultMode="dark" />
       </head>
       <body className="min-h-full m-0 p-0 flex flex-col bg-[var(--color-brand-navy)] text-[var(--color-brand-text)]">
         <NextIntlClientProvider messages={messages}>

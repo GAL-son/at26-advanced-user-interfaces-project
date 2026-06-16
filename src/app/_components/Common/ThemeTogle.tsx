@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { IconButton, Box } from '@mui/material';
-import { useColorScheme } from '@mui/material/styles'; // Import hooka z MUI v6
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import { useThemeSwitch } from '@/app/_hooks/useThemeSwitch';
 
 interface ThemeToggleProps {
   focusableRef?: (el: HTMLElement | null) => void;
@@ -13,7 +13,7 @@ interface ThemeToggleProps {
 
 export default function ThemeToggle({ focusableRef, onKeyDown }: ThemeToggleProps) {
   // 1. Wyciągamy mode (aktualny motyw) oraz setMode z MUI
-  const { mode, setMode } = useColorScheme();
+  const { mode, toggleTheme } = useThemeSwitch();
   const [mounted, setMounted] = useState(false);
 
   // Zapobiegamy błędom hydracji (MUI potrzebuje chwili na odczytanie localStorage po stronie klienta)
@@ -27,10 +27,6 @@ export default function ThemeToggle({ focusableRef, onKeyDown }: ThemeToggleProp
   }
 
   const isDark = mode === 'dark';
-
-  const toggleTheme = () => {
-    setMode(mode === 'dark' ? 'light' : 'dark');
-  };
 
   const handleSelfKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
