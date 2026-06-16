@@ -1,23 +1,6 @@
 /* typography.css */
 @theme {
-  /* Logo */
-  --text-nav-logo: 2.25rem; 
-  --text-nav-logo-font-weight: 900;
-  --text-nav-logo-letter-spacing: -0.03em;
-  --text-nav-logo-line-height: 1.75rem;
-
-  /* Elementy menu - TUTAJ BYŁ BŁĄD (poprawione na jedną kropkę) */
-  --text-nav-link: 0.9375rem; 
-  --text-nav-link-line-height: 1.5rem;
-
-  /* Mniejsze przyciski / podpisy */
-  --text-nav-button: 0.875rem; 
-  --text-nav-button-font-weight: 600;
-  --text-nav-button-letter-spacing: 0.05em;
+ 
 }
 
 /* Wymuszamy dziedziczenie koloru, odcinając style domyślne linków i style wstrzykiwane przez MUI */
-a {
-  color: inherit !important;
-  text-decoration: none !important;
-}

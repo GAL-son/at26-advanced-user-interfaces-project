@@ -13,7 +13,7 @@ const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list"];
 
 export default function DriversPage() {
   const t = useTranslations("Drivers");
-  
+
   // NOWOŚĆ: Aktywacja automatycznego zarządzania focusem po wejściu na stronę
   usePageInitialFocus();
 
@@ -60,7 +60,7 @@ export default function DriversPage() {
             racesCount: d.racesCount,
             combo: d.combo,
             currentElo: d.currentElo || 0,
-            lastRaced: d.lastRaced || "N/A" 
+            lastRaced: d.lastRaced || "N/A"
           }));
 
           setDrivers(prev => (page === 0 ? mappedDrivers : [...prev, ...mappedDrivers]));
@@ -85,7 +85,7 @@ export default function DriversPage() {
       }
     }
     fetchDrivers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, debouncedSearch, sortBy, t]);
 
   useEffect(() => {
@@ -106,9 +106,9 @@ export default function DriversPage() {
   }, [hasMore, loading, isInitialLoad]);
 
   return (
-    <Box 
-      component="main" 
-      id="main-content" 
+    <Box
+      component="main"
+      id="main-content"
       className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
       sx={{
         backgroundColor: 'var(--color-brand-navy)',
@@ -120,16 +120,16 @@ export default function DriversPage() {
       </div>
 
       <div className="container mx-auto max-w-5xl">
-        <h1 className="text-3xl font-black uppercase tracking-tight mb-6" style={{ color: 'var(--color-brand-text)' }}>
+        <h1 className="!text-page-title uppercase mb-6" style={{ color: 'var(--color-brand-text)' }}>
           {t("title")}
         </h1>
 
         {/* NOWOŚĆ: Dodany atrybut data-section-page-start="true". 
           Hook znajdzie ten kontener i przekaże focus do pierwszego interaktywnego elementu wewnątrz (np. inputu wyszukiwarki).
         */}
-        <div 
-          data-section="drivers-filters" 
-          data-section-page-start="true" 
+        <div
+          data-section="drivers-filters"
+          data-section-page-start="true"
           className="w-full"
         >
           <DriverFilterBar
@@ -142,7 +142,7 @@ export default function DriversPage() {
         </div>
 
         <div data-section="drivers-list" className="w-full mt-4">
-          <DriverList 
+          <DriverList
             drivers={drivers}
             loading={loading}
             isInitialLoad={isInitialLoad}

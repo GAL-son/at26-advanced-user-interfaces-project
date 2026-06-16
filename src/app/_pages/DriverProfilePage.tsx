@@ -22,7 +22,6 @@ interface DriverStats {
   lastRaced: string;
 }
 
-// Definicja kolejności sekcji dla tej konkretnej strony
 const SECTION_ORDER = [
   "menu",
   "driver-back",
@@ -58,7 +57,6 @@ export default function DriverProfilePage() {
     fetchDriverProfile();
   }, [guid]);
 
-  // Globalny przechwytywacz strzałek w lewo/prawo do aktywacji wykresu
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -79,7 +77,6 @@ export default function DriverProfilePage() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  // EKRAN ŁADOWANIA WSTĘPNEGO
   if (loadingProfile) {
     return (
       <Box 
@@ -94,7 +91,6 @@ export default function DriverProfilePage() {
     );
   }
 
-  // BŁĄD POŁĄCZENIA
   if (!driver) {
     return (
       <Box 
@@ -107,7 +103,6 @@ export default function DriverProfilePage() {
     );
   }
 
-  // Zlokalizowany format daty i czasu synchronizacji
   const hasValidDate = driver.lastRaced && driver.lastRaced !== "N/A";
   const formattedSyncDate = hasValidDate
     ? format.dateTime(new Date(driver.lastRaced), {
@@ -132,7 +127,7 @@ export default function DriverProfilePage() {
     >
       <div className="container mx-auto max-w-5xl">
         
-        {/* SEKCJA: Przycisk powrotu */}
+        {/* SEKCJA: Przycisk powrotu + Nagłówek */}
         <div 
           data-section="driver-back"
           data-section-page-start="true"
@@ -153,15 +148,16 @@ export default function DriverProfilePage() {
             }}
           />
           <div>
+            {/* Zmiana na zunifikowany token nagłówka v4 */}
             <h1 
-              className="text-3xl font-black uppercase tracking-tight leading-tight"
+              className="!text-page-title uppercase leading-tight shrink-0"
               style={{ color: 'var(--color-brand-text)' }}
             >
               {driver.mainName}
             </h1>
             {driver.altNames && driver.altNames !== driver.mainName && (
               <p 
-                className="text-xs mt-1"
+                className="!text-btn-mono mt-1 uppercase"
                 style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
               >
                 {t("list.aliases")}: {driver.altNames}
@@ -199,7 +195,7 @@ export default function DriverProfilePage() {
                 <Typography 
                   variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
+                  className="!text-btn-mono uppercase block"
                   sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("list.headers.elo")}
@@ -238,7 +234,7 @@ export default function DriverProfilePage() {
                 <Typography 
                   variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
+                  className="!text-btn-mono uppercase block"
                   sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.totalExperience")}
@@ -280,7 +276,7 @@ export default function DriverProfilePage() {
                 <Typography 
                   variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
+                  className="!text-btn-mono uppercase block"
                   sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.lastSync")}

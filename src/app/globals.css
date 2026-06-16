@@ -1,11 +1,20 @@
 @import "tailwindcss";
-@import "./typography.css";
-/* 1. Rejestracja motywu i zmiennych (Tailwind v4) */
+
+/* Ominięcie restrykcji kolejności parsera poprzez jawne wskazanie warstwy bazowej */
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
+}
+
 @theme {
   --breakpoint-sm: 600px;
   --breakpoint-md: 900px;
   --breakpoint-lg: 1200px;
   --breakpoint-xl: 1536px;
+
+  /* Rejestracja nowych rodzin czcionek w Tailwind v4 */
+  --font-sans: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Orbitron', sans-serif;
 
   --color-brand-navy: #f8fafc;
   --color-brand-navy-dark: #ffffff;
@@ -27,9 +36,99 @@
   --color-streak-text: #c2410c;
 
   --radius-brand-card: 12px;
+
+  --text-nav-logo: 1.35rem;
+  --text-nav-link: 0.95rem;
+  --text-nav-button: 0.875rem;
+  --text-page-title: 2rem;
+  --text-btn-mono: 0.8rem;
 }
 
-/* 2. Style bazowe dla dokumentu */
+/* --- Utilities --- */
+
+@utility text-nav-logo {
+  font-size: var(--text-nav-logo);
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+}
+
+@utility text-nav-link {
+  font-size: var(--text-nav-link);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@utility text-nav-button {
+  font-size: var(--text-nav-button);
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: 0.05em;
+}
+
+@utility text-page-title {
+  font-size: var(--text-page-title);
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+@utility text-btn-mono {
+  font-size: var(--text-btn-mono);
+  font-weight: 400;
+  font-family: var(--font-mono);
+}
+
+@utility text-podium-number {
+  font-size: 2.25rem;
+  font-weight: 900;
+  font-family: var(--font-display);
+
+  @media (min-width: 640px) {
+    font-size: 3.5rem;
+  }
+}
+
+@utility text-duel-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+
+  @media (min-width: 640px) {
+    font-size: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+  }
+}
+
+@utility text-stat-value {
+  font-size: 1.5rem;
+  font-weight: 400;
+  font-family: var(--font-mono);
+
+  @media (min-width: 640px) {
+    font-size: 1.875rem;
+  }
+}
+
+@utility text-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+
+  @media (min-width: 640px) {
+    font-size: 1.25rem;
+  }
+}
+
+/* --- Style bazowe i motywy --- */
 html[data-mui-color-scheme="dark"] {
   --color-brand-navy: #0b1224;
   --color-brand-navy-dark: #070b16;
@@ -55,11 +154,12 @@ html[data-mui-color-scheme="dark"] {
 }
 
 body {
+  font-family: var(--font-sans);
   background-color: var(--color-brand-navy);
   color: var(--color-brand-text);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 3. Rejestracja własnej klasy pomocniczej w Tailwind v4 (BEZ @layer) */
 @utility transition-grid {
   transition-property: grid-template-rows;
 }
@@ -69,14 +169,11 @@ body {
 }
 
 @utility focus-brand {
-
-  /* Całkowity reset domyślnego zachowania focusu dla przeglądarki i MUI */
   &:focus {
     outline: none !important;
     box-shadow: none;
   }
 
-  /* Nasz spersonalizowany styl, który czyści potencjalne pozostałości po MUI */
   &:focus-visible {
     outline: 2px solid var(--color-brand-yellow) !important;
     outline-offset: 2px !important;
@@ -84,36 +181,28 @@ body {
   }
 }
 
-/* 4. Logika płynnego przełączania motywów */
 html.theme-toggling,
 html.theme-toggling * {
   transition: color 300ms ease, background-color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease !important;
 }
 
 @utility custom-scrollbar {
-  /* Wsparcie dla Firefox (podstawowe kolory, bez strzałek) */
   scrollbar-width: thin;
   scrollbar-color: var(--color-brand-yellow) var(--color-brand-navy-light);
 
-  /* Konstrukcja paska dla Chrome, Safari i Edge */
   &::-webkit-scrollbar {
     width: 14px;
-    /* Szerokość paska pionowego */
     height: 14px;
-    /* Wysokość paska poziomego */
   }
 
-  /* Tło ścieżki scrollbara */
   &::-webkit-scrollbar-track {
     background: var(--color-brand-navy-light);
     border-radius: var(--radius-brand-card);
   }
 
-  /* Suwak (Handle) */
   &::-webkit-scrollbar-thumb {
     background-color: var(--color-brand-yellow);
     border-radius: 10px;
-    /* Sprytny trik: border tworzy efekt "paddingu" wokół suwaka */
     border: 3px solid var(--color-brand-navy-light);
   }
 
@@ -121,7 +210,6 @@ html.theme-toggling * {
     background-color: var(--color-brand-yellow-hover);
   }
 
-  /* Konstrukcja przycisków (strzałek) */
   &::-webkit-scrollbar-button:single-button {
     display: block;
     background-repeat: no-repeat;
@@ -131,7 +219,6 @@ html.theme-toggling * {
     width: 14px;
   }
 
-  /* Strzałki - Motyw Jasny (Domyślny) - kolor #eab308 (%23eab308) */
   &::-webkit-scrollbar-button:single-button:vertical:decrement {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
   }
@@ -150,8 +237,6 @@ html.theme-toggling * {
 }
 
 html[data-mui-color-scheme="dark"] {
-
-  /* Kolor zmieniony na #fff200 (%23fff200) */
   & .custom-scrollbar::-webkit-scrollbar-button:single-button:vertical:decrement,
   &::-webkit-scrollbar-button:single-button:vertical:decrement {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
@@ -171,4 +256,9 @@ html[data-mui-color-scheme="dark"] {
   &::-webkit-scrollbar-button:single-button:horizontal:increment {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z'/></svg>");
   }
+}
+
+a {
+  color: inherit !important;
+  text-decoration: none !important;
 }

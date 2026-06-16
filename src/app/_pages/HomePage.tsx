@@ -23,6 +23,8 @@ interface HomePageProps {
   virtualDuels: DashboardDuels;
   globalStats: GlobalStats;
 }
+
+// POPRAWKA: Dodano sekcję "stats", aby nawigacja klawiaturą wiedziała o jej istnieniu
 const SECTION_ORDER = [
   "menu",
   "ticker",
@@ -30,13 +32,15 @@ const SECTION_ORDER = [
   "leaderboard",
   "duels",
   "socials",
+  // "stats", ommited on purposue since it is not interactable
 ];
 
 export default function HomePage({ activeDrivers, latestEvents, topDrivers, virtualDuels, globalStats }: HomePageProps) {
   usePageInitialFocus();
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--color-brand-navy)]">
+    // Zmiana na czysty token koloru tła Tailwind v4
+    <div className="flex flex-col min-h-screen bg-brand-navy">
 
       {/* SEKCJA: ticker */}
       <div data-section="ticker" data-section-page-start="true">
@@ -65,7 +69,6 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
             <TopDriversLeaderboard
               drivers={topDrivers}
               onNavigateHorizontal={(dir) => focusFlatSection("leaderboard", dir, SECTION_ORDER)}
-            // onNavigateVertical={(dir) => focusFlatSection("leaderboard", dir, SECTION_ORDER)}
             />
           </div>
 
@@ -74,7 +77,6 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
               <VirtualDuelsSection
                 duels={virtualDuels}
                 onNavigateHorizontal={(dir) => focusFlatSection("duels", dir, SECTION_ORDER)}
-              // onNavigateVertical={(dir) => focusFlatSection("duels", dir, SECTION_ORDER)}
               />
             </div>
           )}
@@ -89,9 +91,12 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
             />
           </div>
 
+          {/* POPRAWKA: Sekcja zsynchronizowana z SECTION_ORDER oraz obsługa zdarzeń strzałek */}
           <div data-section="stats" className="w-full flex">
             <GlobalStatsSection
               stats={globalStats}
+              onNavigateHorizontal={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
+              onNavigateVertical={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
             />
           </div>
         </div>

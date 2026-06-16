@@ -33,7 +33,7 @@ export default function ActiveDriverItem({
     <div 
       role="listitem" 
       aria-hidden={isDuplicate}
-      className="flex items-center h-full flex-shrink-0" // Blokujemy kurczenie się elementu w poziomie
+      className="flex items-center h-full flex-shrink-0"
     >
       <Link
         href={`/drivers/${driver.guid}`}
@@ -46,16 +46,18 @@ export default function ActiveDriverItem({
         onFocus={() => setIsHoverPaused(true)}
         onBlur={() => setIsHoverPaused(false)}
         onKeyDown={(e) => !isDuplicate && handleKeyDown(e, index)}
-        // whitespace-nowrap gwarantuje, że tekst (w tym data) nigdy nie przejdzie do nowej linii
-        className="inline-flex items-center gap-2 rounded-sm px-2 py-1 transition-colors hover:bg-[var(--color-brand-navy-light)] focus-brand outline-none whitespace-nowrap select-none"
+        // Tailwind v4 migration: Podmiana hover:bg na natywną klasę utility
+        className="inline-flex items-center gap-2 rounded-sm px-2 py-1 transition-colors hover:bg-brand-navy-light focus-brand outline-none whitespace-nowrap select-none"
         tabIndex={isDuplicate || prefersReducedMotion ? -1 : 0}
         draggable={false}
       >
-        <span className="font-semibold text-[var(--color-brand-text)]">
+        {/* Czysty kolor tekstu bez zapisu var() */}
+        <span className="font-semibold text-brand-text">
           {driver.name}
         </span>
         
-        <span className="rounded bg-[var(--color-brand-navy-light)] px-1.5 py-0.5 text-xs font-mono text-[var(--color-brand-yellow-text)]">
+        {/* Użycie spójnego tokenu !text-btn-mono dla małych danych monospaced */}
+        <span className="rounded bg-brand-navy-light px-1.5 py-0.5 text-brand-yellow-text !text-btn-mono">
           {driver.elo}
         </span>
         
@@ -63,7 +65,8 @@ export default function ActiveDriverItem({
           <ComboBadge combo={driver.combo} />
         )}
         
-        <span className="text-xs text-[var(--color-brand-text-muted)]">
+        {/* Czysty kolor wyciszonego tekstu z v4 */}
+        <span className="text-xs text-brand-text-muted">
           {formatDaysAgo(driver.lastActive)}
         </span>
       </Link>

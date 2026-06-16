@@ -7,7 +7,6 @@ import { AppBar, Box, Toolbar, IconButton, Typography, Button, Container } from 
 import MenuIcon from "@mui/icons-material/Menu";
 import SpeedIcon from "@mui/icons-material/Speed";
 import LanguageIcon from "@mui/icons-material/Language";
-import DebugThemeToggle from "@/app/_components/DebugThemeToggle";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import ThemeToggle from "../Common/ThemeTogle";
@@ -93,13 +92,14 @@ export default function TopBarMenu({
             ref={registerItem(0)}
             onKeyDown={(e) => handleKeyDown(e, 0)}
             tabIndex={0}
-            className="focus-brand text-nav-logo rounded px-2 py-1 flex outline-none no-underline items-center gap-2 !text-[var(--color-brand-text)]"
+            /* Migracja na czysty token v4 z wymuszeniem koloru tekstu */
+            className="focus-brand !text-nav-logo rounded px-2 py-1 flex outline-none no-underline items-center gap-2 !text-brand-text"
             sx={{
               mr: 4,
               display: { xs: 'none', md: 'flex' },
             }}
           >
-            <SpeedIcon sx={{ color: 'var(--color-brand-yellow-hover)' }} /> Simracing App
+            <SpeedIcon className="text-brand-yellow-hover" /> Simracing App
           </Typography>
 
           {/* HAMBURGER: Mobile */}
@@ -121,14 +121,14 @@ export default function TopBarMenu({
             component={Link}
             href="/drivers"
             tabIndex={0}
-            /* UŻYTE KLASY: text-nav-logo z zachowaniem mobilnego flexa */
-            className="focus-brand text-nav-logo rounded px-2 no-underline items-center gap-2 text-[var(--color-brand-text)]"
+            /* Migracja na czysty token v4 */
+            className="focus-brand !text-nav-logo rounded px-2 no-underline items-center gap-2 !text-brand-text"
             sx={{
               flexGrow: 1,
               display: { xs: 'flex', md: 'none' },
             }}
           >
-            <SpeedIcon sx={{ color: 'var(--color-brand-yellow-hover)' }} /> Simracing App
+            <SpeedIcon className="text-brand-yellow-hover" /> Simracing App
           </Typography>
 
           {/* LINKI NAWIGACJI: Desktop */}
@@ -145,18 +145,17 @@ export default function TopBarMenu({
                   ref={registerItem(currentItemIndex)}
                   onKeyDown={(e) => handleKeyDown(e, currentItemIndex)}
                   tabIndex={-1}
-                  /* UŻYTE KLASY: text-nav-link, dynamiczny font-bold / font-medium oraz normal-case (czyszczenie uppercase z MUI) */
-                  className={`focus-brand text-nav-link normal-case flex items-center px-4 py-2 rounded-md transition-all duration-200 
+                  /* Użycie natywnych przezroczystości v4 (bg-brand-text/6) zamiast skomplikowanego CSS color-mix */
+                  className={`focus-brand !text-nav-link normal-case flex items-center px-4 py-2 rounded-md transition-all duration-200 
                   ${isActive
-                      ? '!font-bold !text-[var(--color-brand-text)] bg-[color-mix(in_srgb,var(--color-brand-text)_6%,transparent)]'
-                      : '!font-medium !text-[var(--color-brand-text-muted)] bg-transparent'
+                      ? '!font-bold !text-brand-text bg-brand-text/6'
+                      : '!font-medium !text-brand-text-muted bg-transparent'
                     } 
-                  hover:bg-[color-mix(in_srgb,var(--color-brand-text)_10%,transparent)] hover:!text-[var(--color-brand-text)]`}
+                  hover:bg-brand-text/10 hover:!text-brand-text`}
                   sx={{
                     display: 'flex',
                   }}
                 >
-                  {/* Ikona dostaje lekki margines z Tailwinda zamiast luk w gap */}
                   <span className="mr-2 flex items-center">{item.icon}</span>
                   {t(item.label)}
                 </Button>
@@ -173,8 +172,8 @@ export default function TopBarMenu({
               variant="text"
               size="small"
               startIcon={<LanguageIcon />}
-              /* UŻYTE KLASY: text-nav-button oraz uppercase */
-              className="text-nav-button uppercase text-[var(--color-brand-text-muted)] hover:text-[var(--color-brand-text)] hover:bg-[color-mix(in_srgb,var(--color-brand-text)_6%,transparent)]"
+              /* Wyczyszczenie opacity i color-mix na rzecz v4 utilities */
+              className="!text-nav-button uppercase !text-brand-text-muted hover:!text-brand-text hover:bg-brand-text/6"
             >
               {t("switchLanguageTo")}
             </Button>
