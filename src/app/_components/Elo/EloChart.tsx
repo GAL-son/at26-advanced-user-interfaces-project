@@ -11,7 +11,7 @@ import {
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EventDot from "@/app/_components/Elo/EventDot";
 import EventTooltip from "@/app/_components/Elo/EventTooltip";
-import ScrollArrow from "@/app/_components/Common/ScrollArrow"; // Zakładam taką ścieżkę importu
+import ScrollArrow from "@/app/_components/Common/ScrollArrow";
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import { useRouter } from "next/navigation";
@@ -103,7 +103,7 @@ export default function EloChart({
     isFirstLoad.current = true;
     setFocusedIndex(null);
     setIsKeyboardActive(false);
-    setIsAtInitialRight(true); // ⬅️ DODAJ TO
+    setIsAtInitialRight(true);
   }, [guidsString]);
 
   const chronologicalData = [...chartData].reverse().map((point) => ({
@@ -194,7 +194,7 @@ export default function EloChart({
 
             if (isFirstLoad.current) {
               isFirstLoad.current = false;
-              setIsInitialLoading(false); // <--- To wyłączy overlay po pierwszym razie
+              setIsInitialLoading(false);
               setLoading(false);
               isResettingScroll.current = true;
 
@@ -214,10 +214,7 @@ export default function EloChart({
         console.error("Error searching ELO data:", err);
       } finally {
         if (isCurrent) {
-          // Referencję ładowania API zwalniamy od razu, żeby nie blokować kolejnych akcji
           isLoadingRef.current = false;
-
-          // Opóźniamy wyłącznie efekt wizualny (spinner) o 500ms
           setTimeout(() => {
             if (isCurrent) {
               setLoading(false);
@@ -366,10 +363,7 @@ export default function EloChart({
     if (!container || isLoadingRef.current || !hasMore || isResettingScroll.current) return;
     if (container.scrollWidth <= container.clientWidth) return;
 
-    // 🟢 LOGIKA DLA STRZAŁKI W LEWO:
-    // Obliczamy maksymalny możliwy scroll w prawo
     const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    // Jeśli użytkownik przewinął w lewo o więcej niż 20px od skrajnej prawej pozycji:
     if (maxScrollLeft - container.scrollLeft > 20) {
       setIsAtInitialRight(false);
     } else {
@@ -427,7 +421,8 @@ export default function EloChart({
           <h2 id="chart-title" className="text-lg font-bold uppercase tracking-wider text-[var(--color-brand-text)]">
             {guids.length > 1 ? t("chart.comparisonTitle") : t("chart.performanceTitle")}
           </h2>
-          <p className="text-xs font-mono text-[var(--color-brand-text-muted)] opacity-70">
+          {/* POPRAWKA: Przejście z rozproszonych klas wielkości na token !text-btn-mono */}
+          <p className="!text-btn-mono text-[var(--color-brand-text-muted)] opacity-70">
             {t("chart.scrollInstruction")}
           </p>
         </div>
@@ -444,7 +439,8 @@ export default function EloChart({
               }}
             >
               {driversMeta.map((m) => (
-                <div key={m.guid} className="flex items-center gap-2 font-mono text-xs">
+                /* POPRAWKA: Przypisanie spójnego tokenu !text-btn-mono dla legendy */
+                <div key={m.guid} className="flex items-center gap-2 !text-btn-mono">
                   <span className="w-3 h-3 rounded-full flex-shrink-0" aria-hidden="true" style={{ backgroundColor: m.color }} />
                   <span className="font-bold text-[var(--color-brand-text)]">{m.name}</span>
                 </div>
@@ -459,11 +455,11 @@ export default function EloChart({
               startIcon={<CompareArrowsIcon />}
               onClick={handleCompareClick}
               tabIndex={-1}
+              /* POPRAWKA: Przeniesienie surowych stylów inline / sx bezpośrednio do narzędziowego tokenu Tailwind v4 */
+              className="!text-btn-mono"
               sx={{
                 borderColor: "var(--color-brand-navy-light)",
                 color: "var(--color-brand-text)",
-                fontFamily: "monospace",
-                fontSize: "12px",
                 fontWeight: "bold",
                 textTransform: "uppercase",
                 backgroundColor: "var(--color-brand-navy)",
@@ -516,7 +512,6 @@ export default function EloChart({
           border: "1px solid var(--color-brand-navy-light)",
         }}
       >
-        {/* Overlay dla stanu ładowania */}
         <Box
           className={`absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-brand-navy)]/80 backdrop-blur-[2px] fade-in-out ${(loading || isInitialLoading) ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
@@ -542,7 +537,6 @@ export default function EloChart({
           />
         )}
 
-        {/* REUŻYWALNY INSTANCE: STRZAŁKA W LEWO (z-10 ukrywa ją pod tooltipem) */}
         {scrollMasks.left && isAtInitialRight && (
           <ScrollArrow
             direction="left"
@@ -551,7 +545,7 @@ export default function EloChart({
           />
         )}
 
-        {/* LEWA OŚ Y (z-20 przysłania strzałkę w lewo przy pełnym scrollu) */}
+        {/* LEWA OŚ Y */}
         <Box
           className="w-12 h-[340px] flex-shrink-0 select-none relative z-20"
           aria-hidden="true"
@@ -568,7 +562,8 @@ export default function EloChart({
                 domain={[yMin, yMax]}
                 width={40}
                 stroke="transparent"
-                tick={{ fontFamily: "monospace", fontSize: 10, fill: "var(--color-brand-text-muted)" }}
+                /* POPRAWKA: Przekazanie zmiennej CSS czcionki brandowej mono bezpośrednio do właściwości wykresu */
+                tick={{ fontFamily: "var(--font-brand-mono)", fontSize: 10, fill: "var(--color-brand-text-muted)" }}
               />
               {guids.map((guid) => (
                 <Line
@@ -585,7 +580,7 @@ export default function EloChart({
           </ResponsiveContainer>
         </Box>
 
-        {/* TRZON WYKRESU (z-20 sprawia, że pływający tooltip przykrywa strzałki z-10) */}
+        {/* TRZON WYKRESU */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
@@ -593,7 +588,6 @@ export default function EloChart({
         >
           <div style={{ width: `${calculatedWidth}px`, height: "340px" }} className="relative">
 
-            {/* Tooltip HTML z z-index 9999 rysowany wewnątrz nadrzędnego z-20 – w pełni bezpieczny przed przebiciem */}
             {focusedIndex !== null && tooltipPos && (
               <div
                 style={{
@@ -667,7 +661,8 @@ export default function EloChart({
                     const found = chronologicalData.find((p) => p.eventId === value);
                     return found ? found.displayDate : "";
                   }}
-                  tick={{ fontFamily: "monospace", fontSize: 10, fontWeight: "bold", fill: "var(--color-brand-text-muted)" }}
+                  /* POPRAWKA: Przekazanie zmiennej CSS czcionki brandowej mono bezpośrednio do właściwości wykresu */
+                  tick={{ fontFamily: "var(--font-brand-mono)", fontSize: 10, fontWeight: "bold", fill: "var(--color-brand-text-muted)" }}
                   dy={10}
                 />
 

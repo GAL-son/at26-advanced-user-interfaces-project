@@ -116,17 +116,17 @@ export default function DriverSearchContainer({
 
         {/* LEWA STRONA: Wyszukiwarka */}
         <div className="w-full">
-          <Box
-            component="p"
-            className="text-[10px] font-mono uppercase tracking-widest font-bold mb-2 opacity-80"
-            sx={{ color: "var(--color-brand-text-muted)" }}
+          {/* POPRAWKA: Przejście z surowych klas rozmiaru na token !text-btn-mono z wagą czcionki i trackingiem */}
+          <p 
+            className="!text-btn-mono uppercase tracking-widest font-bold mb-2 opacity-80"
+            style={{ color: "var(--color-brand-text-muted)" }}
           >
             {t("label")}
-          </Box>
+          </p>
 
           <UniversalSearch
             id="driver-search-input"
-            data-focus-order="primary" // <--- To teraz bezbłędnie trafi na natywny tag <input>
+            data-focus-order="primary"
             value={searchQuery}
             onChange={setSearchQuery}
             onKeyDown={handleSearchKeyDown}

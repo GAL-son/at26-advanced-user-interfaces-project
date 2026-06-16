@@ -95,7 +95,8 @@ export default function DriverProfilePage() {
     return (
       <Box 
         role="alert"
-        className="min-h-screen flex items-center justify-center font-mono text-sm"
+        /* POPRAWKA: Przejście na ujednolicony token !text-btn-mono dla technicznego błędu */
+        className="min-h-screen flex items-center justify-center !text-btn-mono uppercase"
         sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text-muted)' }}
       >
         {t("profile.connectionError")}
@@ -148,7 +149,6 @@ export default function DriverProfilePage() {
             }}
           />
           <div>
-            {/* Zmiana na zunifikowany token nagłówka v4 */}
             <h1 
               className="!text-page-title uppercase leading-tight shrink-0"
               style={{ color: 'var(--color-brand-text)' }}
@@ -193,17 +193,15 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
+                  /* POPRAWKA: Czyste wstrzyknięcie !text-btn-mono zamiast variant="caption" i sx */
                   className="!text-btn-mono uppercase block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("list.headers.elo")}
                 </Typography>
-                <p 
-                  className="text-2xl font-black font-mono"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                {/* POPRAWKA: Przejście na telemetryczny token !text-stat-value */}
+                <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(Math.round(driver.currentElo || 0))}
                 </p>
               </div>
@@ -232,19 +230,17 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
                   className="!text-btn-mono uppercase block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.totalExperience")}
                 </Typography>
-                <p 
-                  className="text-2xl font-black font-mono"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                {/* POPRAWKA: Użycie !text-stat-value dla głównego licznika wyścigów */}
+                <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(driver.racesCount)}{" "}
-                  <span className="text-xs font-normal" style={{ color: 'var(--color-brand-text-muted)' }}>
+                  {/* POPRAWKA: Jednostka sformatowana czytelną czcionką techniczną Share Tech Mono */}
+                  <span className="!text-btn-mono lowercase font-normal !text-brand-text-muted opacity-80">
                     {t("profile.racesUnit")}
                   </span>
                 </p>
@@ -274,17 +270,14 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
                   className="!text-btn-mono uppercase block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.lastSync")}
                 </Typography>
-                <h3 
-                  className="text-sm font-bold mt-1"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                {/* POPRAWKA: Przejście na bezpieczny i czytelny !font-sans dla daty asynchronicznej */}
+                <h3 className="text-sm font-bold mt-1 !font-sans !text-brand-text">
                   {formattedSyncDate}
                 </h3>
               </div>

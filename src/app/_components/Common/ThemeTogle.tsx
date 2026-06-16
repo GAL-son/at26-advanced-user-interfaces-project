@@ -5,7 +5,12 @@ import { IconButton, Box } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  focusableRef?: (el: HTMLElement | null) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLElement>) => void;
+}
+
+export default function ThemeToggle({ focusableRef, onKeyDown }: ThemeToggleProps) {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
@@ -27,18 +32,37 @@ export default function ThemeToggle() {
     }, 300);
   };
 
+  const handleSelfKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleTheme();
+    }
+    if (onKeyDown) {
+      onKeyDown(e);
+    }
+  };
+
   return (
-    /* Kontener wyrównujący przełącznik w pionie, pasujący do struktury AppBar */
-    <Box className="flex items-center gap-1">
+    <Box 
+      ref={focusableRef}
+      tabIndex={-1}
+      onKeyDown={handleSelfKeyDown}
+      onClick={toggleTheme}
+      role="button"
+      aria-label="Toggle theme"
+      className="flex items-center gap-1 focus-brand rounded-md p-0.5 cursor-pointer outline-none"
+    >
       {/* IKONA SŁOŃCA (Tryb Jasny) */}
       <IconButton
         size="small"
-        onClick={toggleTheme}
-        disabled={!isDark}
+        tabIndex={-1}
+        focusable="false"
+        aria-hidden="true"
+        sx={{ pointerEvents: 'none' }}
         className={`transition-all duration-200 
           ${!isDark 
             ? '!text-[var(--color-brand-yellow)] bg-[color-mix(in_srgb,var(--color-brand-yellow)_15%,transparent)]' 
-            : '!text-[var(--color-brand-text-muted)] opacity-50 hover:opacity-100'
+            : '!text-[var(--color-brand-text-muted)] opacity-50'
           }`}
       >
         <LightModeIcon fontSize="small" />
@@ -46,10 +70,8 @@ export default function ThemeToggle() {
 
       {/* Wizualny mini-suwak (Track) łączący ikony */}
       <div 
-        onClick={toggleTheme}
-        className="w-8 h-4 rounded-full bg-[var(--color-brand-navy-light)] relative cursor-pointer hidden sm:block transition-all duration-200"
+        className="w-8 h-4 rounded-full bg-[var(--color-brand-navy-light)] relative hidden sm:block transition-all duration-200"
       >
-        {/* Pigułka/Kropka suwaka skacząca lewo/prawo */}
         <div 
           className={`w-3 h-3 rounded-full bg-[var(--color-brand-yellow)] absolute top-[2px] transition-all duration-200
             ${isDark ? 'left-[18px]' : 'left-[2px]'}`}
@@ -59,12 +81,14 @@ export default function ThemeToggle() {
       {/* IKONA KSIĘŻYCA (Tryb Ciemny) */}
       <IconButton
         size="small"
-        onClick={toggleTheme}
-        disabled={isDark}
+        tabIndex={-1}
+        focusable="false"
+        aria-hidden="true"
+        sx={{ pointerEvents: 'none' }}
         className={`transition-all duration-200 
           ${isDark 
             ? '!text-[var(--color-brand-yellow)] bg-[color-mix(in_srgb,var(--color-brand-yellow)_15%,transparent)]' 
-            : '!text-[var(--color-brand-text-muted)] opacity-50 hover:opacity-100'
+            : '!text-[var(--color-brand-text-muted)] opacity-50'
           }`}
       >
         <DarkModeIcon fontSize="small" />

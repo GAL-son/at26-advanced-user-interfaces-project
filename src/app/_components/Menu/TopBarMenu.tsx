@@ -40,7 +40,8 @@ export default function TopBarMenu({
     router.replace(currentPathname, { locale: nextLocale });
   };
 
-  const totalDesktopItems = 1 + navItems.length;
+  // Całkowita liczba elementów na desktopie: Logo (1) + Linki (navItems.length) + Język (1) + Motyw (1)
+  const totalDesktopItems = 1 + navItems.length + 2;
 
   const { registerItem, handleKeyDown } = useKeyboardNavigation({
     itemCount: totalDesktopItems,
@@ -67,6 +68,9 @@ export default function TopBarMenu({
     }
   });
 
+  const languageButtonIndex = 1 + navItems.length;
+  const themeToggleIndex = languageButtonIndex + 1;
+
   return (
     <AppBar
       position="sticky"
@@ -84,7 +88,7 @@ export default function TopBarMenu({
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ height: 64 }}>
 
-          {/* LOGO: Desktop */}
+          {/* INDEKS 0: LOGO (Desktop) */}
           <Typography
             noWrap
             component={Link}
@@ -92,7 +96,6 @@ export default function TopBarMenu({
             ref={registerItem(0)}
             onKeyDown={(e) => handleKeyDown(e, 0)}
             tabIndex={0}
-            /* Migracja na czysty token v4 z wymuszeniem koloru tekstu */
             className="focus-brand !text-nav-logo rounded px-2 py-1 flex outline-none no-underline items-center gap-2 !text-brand-text"
             sx={{
               mr: 4,
@@ -121,7 +124,6 @@ export default function TopBarMenu({
             component={Link}
             href="/drivers"
             tabIndex={0}
-            /* Migracja na czysty token v4 */
             className="focus-brand !text-nav-logo rounded px-2 no-underline items-center gap-2 !text-brand-text"
             sx={{
               flexGrow: 1,
@@ -131,7 +133,7 @@ export default function TopBarMenu({
             <SpeedIcon className="text-brand-yellow-hover" /> Simracing App
           </Typography>
 
-          {/* LINKI NAWIGACJI: Desktop */}
+          {/* INDEKSY 1 do X: LINKI NAWIGACJI (Desktop) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             {navItems.map((item, index) => {
               const isActive = currentPathname.startsWith(item.path);
@@ -144,17 +146,14 @@ export default function TopBarMenu({
                   href={item.path}
                   ref={registerItem(currentItemIndex)}
                   onKeyDown={(e) => handleKeyDown(e, currentItemIndex)}
-                  tabIndex={-1}
-                  /* Użycie natywnych przezroczystości v4 (bg-brand-text/6) zamiast skomplikowanego CSS color-mix */
+                  tabIndex={0} // WŁĄCZA NATURALNE TABOWANIE
                   className={`focus-brand !text-nav-link normal-case flex items-center px-4 py-2 rounded-md transition-all duration-200 
-                  ${isActive
+          ${isActive
                       ? '!font-bold !text-brand-text bg-brand-text/6'
                       : '!font-medium !text-brand-text-muted bg-transparent'
                     } 
-                  hover:bg-brand-text/10 hover:!text-brand-text`}
-                  sx={{
-                    display: 'flex',
-                  }}
+          hover:bg-brand-text/10 hover:!text-brand-text
+          focus:bg-brand-text/10 focus:ring-2 focus:ring-[var(--color-brand-yellow-hover)] focus:outline-none`} // WYMUSZA WIDOCZNY FOCUS
                 >
                   <span className="mr-2 flex items-center">{item.icon}</span>
                   {t(item.label)}
@@ -163,28 +162,31 @@ export default function TopBarMenu({
             })}
           </Box>
 
-          {/* PRZYCISKI FUNKCYJNE: Język i Motyw */}
+          {/* PRZYCISKI FUNKCYJNE */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
 
-            {/* PRZYCISK ZMIANY JĘZYKA */}
+            {/* JĘZYK BEZ SPANA */}
             <Button
               onClick={toggleLanguage}
+              ref={registerItem(languageButtonIndex)}
+              onKeyDown={(e) => handleKeyDown(e, languageButtonIndex)}
+              tabIndex={0} // WŁĄCZA NATURALNE TABOWANIE
               variant="text"
               size="small"
               startIcon={<LanguageIcon />}
-              /* Wyczyszczenie opacity i color-mix na rzecz v4 utilities */
-              className="!text-nav-button uppercase !text-brand-text-muted hover:!text-brand-text hover:bg-brand-text/6"
+              className="focus-brand !text-nav-button uppercase !text-brand-text-muted hover:!text-brand-text hover:bg-brand-text/6 focus:bg-brand-text/10 focus:ring-2 focus:ring-[var(--color-brand-yellow-hover)] focus:outline-none"
             >
               {t("switchLanguageTo")}
             </Button>
 
-            {/* PRZYCISK MOTYWU: Desktop */}
+            {/* MOTYW */}
             <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-              <ThemeToggle />
+              <ThemeToggle
+                focusableRef={registerItem(themeToggleIndex)}
+                onKeyDown={(e) => handleKeyDown(e, themeToggleIndex)}
+              />
             </Box>
-
           </Box>
-
         </Toolbar>
       </Container>
     </AppBar>

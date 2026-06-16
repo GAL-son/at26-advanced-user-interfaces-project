@@ -237,6 +237,7 @@ html.theme-toggling * {
 }
 
 html[data-mui-color-scheme="dark"] {
+
   & .custom-scrollbar::-webkit-scrollbar-button:single-button:vertical:decrement,
   &::-webkit-scrollbar-button:single-button:vertical:decrement {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
