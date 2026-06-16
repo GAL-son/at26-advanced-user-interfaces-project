@@ -7,6 +7,7 @@ import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import PositionTableCell from '@/app/_components/Common/PositionTableCell';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { Transition } from 'framer-motion';
 
 interface ResultListItemMobileProps {
   id?: string;
@@ -14,6 +15,7 @@ interface ResultListItemMobileProps {
   index: number;
   onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void;
   registerRef: (el: HTMLElement | null) => void;
+  transition?: Transition;
 }
 
 export default function ResultListItemMobile({
@@ -21,7 +23,8 @@ export default function ResultListItemMobile({
   row,
   index,
   onKeyDown,
-  registerRef
+  registerRef,
+  transition,
 }: ResultListItemMobileProps) {
   const t = useTranslations("Results.table");
   const router = useRouter();
@@ -52,11 +55,11 @@ export default function ResultListItemMobile({
 
   return (
     <PositionedTableRow
-      id={id}
       ref={registerRef}
       onClick={handleNavigation}
       onKeyDown={handleCombinedKeyDown}
-      tabIndex={0} // <--- Zmiana z -1 na 0
+      transition={transition}
+      tabIndex={0}
       role="link"
       aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}
       className="focus-brand"

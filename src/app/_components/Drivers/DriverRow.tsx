@@ -7,6 +7,7 @@ import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
 import { useTranslations, useFormatter } from 'next-intl';
+import { Transition } from 'framer-motion';
 
 export interface FormattedDriver {
   guid: string;
@@ -24,9 +25,10 @@ interface DriverRowProps {
   index: number;
   onKeyDown: (e: React.KeyboardEvent<HTMLElement>, index: number) => void;
   registerRef: (el: HTMLElement | null) => void;
+  transition?: Transition;
 }
 
-export default function DriverRow({ driver, index, onKeyDown, registerRef }: DriverRowProps) {
+export default function DriverRow({ driver, index, onKeyDown, registerRef, transition}: DriverRowProps) {
   const router = useRouter();
   const t = useTranslations("Drivers");
   const format = useFormatter();
@@ -50,8 +52,9 @@ export default function DriverRow({ driver, index, onKeyDown, registerRef }: Dri
     : t("list.notAvailable");
 
   return (
-    <PositionedTableRow 
+    <PositionedTableRow
       ref={registerRef}
+      transition={transition} // ← nowe, reszta props bez zmian
       onClick={handleNavigation}
       onKeyDown={handleKeyDown}
       tabIndex={0}

@@ -11,6 +11,7 @@ import { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 import ScrollArrow from "@/app/_components/Common/ScrollArrow";
 import { useScrollArrowVisibility } from "@/app/_hooks/useScrollArrowVisibility";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DriverListProps {
   drivers: FormattedDriver[];
@@ -146,21 +147,24 @@ export default function DriverList({
           </TableRow>
         </TableHead>
 
-        <TableBody>
-          {drivers.map((driver, index) => {
-            const keyProps = {
-              driver: driver,
-              index: index,
-              onKeyDown: handleKeyDown,
-              registerRef: registerItem(index)
-            };
+        <TableBody>                              {/* ← zwykły TableBody, bez motion.tbody */}
+          <AnimatePresence mode="popLayout">
+            {drivers.map((driver, index) => {
+              const keyProps = {
+                driver,
+                index,
+                onKeyDown: handleKeyDown,
+                registerRef: registerItem(index),
+                transition: { duration: 0.2, delay: index * 0.05 }, // ← kaskada przez prop
+              };
 
-            return isMounted && isMobile ? (
-              <DriverRowMobile key={driver.guid} {...keyProps} />
-            ) : (
-              <DriverRow key={driver.guid} {...keyProps} />
-            );
-          })}
+              return isMounted && isMobile ? (
+                <DriverRowMobile key={driver.guid} {...keyProps} />
+              ) : (
+                <DriverRow key={driver.guid} {...keyProps} />
+              );
+            })}
+          </AnimatePresence>
         </TableBody>
       </Table>
 

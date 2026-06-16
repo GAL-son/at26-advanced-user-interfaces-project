@@ -9,6 +9,7 @@ import ResultListItem from './ResultListItem';
 import ResultListItemMobile from './ResultListItemMobile';
 import { useTranslations } from 'next-intl';
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { AnimatePresence } from 'framer-motion';
 
 interface ResultListProps {
   results: RaceResultExtended[];
@@ -177,30 +178,33 @@ export default function ResultList({ results, onNavigateVertical }: ResultListPr
         </TableHead>
 
         <TableBody>
-          {sortedResults.map((row, index) => {
-            const rowKey = row.guid || row.name;
-            const uniqueId = `result-row-${rowKey}`;
+          <AnimatePresence mode='popLayout'>
+            {sortedResults.map((row, index) => {
+              const rowKey = row.guid || row.name;
+              const uniqueId = `result-row-${rowKey}`;
 
-            const keyProps = {
-              id: uniqueId,
-              row: row,
-              index: index,
-              onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => handleKeyDown(e, index),
-              // Łączymy rejestrację hooka z przechwytywaniem pierwszego elementu do naszej referencji
-              registerRef: (el: HTMLElement | null) => {
-                registerItem(index)(el);
-                if (index === 0) {
-                  firstRowRef.current = el;
-                }
-              }
-            };
+              const keyProps = {
+                id: uniqueId,
+                row: row,
+                index: index,
+                onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => handleKeyDown(e, index),
+                // Łączymy rejestrację hooka z przechwytywaniem pierwszego elementu do naszej referencji
+                registerRef: (el: HTMLElement | null) => {
+                  registerItem(index)(el);
+                  if (index === 0) {
+                    firstRowRef.current = el;
+                  }
+                },
+                transition: { duration: 0.2, delay: index * 0.05 },
+              };
 
-            return isMounted && isMobile ? (
-              <ResultListItemMobile key={rowKey} {...keyProps} />
-            ) : (
-              <ResultListItem key={rowKey} {...keyProps} />
-            );
-          })}
+              return isMounted && isMobile ? (
+                <ResultListItemMobile key={rowKey} {...keyProps} />
+              ) : (
+                <ResultListItem key={rowKey} {...keyProps} />
+              );
+            })}
+          </AnimatePresence>
         </TableBody>
       </Table>
     </TableContainer>

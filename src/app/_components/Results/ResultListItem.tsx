@@ -6,6 +6,7 @@ import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import PositionTableCell from '../Common/PositionTableCell';
+import { Transition } from 'framer-motion';
 
 interface RaceResultExtended {
   guid: string;
@@ -28,6 +29,7 @@ interface ResultListItemProps {
   index: number;
   onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void;
   registerRef: (el: HTMLElement | null) => void;
+  transition?: Transition;
 }
 
 export default function ResultListItem({
@@ -35,7 +37,8 @@ export default function ResultListItem({
   row,
   index,
   onKeyDown,
-  registerRef
+  registerRef,
+  transition,
 }: ResultListItemProps) {
   const t = useTranslations("Results.table");
   const router = useRouter();
@@ -68,6 +71,7 @@ export default function ResultListItem({
       ref={registerRef}
       onClick={handleNavigation}
       onKeyDown={handleCombinedKeyDown}
+      transition={transition}
       tabIndex={0} 
       role="link"
       aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}

@@ -8,15 +8,17 @@ import PositionTableCell from '@/app/_components/Common/PositionTableCell';
 import { useRouter } from 'next/navigation'; 
 import { FormattedDriver } from './DriverRow';
 import { useTranslations, useFormatter } from 'next-intl';
+import { Transition } from 'framer-motion';
 
 interface DriverRowMobileProps {
   driver: FormattedDriver;
   index: number;
   onKeyDown: (e: React.KeyboardEvent<HTMLElement>, index: number) => void;
   registerRef: (el: HTMLElement | null) => void;
+  transition?: Transition; 
 }
 
-export default function DriverRowMobile({ driver, index, onKeyDown, registerRef }: DriverRowMobileProps) {
+export default function DriverRowMobile({ driver, index, onKeyDown, registerRef, transition }: DriverRowMobileProps) {
   const router = useRouter();
   const t = useTranslations("Drivers");
   const format = useFormatter();
@@ -46,6 +48,7 @@ export default function DriverRowMobile({ driver, index, onKeyDown, registerRef 
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="link"
+      transition={transition}
       aria-label={t("list.rowAriaLabel", { name: driver.mainName })}
       className="group cursor-pointer focus-brand"
       sx={{
