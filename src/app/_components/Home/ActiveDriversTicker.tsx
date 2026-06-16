@@ -7,7 +7,7 @@ import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { IconButton } from "@mui/material";
-import ActiveDriverItem from "./ActiveDriverItem"; // Import wydzielonego komponentu
+import ActiveDriverItem from "./ActiveDriverItem";
 
 interface ActiveDriversTickerProps {
   drivers: TickerDriver[];
@@ -155,10 +155,12 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
 
   return (
     <section
-      className="relative flex h-12 w-full items-center overflow-hidden bg-[var(--color-brand-navy-dark)] text-sm border-b border-[var(--color-brand-navy-light)]"
+      // Tailwind v4 migration: Przejście na natywne klasy kolorów dla struktury kontenera
+      className="relative flex h-12 w-full items-center overflow-hidden bg-brand-navy-dark text-sm border-b border-brand-navy-light"
       aria-label={t("tickerAriaLabel")}
     >
-      <div className="z-20 flex h-full items-center bg-[var(--color-brand-navy)] px-4 font-bold uppercase tracking-wider text-[var(--color-brand-text)] shadow-md border-r border-[var(--color-brand-navy-light)] flex-shrink-0">
+      {/* Podpięcie spójnego tokenu typografii !text-btn-mono oraz natywnych klas v4 dla etykiety */}
+      <div className="z-20 flex h-full items-center bg-brand-navy px-4 uppercase text-brand-text shadow-md border-r border-brand-navy-light flex-shrink-0 !text-btn-mono">
         {t("lastActive")}
       </div>
 
@@ -170,15 +172,15 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
           if (isDragging) setIsDragging(false);
         }}
       >
-        <div className="absolute top-0 left-0 z-10 h-full w-12 bg-gradient-to-r from-[var(--color-brand-navy-dark)] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 z-10 h-full w-12 bg-gradient-to-l from-[var(--color-brand-navy-dark)] to-transparent pointer-events-none" />
+        {/* Przejście na v4 w gradientach maskujących */}
+        <div className="absolute top-0 left-0 z-10 h-full w-12 bg-gradient-to-r from-brand-navy-dark to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 z-10 h-full w-12 bg-gradient-to-l from-brand-navy-dark to-transparent pointer-events-none" />
 
         <div
           ref={scrollContainerRef}
           onPointerDown={handlePointerDown}
           role="list"
           aria-label="Active drivers feed"
-          // Usunięto whitespace-nowrap stąd, ponieważ każdy potomek (ActiveDriverItem) dba o to sam na poziomie własnego linku
           className={`flex w-full items-center h-full gap-8 pl-6 touch-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           } ${prefersReducedMotion ? "overflow-x-auto" : "overflow-x-hidden"}`}
@@ -203,7 +205,8 @@ export default function ActiveDriversTicker({ drivers, scrollSpeed, onNavigateVe
         </div>
       </div>
 
-      <div className="z-20 flex h-full items-center bg-[var(--color-brand-navy)] px-2 border-l border-[var(--color-brand-navy-light)] flex-shrink-0">
+      {/* Kontener przycisku sterowania - czyste klasy v4 */}
+      <div className="z-20 flex h-full items-center bg-brand-navy px-2 border-l border-brand-navy-light flex-shrink-0">
         <IconButton
           onClick={() => setIsPaused((prev) => !prev)}
           size="small"

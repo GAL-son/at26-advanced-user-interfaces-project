@@ -14,7 +14,7 @@ export interface DriverBasicInfo {
 interface SelectedDriversListProps {
   drivers: DriverBasicInfo[];
   onRemove: (guid: string) => void;
-  onNavigateVertical?: (direction: "up" | "down") => void; // Obsługuje wyjście w górę i w dół
+  onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
 export default function SelectedDriversList({ 
@@ -24,7 +24,6 @@ export default function SelectedDriversList({
 }: SelectedDriversListProps) {
   const t = useTranslations("CompareDrivers.search");
 
-  // Obsługa nawigacji strzałkami wewnątrz listy chipów
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>, index: number) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
@@ -35,7 +34,6 @@ export default function SelectedDriversList({
     if (e.key === "ArrowLeft") {
       e.preventDefault();
       if (index === 0) {
-        // Jeśli to pierwszy chip, wracamy w lewo do inputu wyszukiwarki
         const searchInput = document.getElementById("driver-search-input");
         searchInput?.focus();
       } else {
@@ -44,13 +42,11 @@ export default function SelectedDriversList({
       }
     }
 
-    // Wyjście w górę z całej sekcji
     if (e.key === "ArrowUp" && onNavigateVertical) {
       e.preventDefault();
       onNavigateVertical("up"); 
     }
 
-    // NOWOŚĆ: Wyjście w dół z całej sekcji (np. do sekcji wykresu)
     if (e.key === "ArrowDown" && onNavigateVertical) {
       e.preventDefault();
       onNavigateVertical("down"); 
@@ -59,12 +55,14 @@ export default function SelectedDriversList({
 
   return (
     <div className="md:mt-0">
-      <h2 className="text-[10px] font-mono uppercase tracking-widest text-brand-text-muted font-bold mb-3">
+      {/* POPRAWKA: Przejście z surowych klas rozmiaru na token !text-btn-mono z wagą czcionki i trackingiem */}
+      <h2 className="!text-btn-mono uppercase font-bold text-brand-text-muted mb-3">
         {t("currentlyComparing")}
       </h2>
       <div className="flex flex-wrap gap-2" role="list" aria-label={t("listAriaLabel")}>
         {drivers.length === 0 ? (
-          <p className="text-xs text-brand-text-muted/60 font-mono italic" role="status">
+          /* POPRAWKA: Stan pusty dostosowany do tokenu !text-btn-mono */
+          <p className="!text-btn-mono text-brand-text-muted/60 italic lowercase" role="status">
             {t("noDriversSelected")}
           </p>
         ) : (
@@ -82,16 +80,17 @@ export default function SelectedDriversList({
                     aria-hidden="true"
                   />
                 }
-                className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light font-mono text-xs uppercase !p-1 focus-brand"
+                /* POPRAWKA: Podpięcie klasy !text-btn-mono i wyczyszczenie inline styles czcionek */
+                className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light !text-btn-mono uppercase !p-1 focus-brand"
                 sx={{
                   borderRadius: "4px",
                   transition: "all 0.2s ease",
                   "&:hover": {
                     borderColor: "var(--color-brand-yellow-hover)",
                   },
+                  /* POPRAWKA: Kontrolę nad focusem w pełni oddajemy do spójnej klasy narzędziowej focus-brand */
                   "&:focus, &:focus-visible": {
-                    outline: "2px solid var(--color-brand-yellow-hover) !important",
-                    outlineOffset: "1px"
+                    outline: "none",
                   }
                 }}
               />

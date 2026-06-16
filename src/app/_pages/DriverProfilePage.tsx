@@ -22,7 +22,6 @@ interface DriverStats {
   lastRaced: string;
 }
 
-// Definicja kolejności sekcji dla tej konkretnej strony
 const SECTION_ORDER = [
   "menu",
   "driver-back",
@@ -58,7 +57,6 @@ export default function DriverProfilePage() {
     fetchDriverProfile();
   }, [guid]);
 
-  // Globalny przechwytywacz strzałek w lewo/prawo do aktywacji wykresu
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -79,7 +77,6 @@ export default function DriverProfilePage() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  // EKRAN ŁADOWANIA WSTĘPNEGO
   if (loadingProfile) {
     return (
       <Box 
@@ -94,12 +91,12 @@ export default function DriverProfilePage() {
     );
   }
 
-  // BŁĄD POŁĄCZENIA
   if (!driver) {
     return (
       <Box 
         role="alert"
-        className="min-h-screen flex items-center justify-center font-mono text-sm"
+        /* POPRAWKA: Przejście na ujednolicony token !text-btn-mono dla technicznego błędu */
+        className="min-h-screen flex items-center justify-center !text-btn-mono uppercase"
         sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text-muted)' }}
       >
         {t("profile.connectionError")}
@@ -107,7 +104,6 @@ export default function DriverProfilePage() {
     );
   }
 
-  // Zlokalizowany format daty i czasu synchronizacji
   const hasValidDate = driver.lastRaced && driver.lastRaced !== "N/A";
   const formattedSyncDate = hasValidDate
     ? format.dateTime(new Date(driver.lastRaced), {
@@ -132,7 +128,7 @@ export default function DriverProfilePage() {
     >
       <div className="container mx-auto max-w-5xl">
         
-        {/* SEKCJA: Przycisk powrotu */}
+        {/* SEKCJA: Przycisk powrotu + Nagłówek */}
         <div 
           data-section="driver-back"
           data-section-page-start="true"
@@ -154,14 +150,14 @@ export default function DriverProfilePage() {
           />
           <div>
             <h1 
-              className="text-3xl font-black uppercase tracking-tight leading-tight"
+              className="!text-page-title uppercase leading-tight shrink-0"
               style={{ color: 'var(--color-brand-text)' }}
             >
               {driver.mainName}
             </h1>
             {driver.altNames && driver.altNames !== driver.mainName && (
               <p 
-                className="text-xs mt-1"
+                className="!text-btn-mono mt-1 uppercase"
                 style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
               >
                 {t("list.aliases")}: {driver.altNames}
@@ -197,17 +193,15 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  /* POPRAWKA: Czyste wstrzyknięcie !text-btn-mono zamiast variant="caption" i sx */
+                  className="!text-btn-mono uppercase block"
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("list.headers.elo")}
                 </Typography>
-                <p 
-                  className="text-2xl font-black font-mono"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                {/* POPRAWKA: Przejście na telemetryczny token !text-stat-value */}
+                <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(Math.round(driver.currentElo || 0))}
                 </p>
               </div>
@@ -236,19 +230,17 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  className="!text-btn-mono uppercase block"
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.totalExperience")}
                 </Typography>
-                <p 
-                  className="text-2xl font-black font-mono"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                {/* POPRAWKA: Użycie !text-stat-value dla głównego licznika wyścigów */}
+                <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(driver.racesCount)}{" "}
-                  <span className="text-xs font-normal" style={{ color: 'var(--color-brand-text-muted)' }}>
+                  {/* POPRAWKA: Jednostka sformatowana czytelną czcionką techniczną Share Tech Mono */}
+                  <span className="!text-btn-mono lowercase font-normal !text-brand-text-muted opacity-80">
                     {t("profile.racesUnit")}
                   </span>
                 </p>
@@ -278,17 +270,14 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  className="!text-btn-mono uppercase block"
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.lastSync")}
                 </Typography>
-                <h3 
-                  className="text-sm font-bold mt-1"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                {/* POPRAWKA: Przejście na bezpieczny i czytelny !font-sans dla daty asynchronicznej */}
+                <h3 className="text-sm font-bold mt-1 !font-sans !text-brand-text">
                   {formattedSyncDate}
                 </h3>
               </div>

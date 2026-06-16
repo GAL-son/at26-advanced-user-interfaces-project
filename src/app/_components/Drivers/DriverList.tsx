@@ -9,7 +9,7 @@ import { FormattedDriver } from "./DriverRow";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
-import ScrollArrow from "@/app/_components/Common/ScrollArrow"; // Import strzałki
+import ScrollArrow from "@/app/_components/Common/ScrollArrow";
 import { useScrollArrowVisibility } from "@/app/_hooks/useScrollArrowVisibility";
 
 interface DriverListProps {
@@ -38,11 +38,9 @@ export default function DriverList({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(768));
 
-  // Stany kontrolujące widoczność strzałki
   const shouldShowArrow = useScrollArrowVisibility(observerTargetRef, {
     hasMore: hasMore,
   });
-
 
   useEffect(() => {
     setIsMounted(true);
@@ -61,7 +59,8 @@ export default function DriverList({
     }
   });
 
-  const headerClass = "font-bold text-xs uppercase tracking-wider py-3";
+  /* POPRAWKA: Wymuszenie czcionki podstawowej !font-sans oraz spójnego rozmiaru text-xs dla nagłówków tabeli */
+  const headerClass = "font-bold text-xs uppercase tracking-wider py-3 !font-sans";
 
   return (
     <TableContainer
@@ -73,7 +72,7 @@ export default function DriverList({
         border: '1px solid var(--color-brand-navy-light)',
         borderRadius: 'var(--radius-brand-card)',
         overflow: 'hidden',
-        position: 'relative' // Zapewnia poprawne pozycjonowanie wewnątrz kontenera (opcjonalnie)
+        position: 'relative'
       }}
       className="shadow-xl"
     >
@@ -96,7 +95,8 @@ export default function DriverList({
             backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 3%, var(--color-brand-navy-dark))',
             '& .MuiTableCell-head': {
               color: 'var(--color-brand-text-muted)',
-              borderBottom: '1px solid var(--color-brand-navy-light)'
+              borderBottom: '1px solid var(--color-brand-navy-light)',
+              fontFamily: 'var(--font-sans) !important' /* Bezpiecznik dla JSS MUI */
             }
           }}
         >
@@ -175,7 +175,8 @@ export default function DriverList({
           variant="body1"
           role="status"
           aria-live="polite"
-          className="text-center py-12 font-medium"
+          /* POPRAWKA: Wymuszenie !font-sans dla komunikatu o braku kierowców */
+          className="text-center py-12 font-medium !font-sans"
           sx={{ color: 'var(--color-brand-text-muted)' }}
         >
           {t("list.noDrivers")}
@@ -197,7 +198,8 @@ export default function DriverList({
         )}
         {!hasMore && drivers.length > 0 && (
           <span
-            className="text-[10px] font-mono uppercase tracking-widest font-black"
+            /* POPRAWKA: Przypisanie ujednoliconego tokenu !text-btn-mono z wagą czcionki kontrolowaną klasą v4 */
+            className="!text-btn-mono uppercase tracking-widest font-black"
             style={{ color: 'var(--color-brand-text-muted)', opacity: 0.5 }}
           >
             {t("list.terminalReached")}
@@ -207,7 +209,7 @@ export default function DriverList({
 
       {/* STRZAŁKA PRZYPIĘTA NA STAŁE DO DOŁU EKRANU */}
       {shouldShowArrow && (
-        <Box className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 ...`}>
+        <Box className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           <ScrollArrow
             direction="down"
             className="!p-2"

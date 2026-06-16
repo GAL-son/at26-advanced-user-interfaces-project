@@ -16,7 +16,7 @@ export default function LatestEventsSection({ events, onNavigateVertical }: Late
 
   const { registerItem, handleKeyDown } = useKeyboardNavigation({
     itemCount: events.length,
-    orientation: "horizontal", // Pionowa nawigacja idealnie pasuje do sekwencyjnego skanowania wydarzeń
+    orientation: "horizontal", // Spójne z Twoją logiką mapowania kierunków
     loop: false,
     onLeave: (direction) => {
       if (onNavigateVertical) {
@@ -33,15 +33,16 @@ export default function LatestEventsSection({ events, onNavigateVertical }: Late
       aria-labelledby="latest-events-heading"
     >
       <div className="flex items-center justify-between mb-4">
+        {/* Tailwind v4 migration: ujednolicony token !text-page-title oraz czysty kolor tekstu */}
         <h2
           id="latest-events-heading"
-          className="text-xl sm:text-2xl font-black uppercase tracking-wide text-[var(--color-brand-text)]"
+          className="!text-page-title uppercase text-brand-text"
         >
           {t("latestEvents")}
         </h2>
       </div>
 
-      {/* 🟢 CZYSTA SEMANTYKA: ul ma jako bezpośrednie dzieci komponenty EventRow, które są tagami <li> */}
+      {/* CZYSTA SEMANTYKA: lista siatki z czystym resetem paddingu/marginu */}
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-0 list-none p-0 m-0">
         {events.map((event, index) => (
           <EventRow

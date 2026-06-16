@@ -8,7 +8,7 @@ import ResultList from "@/app/_components/Results/ResultList";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import BackButton from "@/app/_components/Common/BackButton";
 import { useTranslations } from "next-intl";
-import { focusFlatSection } from "@/app/_utils/navigation"; // Dostosuj ścieżkę importu utila
+import { focusFlatSection } from "@/app/_utils/navigation";
 import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
 
 export interface RaceResultExtended {
@@ -26,7 +26,6 @@ export interface RaceResultExtended {
   combo: number;
 }
 
-// 1. Definiujemy płaską strukturę sekcji dla tej konkretnej strony
 const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list"];
 
 export default function EventResultsPage() {
@@ -95,7 +94,7 @@ export default function EventResultsPage() {
       })
       .catch((err) => {
         console.error("Error loading race data:", err);
-        setLoading(false);
+        loading && setLoading(false);
       });
   }, [id, t]);
 
@@ -109,7 +108,6 @@ export default function EventResultsPage() {
     }
   }, [raceInfo, loading, t]);
 
-  // 2. Wspólna funkcja obsługująca przerzucanie focusu między sekcjami pionowymi
   const handleSectionNavigation = (currentSection: string, direction: "up" | "down") => {
     focusFlatSection(currentSection, direction, PAGE_SECTION_ORDER);
   };
@@ -170,7 +168,7 @@ export default function EventResultsPage() {
         {/* 3. Sekcja przycisku powrotu */}
         <Box
           data-section="back-action"
-          className="mb-6 flex items-center gap-3 outline-none"
+          className="mb-4 flex items-center gap-3 outline-none"
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
               e.preventDefault();
@@ -189,7 +187,7 @@ export default function EventResultsPage() {
           <Typography
             variant="caption"
             aria-hidden="true"
-            className="font-mono text-xs uppercase tracking-wider select-none"
+            className="!text-btn-mono uppercase select-none"
             sx={{ color: 'var(--color-brand-text-muted)' }}
           >
             {t("backButton")}

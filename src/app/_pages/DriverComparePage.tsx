@@ -7,7 +7,7 @@ import GroupIcon from "@mui/icons-material/Group";
 
 // Import komponentów dedykowanych i globalnych
 import DriverSearchContainer from "@/app/_components/Elo/DriverSearchContainer";
-import BackButton from "@/app/_components/Common/BackButton"; // Zakładam taką ścieżkę do Twojego nowego komponentu
+import BackButton from "@/app/_components/Common/BackButton";
 
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EloChart from "@/app/_components/Elo/EloChart";
@@ -113,7 +113,7 @@ function CompareDriversContent() {
     >
       <div className="container mx-auto max-w-5xl">
 
-        {/* SEKCJA: Przycisk Powrotu (Wdrożony nowy komponent) */}
+        {/* SEKCJA: Przycisk Powrotu */}
         <div
           data-section="compare-back"
           data-section-page-start="true"
@@ -139,22 +139,21 @@ function CompareDriversContent() {
             }}
           />
           <div>
-            <Typography
-              component="h1"
-              className="text-3xl font-black uppercase tracking-tight leading-tight flex items-center gap-3"
-              sx={{ color: 'var(--color-brand-text)' }}
+            {/* POPRAWKA: Przejście na czysty tag h1 + unifikacja tokenem !text-page-title */}
+            <h1 
+              className="!text-page-title uppercase leading-tight shrink-0 flex items-center gap-3"
+              style={{ color: 'var(--color-brand-text)' }}
             >
-              <GroupIcon fontSize="large" sx={{ color: 'var(--color-brand-yellow-hover)' }} />{" "}
+              <GroupIcon className="!text-[1.15em]" sx={{ color: 'var(--color-brand-yellow-hover)' }} />{" "}
               {t("title")}
-            </Typography>
-            <Typography
-              variant="caption"
-              component="p"
-              className="text-xs mt-1"
-              sx={{ color: 'var(--color-brand-text-muted)' }}
+            </h1>
+            {/* POPRAWKA: Podtytuł ujednolicony bazowym tokenem !font-sans */}
+            <p 
+              className="text-xs mt-1 !font-sans"
+              style={{ color: 'var(--color-brand-text-muted)' }}
             >
               {t("subtitle")}
-            </Typography>
+            </p>
           </div>
         </div>
 
@@ -181,28 +180,27 @@ function CompareDriversContent() {
                 backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)',
               }}
             >
-              <Typography
-                component="p"
-                className="text-sm font-mono font-bold tracking-wider"
-                sx={{ color: 'var(--color-brand-text-muted)' }}
+              {/* POPRAWKA: Użycie tokenu technicznego !text-btn-mono dla komunikatu empty state */}
+              <p 
+                className="!text-btn-mono uppercase font-bold tracking-wider"
+                style={{ color: 'var(--color-brand-text-muted)' }}
               >
                 {t("emptyState.title")}
-              </Typography>
-              <Typography
-                component="p"
-                className="text-xs mt-1 opacity-70"
-                sx={{ color: 'var(--color-brand-text-muted)' }}
+              </p>
+              {/* POPRAWKA: Opis pomocniczy sformatowany za pomocą !font-sans */}
+              <p 
+                className="text-xs mt-1 opacity-70 !font-sans"
+                style={{ color: 'var(--color-brand-text-muted)' }}
               >
                 {t("emptyState.description")}
-              </Typography>
+              </p>
             </Box>
           ) : (
             <EloChart
-              data-focus-order="compare-chart" // <-- Dzięki temu funkcja focusFlatSection znajdzie ten element
+              data-focus-order="compare-chart"
               guids={selectedGuids}
               isComparable={false}
               onNavigateVertical={(direction) => {
-                // Wywołanie globalnego systemu przełączania sekcji (w górę do wyszukiwarki, w dół do kolejnej sekcji)
                 focusFlatSection("compare-chart", direction === "up" ? "prev" : "next", SECTION_ORDER);
               }}
             />

@@ -42,6 +42,7 @@ const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(function BackB
       aria-label={ariaLabel || t("back")}
       tabIndex={tabIndex ?? 0}
       data-focus-order={dataFocusOrder}
+      /* Klasa focus-brand zarządza bezpiecznym konturem dla WCAG */
       className="focus-brand"
       sx={{
         border: '1px solid var(--color-brand-navy-light)',
@@ -49,13 +50,15 @@ const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(function BackB
         backgroundColor: 'transparent',
         transition: 'all 0.2s ease',
         
-        "&:focus, &:focus-visible": {
+        /* POPRAWKA: Czyszczenie natywnego outline MUI, pozwalając klasie .focus-brand przejąć pełną kontrolę */
+        "&:focus-visible": {
           outline: "none",
         },
         
         '&:hover': {
-          backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 8%, transparent)',
-          borderColor: 'var(--color-brand-text-muted)'
+          backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-light) 30%, transparent)',
+          borderColor: 'var(--color-brand-text-muted)',
+          color: 'var(--color-brand-text)',
         },
       }}
     >
