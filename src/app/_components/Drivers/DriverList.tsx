@@ -9,6 +9,8 @@ import { FormattedDriver } from "./DriverRow";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import ScrollArrow from "@/app/_components/Common/ScrollArrow"; // Import strzałki
+import { useScrollArrowVisibility } from "@/app/_hooks/useScrollArrowVisibility";
 
 interface DriverListProps {
   drivers: FormattedDriver[];
@@ -36,6 +38,12 @@ export default function DriverList({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(768));
 
+  // Stany kontrolujące widoczność strzałki
+  const shouldShowArrow = useScrollArrowVisibility(observerTargetRef, {
+    hasMore: hasMore,
+  });
+
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -46,10 +54,8 @@ export default function DriverList({
     loop: false,
     onLeave: (direction) => {
       if (direction === "prev") {
-        // Kliknięcie ArrowUp na pierwszym wierszu wyjeżdża w górę do filtrów
         onNavigateVertical("up");
       } else if (direction === "next" && hasMore && !loading) {
-        // Kliknięcie ArrowDown na ostatnim wierszu dociąga nową paczkę stronnicowania
         loadMoreDrivers();
       }
     }
@@ -61,18 +67,19 @@ export default function DriverList({
     <TableContainer
       component={Paper}
       elevation={0}
-      sx={{ 
-        backgroundImage: 'none', 
+      sx={{
+        backgroundImage: 'none',
         backgroundColor: 'var(--color-brand-navy-dark)',
         border: '1px solid var(--color-brand-navy-light)',
         borderRadius: 'var(--radius-brand-card)',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative' // Zapewnia poprawne pozycjonowanie wewnątrz kontenera (opcjonalnie)
       }}
       className="shadow-xl"
     >
       <Table aria-label={t("list.ariaLabel")}>
-        <TableHead 
-          sx={{ 
+        <TableHead
+          sx={{
             ...(isMounted && isMobile ? {
               position: 'absolute',
               width: '1px',
@@ -138,7 +145,7 @@ export default function DriverList({
             </TableCell>
           </TableRow>
         </TableHead>
-        
+
         <TableBody>
           {drivers.map((driver, index) => {
             const keyProps = {
@@ -178,7 +185,7 @@ export default function DriverList({
       <div
         ref={observerTargetRef}
         className="w-full py-6 flex justify-center"
-        style={{ 
+        style={{
           backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 1.5%, transparent)',
           borderTop: '1px solid var(--color-brand-navy-light)'
         }}
@@ -189,7 +196,7 @@ export default function DriverList({
           </Box>
         )}
         {!hasMore && drivers.length > 0 && (
-          <span 
+          <span
             className="text-[10px] font-mono uppercase tracking-widest font-black"
             style={{ color: 'var(--color-brand-text-muted)', opacity: 0.5 }}
           >
@@ -197,6 +204,18 @@ export default function DriverList({
           </span>
         )}
       </div>
+
+      {/* STRZAŁKA PRZYPIĘTA NA STAŁE DO DOŁU EKRANU */}
+      {shouldShowArrow && (
+        <Box className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 ...`}>
+          <ScrollArrow
+            direction="down"
+            className="!p-2"
+            visible={shouldShowArrow}
+            text={t("list.loadMore")}
+          />
+        </Box>
+      )}
     </TableContainer>
   );
 }

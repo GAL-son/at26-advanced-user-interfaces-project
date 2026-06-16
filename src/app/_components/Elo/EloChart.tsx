@@ -11,6 +11,7 @@ import {
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EventDot from "@/app/_components/Elo/EventDot";
 import EventTooltip from "@/app/_components/Elo/EventTooltip";
+import ScrollArrow from "@/app/_components/Common/ScrollArrow"; // Zakładam taką ścieżkę importu
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import { useRouter } from "next/navigation";
@@ -64,6 +65,8 @@ export default function EloChart({
   const [loading, setLoading] = useState(false);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | undefined>(undefined);
   const [scrollMasks, setScrollMasks] = useState({ left: false, right: false });
+  const [isAtInitialRight, setIsAtInitialRight] = useState<boolean>(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [isKeyboardActive, setIsKeyboardActive] = useState(false);
@@ -100,6 +103,7 @@ export default function EloChart({
     isFirstLoad.current = true;
     setFocusedIndex(null);
     setIsKeyboardActive(false);
+    setIsAtInitialRight(true); // ⬅️ DODAJ TO
   }, [guidsString]);
 
   const chronologicalData = [...chartData].reverse().map((point) => ({
@@ -190,6 +194,8 @@ export default function EloChart({
 
             if (isFirstLoad.current) {
               isFirstLoad.current = false;
+              setIsInitialLoading(false); // <--- To wyłączy overlay po pierwszym razie
+              setLoading(false);
               isResettingScroll.current = true;
 
               el.scrollLeft = el.scrollWidth;
@@ -222,22 +228,15 @@ export default function EloChart({
     };
   }, [page, guidsString]);
 
-  // NOWOŚĆ: Wyciąganie pozycji wprost z wyrenderowanych węzłów SVG (Zero zgadywania)
   const updateKeyboardTooltipPosition = (index: number) => {
     if (!scrollContainerRef.current || chronologicalData.length === 0) return;
 
     const container = scrollContainerRef.current;
-
-    // Szukamy kropek wyrenderowanych dla aktualnego indeksu. Recharts grupuje je w serie danych.
-    // Wyciągamy dowolną kropkę odpowiadającą wybranemu indeksowi serii danych.
     const dots = container.querySelectorAll(`.recharts-line-dot`);
 
     let targetX = 0;
-    let targetY = 150; // Wartość awaryjna (środek)
+    let targetY = 150;
 
-    // Recharts renderuje kropki po kolei dla każdej linii. 
-    // Indeks kropki w drzewie DOM to: (numer_linii * całkowita_liczba_punktów) + index
-    // Szukamy pierwszej kropki, która ma poprawny indeks w swojej serii:
     const pointsPerLine = chronologicalData.length;
     let foundDot: SVGCircleElement | null = null;
 
@@ -251,11 +250,9 @@ export default function EloChart({
     }
 
     if (foundDot) {
-      // Wyciągamy bezwzględne współrzędne cx oraz cy z SVG elementu kropki
       targetX = foundDot.cx.baseVal.value;
       targetY = foundDot.cy.baseVal.value;
     } else {
-      // Rezerwowe obliczenie matematyczne (fall-back w razie opóźnienia w DOM)
       const paddingLeft = 40;
       const paddingRight = 10;
       const availableWidth = calculatedWidth - paddingLeft - paddingRight;
@@ -269,12 +266,10 @@ export default function EloChart({
 
     let calculatedX = targetX + 25;
 
-    // Korekta X (gdy tooltip wychodzi poza prawy ekran)
     if (calculatedX + tooltipWidth > container.scrollLeft + container.clientWidth) {
       calculatedX = targetX - tooltipWidth - 25;
     }
 
-    // Korekta Y (wyśrodkowanie pionowe względem kropki)
     let calculatedY = targetY - (tooltipHeight / 2);
     calculatedY = Math.max(10, Math.min(calculatedY, chartHeight - tooltipHeight - 15));
 
@@ -289,8 +284,7 @@ export default function EloChart({
     const container = scrollContainerRef.current;
 
     const dots = container.querySelectorAll(`.recharts-line-dot`);
-    const pointsPerLine = chronologicalData.length;
-    const dotEl = dots[index] as SVGCircleElement; // bierzemy z pierwszej serii
+    const dotEl = dots[index] as SVGCircleElement;
 
     let pointX = 0;
     if (dotEl) {
@@ -365,6 +359,16 @@ export default function EloChart({
     if (!container || isLoadingRef.current || !hasMore || isResettingScroll.current) return;
     if (container.scrollWidth <= container.clientWidth) return;
 
+    // 🟢 LOGIKA DLA STRZAŁKI W LEWO:
+    // Obliczamy maksymalny możliwy scroll w prawo
+    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+    // Jeśli użytkownik przewinął w lewo o więcej niż 20px od skrajnej prawej pozycji:
+    if (maxScrollLeft - container.scrollLeft > 20) {
+      setIsAtInitialRight(false);
+    } else {
+      setIsAtInitialRight(true);
+    }
+
     if (container.scrollLeft <= 50) {
       isLoadingRef.current = true;
       setPage((prev) => prev + 1);
@@ -393,7 +397,6 @@ export default function EloChart({
           const lastIndex = chronologicalData.length - 1;
           setFocusedIndex(lastIndex);
           setIsKeyboardActive(true);
-          // 50ms opóźnienia daje czas przeglądarce na pełne ułożenie layoutu SVG po złapaniu focusu
           setTimeout(() => {
             updateKeyboardTooltipPosition(lastIndex);
           }, 50);
@@ -422,7 +425,6 @@ export default function EloChart({
           </p>
         </div>
 
-        {/* LEGENDA */}
         <div className="flex flex-wrap items-center gap-3">
           {driversMeta.length > 0 && (
             <Box
@@ -443,7 +445,6 @@ export default function EloChart({
             </Box>
           )}
 
-          {/* PRZYCISK PORÓWNANIA */}
           {isComparable && (
             <Button
               variant="outlined"
@@ -469,11 +470,8 @@ export default function EloChart({
             </Button>
           )}
         </div>
-
-        {loading && <LoadingSpinner text={t("chart.syncingTimeline")} />}
       </div>
 
-      {/* WCAG Fallback Table */}
       <div className="sr-only">
         <h3>{t("chart.tableFallbackTitle")}</h3>
         <table>
@@ -505,15 +503,22 @@ export default function EloChart({
         ref={chartWrapperRef}
         role="img"
         aria-labelledby="chart-title"
-        className="relative flex rounded-lg p-2"
+        className="relative flex rounded-lg p-2 transition-all"
         sx={{
           backgroundColor: "var(--color-brand-navy)",
           border: "1px solid var(--color-brand-navy-light)",
         }}
       >
+        {/* Overlay dla stanu ładowania */}
+        <Box
+          className={`absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-brand-navy)]/80 backdrop-blur-[2px] fade-in-out ${(loading || isInitialLoading) ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+        >
+          <LoadingSpinner text={t("chart.syncingTimeline")} />
+        </Box>
         {scrollMasks.left && (
           <Box
-            className="absolute top-0 bottom-0 z-20 pointer-events-none w-12"
+            className="absolute top-0 bottom-0 z-30 pointer-events-none w-12"
             sx={{
               left: "48px",
               background: "linear-gradient(to right, var(--color-brand-navy), transparent)"
@@ -523,16 +528,25 @@ export default function EloChart({
 
         {scrollMasks.right && (
           <Box
-            className="absolute top-0 bottom-0 right-0 z-20 pointer-events-none w-12"
+            className="absolute top-0 bottom-0 right-0 z-30 pointer-events-none w-12"
             sx={{
               background: "linear-gradient(to left, var(--color-brand-navy), transparent)"
             }}
           />
         )}
 
-        {/* STATYCZNA LEWA OŚ Y */}
+        {/* REUŻYWALNY INSTANCE: STRZAŁKA W LEWO (z-10 ukrywa ją pod tooltipem) */}
+        {scrollMasks.left && isAtInitialRight && (
+          <ScrollArrow
+            direction="left"
+            className="absolute left-14 top-1/2 -translate-y-1/2 z-10 pointer-events-none select-none !p-0"
+            style={{ mixBlendMode: 'screen' }}
+          />
+        )}
+
+        {/* LEWA OŚ Y (z-20 przysłania strzałkę w lewo przy pełnym scrollu) */}
         <Box
-          className="w-12 h-[340px] flex-shrink-0 z-30 select-none"
+          className="w-12 h-[340px] flex-shrink-0 select-none relative z-20"
           aria-hidden="true"
           sx={{
             backgroundColor: "var(--color-brand-navy)",
@@ -564,15 +578,15 @@ export default function EloChart({
           </ResponsiveContainer>
         </Box>
 
-        {/* TRZON WYKRESU */}
+        {/* TRZON WYKRESU (z-20 sprawia, że pływający tooltip przykrywa strzałki z-10) */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="w-full min-w-0 overflow-x-auto overflow-y-hidden z-10 relative"
+          className="w-full min-w-0 overflow-x-auto overflow-y-hidden relative z-20"
         >
           <div style={{ width: `${calculatedWidth}px`, height: "340px" }} className="relative">
 
-            {/* W pełni kontrolowany Tooltip HTML pozycjonowany na podstawie atrybutów SVG geometrii Recharts */}
+            {/* Tooltip HTML z z-index 9999 rysowany wewnątrz nadrzędnego z-20 – w pełni bezpieczny przed przebiciem */}
             {focusedIndex !== null && tooltipPos && (
               <div
                 style={{
@@ -609,14 +623,11 @@ export default function EloChart({
                     const tooltipHeight = 60 + guids.length * 38;
                     const chartHeight = 340;
 
-                    // 1. targetX obliczamy bezpośrednio z x (które jest pozycją wewnątrz szerokiego kontenera SVG)
                     let targetX = x + 20;
 
-                    // 2. Korekta jeśli wychodzi poza prawą krawędź widocznego obszaru
                     if (targetX + tooltipWidth > scrollLeft + visibleWidth) {
                       targetX = x - tooltipWidth - 20;
                     }
-                    // 3. Korekta jeśli wychodzi poza lewą krawędź widocznego obszaru
                     if (targetX < scrollLeft + 5) {
                       targetX = scrollLeft + 5;
                     }
@@ -629,7 +640,6 @@ export default function EloChart({
 
                     if (e.activeTooltipIndex !== undefined && e.activeTooltipIndex !== null) {
                       setFocusedIndex(e.activeTooltipIndex);
-                      // USUNIĘTO "+ scrollLeft" — przekazujemy czyste targetX
                       setTooltipPos({ x: targetX, y: targetY });
                     }
                   }

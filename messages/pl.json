@@ -63,6 +63,7 @@
             "aliases": "Aliasy",
             "notAvailable": "Brak danych",
             "rowAriaLabel": "Kierowca {name}, przejdź do profilu",
+            "loadMore": "Zobacz więcej kierowców",
             "headers": {
                 "pos": "Poz",
                 "profile": "Profil Kierowcy",
@@ -105,7 +106,8 @@
             "gridAria": "Archiwum list telemetrycznych wyścigów",
             "loadingMoreAria": "Pobieranie kolejnych wyścigów z serwera",
             "endOfGrid": "— Koniec bazy danych telemetrycznych —",
-            "rowAriaLabel": "Wyścig: {name}, tor: {track}. Rozegrano: {date} na serwerze {server}. Kliknij, aby zobaczyć pełne wyniki i telemetrię."
+            "rowAriaLabel": "Wyścig: {name}, tor: {track}. Rozegrano: {date} na serwerze {server}. Kliknij, aby zobaczyć pełne wyniki i telemetrię.",
+            "loadMore": "Zobacz więcej wydarzeń"
         }
     },
     "Common": {

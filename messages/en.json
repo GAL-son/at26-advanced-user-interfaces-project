@@ -68,6 +68,7 @@
             "aliases": "Aliases",
             "notAvailable": "N/A",
             "rowAriaLabel": "Driver {name}, view profile",
+            "loadMore": "See more drivers",
             "headers": {
                 "pos": "Pos",
                 "profile": "Driver Profile",
@@ -110,7 +111,8 @@
             "gridAria": "Race telemetry list archive",
             "loadingMoreAria": "Fetching next scheduled items from database",
             "endOfGrid": "— End of telemetry records database —",
-            "rowAriaLabel": "Race: {name}, track: {track}. Conducted on: {date} via server {server}. Click to inspect complete telemetry results."
+            "rowAriaLabel": "Race: {name}, track: {track}. Conducted on: {date} via server {server}. Click to inspect complete telemetry results.",
+            "loadMore": "See more events"
         }
     },
     "Elo": {

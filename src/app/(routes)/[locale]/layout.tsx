@@ -42,7 +42,7 @@ export default async function RootLayout({
     <html
       lang={locale} // Dynamiczny język w HTML!
       data-mui-color-scheme="dark"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased custom-scrollbar`}
     >
       <head>
         <InitColorSchemeScript attribute="data-mui-color-scheme" defaultMode="dark" />
