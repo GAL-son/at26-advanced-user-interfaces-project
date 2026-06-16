@@ -46,21 +46,15 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      data-mui-color-scheme="dark"
-      /* 2. Wstrzyknięcie klas ze zmiennymi do tagu html */
+      // Nie musisz hardcodować dark, InitColorSchemeScript tym zarządza
       className={`${rajdhaniSans.variable} ${shareTechMono.variable} ${orbitronDisplay.variable} h-full antialiased custom-scrollbar`}
     >
       <head>
-        <InitColorSchemeScript attribute="data-mui-color-scheme" defaultMode="dark" />
+        <InitColorSchemeScript attribute="data-mui-color-scheme" defaultMode="system" />
       </head>
-      <body
-        className="min-h-full m-0 p-0 flex flex-col transition-colors duration-300"
-        style={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}
-      >
+      <body className="min-h-full m-0 p-0 flex flex-col bg-[var(--color-brand-navy)] text-[var(--color-brand-text)]">
         <NextIntlClientProvider messages={messages}>
-          <ClientLayoutView>
-            {children}
-          </ClientLayoutView>
+          <ClientLayoutView>{children}</ClientLayoutView>
         </NextIntlClientProvider>
       </body>
     </html>

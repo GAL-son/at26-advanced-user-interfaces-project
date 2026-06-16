@@ -277,7 +277,7 @@ export default function InfiniteEventList({
           {t("list.emptyState")}
         </Typography>
       ) : (
-        <Box ref={gridRef} component="ul" aria-label={t("list.gridAria")} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" sx={{ listStyle: "none", p: 0, m: 0 }}>
+        <Box ref={gridRef} component="ul" aria-label={t("list.gridAria")} className="will-change-[background-color,color] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" sx={{ listStyle: "none", p: 0, m: 0 }}>
           {events.map((event, index) => (
             <Box component="li" key={event.id} className="h-full" onKeyDown={(e) => handleGridKeyDown(e, index)}>
               <EventRow id={`event-card-${event.id}`} event={event} tabIndex={0} />

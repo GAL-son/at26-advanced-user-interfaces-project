@@ -181,9 +181,19 @@ body {
   }
 }
 
-html.theme-toggling,
-html.theme-toggling * {
-  transition: color 300ms ease, background-color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease !important;
+@media (prefers-reduced-motion: no-preference) {
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, box-shadow;
+    transition-duration: 300ms;
+    transition-timing-function: ease;
+  }
+}
+
+/* Wyłączenie przejść dla osób, które wolą ich brak */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+  }
 }
 
 @utility custom-scrollbar {
