@@ -214,8 +214,15 @@ export default function EloChart({
         console.error("Error searching ELO data:", err);
       } finally {
         if (isCurrent) {
-          setLoading(false);
+          // Referencję ładowania API zwalniamy od razu, żeby nie blokować kolejnych akcji
           isLoadingRef.current = false;
+
+          // Opóźniamy wyłącznie efekt wizualny (spinner) o 500ms
+          setTimeout(() => {
+            if (isCurrent) {
+              setLoading(false);
+            }
+          }, 500);
         }
       }
     }
