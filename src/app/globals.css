@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import "./typography.css";
 /* 1. Rejestracja motywu i zmiennych (Tailwind v4) */
 @theme {
   --breakpoint-sm: 600px;
