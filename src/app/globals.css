@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/* 1. Rejestracja motywu i zmiennych (Tailwind v4) */
+@theme {
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 900px;
+  --breakpoint-lg: 1200px;
+  --breakpoint-xl: 1536px;
+
+  --color-brand-navy: #f8fafc;
+  --color-brand-navy-dark: #ffffff;
+  --color-brand-navy-light: #e2e8f0;
+  --color-brand-text: #0f172a;
+  --color-brand-text-muted: #475569;
+  --color-brand-yellow: #eab308;
+  --color-brand-yellow-hover: #ca8a04;
+  --color-brand-yellow-text: #854d0e;
+  
+  --color-race-gold: #d97706;
+  --color-race-gold-text: #b45309;
+  --color-race-silver: #475569;
+  --color-race-bronze: #b45309;
+  --color-elo-gain: #15803d;
+  --color-elo-loss: #b91c1c;
+  --color-streak-bg: #fff7ed;
+  --color-streak-border: #ffedd5;
+  --color-streak-text: #c2410c;
+
+  --radius-brand-card: 12px;
+}
+
+/* 2. Style bazowe dla dokumentu */
+html[data-mui-color-scheme="dark"] {
+  --color-brand-navy: #0b1224;
+  --color-brand-navy-dark: #070b16;
+  --color-brand-navy-light: #17223b;
+  --color-brand-text: #f8fafc;
+  --color-brand-text-muted: #94a3b8;
+  --color-brand-yellow: #fff200;
+  --color-brand-yellow-hover: #e6da00;
+  --color-brand-yellow-text: #fff200;
+  --color-race-gold: #ffd700;
+  --color-race-gold-text: #ffd700;
+  --color-race-silver: #cbd5e1;
+  --color-race-silver-text: #e2e8f0;
+  --color-race-silver-bg: #1e293b;
+  --color-race-bronze: #cd7f32;
+  --color-race-bronze-text: #ffedd5;
+  --color-race-bronze-bg: #431407;
+  --color-elo-gain: #15803d;
+  --color-elo-loss: #b91c1c;
+  --color-streak-bg: #2a1405;
+  --color-streak-border: #451a03;
+  --color-streak-text: #f97316;
+}
+
+body {
+  background-color: var(--color-brand-navy);
+  color: var(--color-brand-text);
+}
+
+/* 3. Rejestracja własnej klasy pomocniczej w Tailwind v4 (BEZ @layer) */
+@utility transition-grid {
+  transition-property: grid-template-rows;
+}
+
+@utility focus-brand {
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-yellow);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent);
+  }
+  &:focus {
+    outline: none;
+  }
+}
+
+/* 4. Logika płynnego przełączania motywów */
+html.theme-toggling,
+html.theme-toggling * {
+  transition: color 300ms ease, background-color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease !important;
+}
