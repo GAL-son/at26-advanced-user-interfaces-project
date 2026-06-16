@@ -11,7 +11,6 @@ export interface SearchResultItem {
   [key: string]: any;
 }
 
-// Rozszerzamy propsy o standardowe atrybuty HTML (w tym data-* props)
 interface UniversalSearchProps<T extends SearchResultItem> extends React.HTMLAttributes<HTMLInputElement> {
   results: T[];
   renderItem?: React.ComponentType<{ item: T }>;
@@ -34,8 +33,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
   onSelectResult,
   fullWidth = true,
   renderItem: RenderItem,
-  onKeyDown, // Wyciągamy onKeyDown przekazywany z góry
-  ...props   // Zbieramy resztę propsów (np. data-focus-order)
+  onKeyDown,
+  ...props
 }: UniversalSearchProps<T>) {
   const t = useTranslations("Common");
 
@@ -86,19 +85,16 @@ export default function UniversalSearch<T extends SearchResultItem>({
 
   const showDropdown = hasDropdown && isDropdownOpen && (value.trim().length > 0 || results.length > 0);
 
-  // Zmodyfikowana obsługa klawiatury
   const handleKeyDownInternal = (e: KeyboardEvent<HTMLInputElement>) => {
-    // KLUCZOWA ZMIANA: Jeśli lista jest zamknięta, pozwól działać nawigacji globalnej stronami
     if (!showDropdown) {
       if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowRight") {
         if (onKeyDown) {
-          onKeyDown(e); // Przekaż zdarzenie do handleSearchKeyDown w kontenerze wyżej
+          onKeyDown(e);
         }
       }
       return;
     }
 
-    // Jeśli lista jest otwarta, obsługuj nawigację wewnątrz podpowiedzi menu
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -118,12 +114,12 @@ export default function UniversalSearch<T extends SearchResultItem>({
         e.preventDefault();
         setIsDropdownOpen(false);
         setFocusedIndex(-1);
+        inputRef.current?.focus();
         break;
       case "Tab":
         setIsDropdownOpen(false);
         break;
       default:
-        // Pozwól innym klawiszom (np. ArrowRight przenoszącemu na chipy) opuścić input
         if (onKeyDown) {
           onKeyDown(e);
         }
@@ -154,7 +150,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
             "aria-controls": showDropdown ? listboxId : undefined,
             "aria-autocomplete": "list",
             "aria-activedescendant": focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined,
-            ...props, // KLUCZOWA ZMIANA: Przekazujemy "data-focus-order" bezpośrednio do natywnego tagu <input>
+            ...props,
           },
           input: {
             startAdornment: (
@@ -169,6 +165,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
             ),
           },
         }}
+        /* POPRAWKA: Dodanie !font-sans do klas TextField oraz inputu, aby wymusić Rajdhani */
+        className="!font-sans"
         sx={{
           "& .MuiOutlinedInput-root": {
             height: "48px",
@@ -182,10 +180,12 @@ export default function UniversalSearch<T extends SearchResultItem>({
           },
           "& .MuiInputLabel-root": {
             color: "var(--color-brand-text-muted)",
+            fontFamily: "var(--font-sans) !important", /* Wymuszenie w MUI */
             "&.Mui-focused": { color: "var(--color-brand-yellow-text)" }
           },
           "& .MuiInputBase-input": {
             color: "var(--color-brand-text)",
+            fontFamily: "var(--font-sans) !important", /* Wymuszenie w MUI dla wpisywanego tekstu */
             "&::placeholder": { color: "var(--color-brand-text-muted)", opacity: 0.7 }
           },
         }}
@@ -197,7 +197,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
           id={listboxId}
           role="listbox"
           aria-label={label || "Search results"}
-          className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto font-mono text-sm shadow-xl"
+          /* POPRAWKA: Zamiana font-mono na ujednolicony token !text-btn-mono z Share Tech Mono */
+          className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto !text-btn-mono shadow-xl"
           sx={{
             backgroundColor: "color-mix(in srgb, var(--color-brand-navy-dark) 95%, transparent)",
             backdropFilter: "blur(12px)",
@@ -206,7 +207,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
           }}
         >
           {results.length === 0 && !isLoading ? (
-            <Box className="p-4 text-center text-xs" sx={{ color: "var(--color-brand-text-muted)", opacity: 0.6 }}>
+            <Box className="p-4 text-center text-xs !text-btn-mono" sx={{ color: "var(--color-brand-text-muted)", opacity: 0.6 }}>
               {t("noResults")}
             </Box>
           ) : (
@@ -234,7 +235,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
                   {RenderItem ? (
                     <RenderItem item={item} />
                   ) : (
-                    <Box component="span" sx={{ color: "var(--color-brand-text)" }}>
+                    /* POPRAWKA: Wymuszenie prawidłowej czcionki monotypowej dla tekstu domyślnego */
+                    <Box component="span" className="!text-btn-mono" sx={{ color: "var(--color-brand-text)" }}>
                       {item.mainName}
                     </Box>
                   )}

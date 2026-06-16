@@ -106,10 +106,10 @@ export default function EventsPage() {
           data-section="events-header"
           className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
-          {/* NAGŁÓWEK H1: Podpięcie klasy text-page-title i usunięcie stylów z sx */}
+          {/* POPRAWKA: Dodane !font-display dla aktywacji Orbitrona */}
           <Typography
             component="h1"
-            className="!text-page-title font-black tracking-tight uppercase shrink-0 !text-[var(--color-brand-text)]"
+            className="!text-page-title !font-display font-black tracking-tight uppercase shrink-0 !text-[var(--color-brand-text)]"
           >
             {t("title")}
           </Typography>
@@ -132,7 +132,7 @@ export default function EventsPage() {
               />
             </Box>
 
-            {/* PRZYCISK ODŚWIEŻANIA: Wszystkie modyfikatory tekstu i rodziny fontów przeniesione do className */}
+            {/* POPRAWKA: Wpięcie klasy focus-brand i zabezpieczenie !text-btn-mono */}
             <Button
               id="events-refresh-btn"
               variant="outlined"
@@ -142,13 +142,10 @@ export default function EventsPage() {
               disabled={loading || refreshing}
               startIcon={<RefreshIcon />}
               aria-label={refreshing ? t("buttons.refreshingAria") : t("buttons.refreshAria")}
-              className="text-btn-mono font-mono uppercase px-5 py-3 h-12 rounded-[var(--radius-brand-card)] whitespace-nowrap transition-all duration-200
+              className="!text-btn-mono focus-brand uppercase px-5 py-3 h-12 rounded-[var(--radius-brand-card)] whitespace-nowrap transition-all duration-200
                 !text-[var(--color-brand-text-muted)] !border-[var(--color-brand-navy-light)] bg-[color-mix(in_srgb,var(--color-brand-navy-dark)_40%,transparent)]
                 hover:!border-[var(--color-brand-yellow-hover)] hover:!text-[var(--color-brand-yellow-text)] hover:bg-[color-mix(in_srgb,var(--color-brand-yellow)_8%,transparent)]
                 disabled:!text-[color-mix(in_srgb,var(--color-brand-text-muted)_40%,transparent)] disabled:!border-[var(--color-brand-navy-light)]"
-              sx={{
-                // Blok sx został całkowicie wyczyszczony ze stylów wizualnych
-              }}
             >
               {refreshing ? t("buttons.refreshing") : t("buttons.refresh")}
             </Button>
@@ -169,10 +166,11 @@ export default function EventsPage() {
           )}
 
           {error && (
+            /* POPRAWKA: Wymuszenie czcionki podstawowej !font-sans dla komunikatu o błędzie */
             <Alert
               severity="error"
               role="alert"
-              className="mb-6 font-medium"
+              className="mb-6 font-medium !font-sans"
               sx={{
                 borderRadius: 'var(--radius-brand-card)',
                 backgroundColor: 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',

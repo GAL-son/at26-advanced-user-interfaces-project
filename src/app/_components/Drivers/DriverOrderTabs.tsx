@@ -97,19 +97,18 @@ export default function DriverOrderTabs({
             aria-selected={isSelected}
             role="tab"
             tabIndex={isSelected ? 0 : -1} 
-            // Podpięcie klasy focus-brand
-            className="group focus-brand"
+            /* POPRAWKA:
+              - Wstrzyknięcie !text-btn-mono, który wymusza Share Tech Mono oraz rozmiar 0.8rem z globals.css
+              - Dodanie uppercase oraz font-bold bezpośrednio z klas użytkowych
+              - Podpięcie focus-brand
+            */
+            className="group focus-brand !text-btn-mono uppercase font-bold tracking-wider"
             sx={{
               display: "flex",
               flexDirection: "row",
               justifyContent: "center",
               alignItems: "center",
               gap: "8px",
-              fontFamily: "monospace",
-              fontSize: "0.75rem",
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
               minHeight: "40px",
               py: 1,
               px: 2,
@@ -118,7 +117,6 @@ export default function DriverOrderTabs({
               transition: "all 0.2s ease",
               color: "var(--color-brand-text-muted)",
 
-              // Resetowanie wewnętrznych stylów focusu MUI, aby oddać kontrolę dla utility w CSS
               "&:focus, &:focus-visible": {
                 outline: "none",
               },

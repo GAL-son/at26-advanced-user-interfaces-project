@@ -31,20 +31,15 @@ const PositionedTableRow = forwardRef<HTMLTableRowElement, PositionedTableRowPro
       tabIndex={tabIndex}
       aria-label={ariaLabel}
       role={role}
-      className={`group focus-brand ${className}`}
+      /* Modyfikacja v4: 
+        - focus-brand obsługuje outline
+        - focus:z-10 oraz focus-visible:z-10 przenoszą logikę pozycjonowania warstw do klas,
+          co gwarantuje, że podświetlenie focusu nie zostanie ucięte przez sąsiednie wiersze.
+      */
+      className={`group relative focus-brand focus:z-10 focus-visible:z-10 transition-colors duration-150 ${className}`}
       sx={{
         backgroundColor: 'var(--color-brand-navy-dark)',
         borderBottom: '1px solid var(--color-brand-navy-light)',
-        transition: 'background-color 0.15s ease',
-        
-        // Stabilizacja kontekstu pozycjonowania (zapobiega skokom układu)
-        position: 'relative',
-        
-        // Zwiększamy z-index tylko na focus, aby zewnętrzny box-shadow / outline 
-        // nie nakładał się pod sąsiednie komórki w tabeli
-        '&:focus-visible, &:focus': {
-          zIndex: 10,
-        },
         
         '& .MuiTableCell-root': {
           borderBottom: 'none',
@@ -54,6 +49,7 @@ const PositionedTableRow = forwardRef<HTMLTableRowElement, PositionedTableRowPro
           backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 4%, var(--color-brand-navy-dark)) !important'
         },
         
+        // Bezpieczne scalanie obiektów sx przekazywanych z góry
         ...(Array.isArray(sx) ? sx : [sx]).reduce((acc, current) => ({ ...acc, ...current }), {}),
       }}
     >
