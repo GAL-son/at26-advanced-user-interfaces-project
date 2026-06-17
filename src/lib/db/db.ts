@@ -9,9 +9,15 @@ let prismaInstance: PrismaClient;
 if (globalForPrisma.prisma) {
   prismaInstance = globalForPrisma.prisma;
 } else {
-  // Dodajemy konfigurację SSL akceptującą certyfikaty Supabase
+  // Czytamy dokładną nazwę klucza, który masz na Vercelu
+  const connectionString = process.env.POSTGRES_PRISMA_URL;
+
+  if (!connectionString && process.env.NODE_ENV === 'production') {
+    console.error("🚨 CRITICAL ERROR: Brak klucza POSTGRES_PRISMA_URL na produkcji!");
+  }
+
   const pool = new pg.Pool({ 
-    connectionString: process.env.POSTGRES_URL,
+    connectionString: connectionString,
     ssl: process.env.NODE_ENV === 'production' 
       ? { rejectUnauthorized: false } 
       : false
