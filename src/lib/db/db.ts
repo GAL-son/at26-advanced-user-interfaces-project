@@ -9,22 +9,16 @@ let prismaInstance: PrismaClient;
 if (globalForPrisma.prisma) {
   prismaInstance = globalForPrisma.prisma;
 } else {
-  let pool: pg.Pool;
+  // Pobieramy pełny, prawidłowy URL (ten z końcówką .pooler.supabase.com:6543)
+  const connectionString = process.env.POSTGRES_PRISMA_URL || "postgresql://localhost:5432";
 
-  if (process.env.NODE_ENV === 'production') {
-    pool = new pg.Pool({
-      host: process.env.POSTGRES_HOST,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: "postgres", 
-      port: 5432,
-      ssl: { rejectUnauthorized: false },
-    });
-  } else {
-    pool = new pg.Pool({
-      connectionString: process.env.POSTGRES_PRISMA_URL || "postgresql://localhost:5432",
-    });
-  }
+  const pool = new pg.Pool({
+    connectionString,
+    // Trójstopniowe wymuszenie SSL akceptujące certyfikat Supabase
+    ssl: process.env.NODE_ENV === 'production' 
+      ? { rejectUnauthorized: false } 
+      : false,
+  });
   
   const adapter = new PrismaPg(pool);
   prismaInstance = new PrismaClient({ adapter });
