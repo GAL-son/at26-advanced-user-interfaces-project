@@ -20,7 +20,8 @@ const SECTION_ORDER = [
   "menu",
   "compare-back",
   "compare-search",
-  "compare-chart"
+  "compare-chart",
+    "footer"
 ];
 
 function CompareDriversContent() {

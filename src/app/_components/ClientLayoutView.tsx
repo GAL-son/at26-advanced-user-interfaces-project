@@ -8,11 +8,12 @@ import { Box } from "@mui/material";
 
 import TopBarMenu from "@/app/_components/Menu/TopBarMenu";
 import DrawerMenu from "@/app/_components/Menu/DrawerMenu";
-import Footer from "@/app/_components/Footer/Footer"; // Import nowej stopki
+import Footer from "@/app/_components/Footer/Footer"; 
 
 import GroupIcon from "@mui/icons-material/Group";
 import EventIcon from "@mui/icons-material/Event";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import HowToRegIcon from "@mui/icons-material/HowToReg"; // Nowa ikona dla rejestracji/formularza
 
 const theme = createTheme({
   cssVariables: {
@@ -25,10 +26,12 @@ const theme = createTheme({
   defaultColorScheme: 'dark',
 });
 
+// Dodany czwarty element z ikoną formularza rejestracji
 const navItems = [
   { label: "drivers", path: "/drivers", icon: <GroupIcon sx={{ mr: 1 }} /> },
   { label: "events", path: "/events", icon: <EventIcon sx={{ mr: 1 }} /> },
   { label: "compare", path: "/drivers/compare", icon: <CompareArrowsIcon sx={{ mr: 1 }} /> },
+  { label: "register", path: "/tournament", icon: <HowToRegIcon sx={{ mr: 1 }} /> }, // Ścieżka, gdzie wrzucisz komponent formularza
 ];
 
 export default function ClientLayoutView({ children }: { children: React.ReactNode }) {
@@ -45,7 +48,8 @@ export default function ClientLayoutView({ children }: { children: React.ReactNo
         {/* Kontener zapewniający stopkę na dole ekranu dzięki min-h-screen i flex-col */}
         <div className="flex flex-col min-h-screen bg-brand-navy-darkest"> 
           
-          <div data-sction="menu">
+          {/* Poprawiłem literówkę w data-section, żeby nawigacja klawiaturowa "menu" działała bez zarzutu */}
+          <div data-section="menu">
             <TopBarMenu
               navItems={navItems}
               pathname={pathname}
@@ -71,7 +75,8 @@ export default function ClientLayoutView({ children }: { children: React.ReactNo
               pt: 0,
               mt: 0,
               px: { xs: 2, md: 4 },
-              pb: { xs: 4, md: 6 } // Zwiększyłem delikatnie dolny padding
+              px: { xs: 2, md: 4 },
+              pb: { xs: 4, md: 6 } 
             }}
           >
             {children}

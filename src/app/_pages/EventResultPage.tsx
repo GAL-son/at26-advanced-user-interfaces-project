@@ -27,7 +27,7 @@ export interface RaceResultExtended {
   combo: number;
 }
 
-const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list"];
+const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list",   "footer"];
 
 // 1. Logika i widok strony wyciągnięte do wewnętrznego komponentu
 function EventResultsContent() {

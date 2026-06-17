@@ -9,7 +9,7 @@ import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import { usePageInitialFocus } from "../_hooks/usePageInitialFocus"; // NOWOŚĆ: Import hooka
 
-const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list"];
+const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list",   "footer"];
 
 export default function DriversPage() {
   const t = useTranslations("Drivers");

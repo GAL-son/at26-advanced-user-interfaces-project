@@ -30,7 +30,7 @@ const SECTION_ORDER = [
   "events",
   "leaderboard",
   "duels",
-  "socials",
+  "footer"
 ];
 
 export default function HomePage({ activeDrivers, latestEvents, topDrivers, virtualDuels, globalStats }: HomePageProps) {

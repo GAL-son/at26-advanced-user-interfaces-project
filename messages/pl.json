@@ -20,7 +20,8 @@
         "switchLanguageTo": "en",
         "drivers": "Kierowcy",
         "events": "Wydarzenia",
-        "compare": "Porównywarka"
+        "compare": "Porównywarka",
+        "register": "Rejestracja"
     },
     "Home": {
         "latestEvents": "Ostatnie Wydarzenia",
@@ -203,6 +204,31 @@
             "statusFoundResults": "Retrieved {count} records. Use keyboard arrow elements to review options.",
             "listAriaLabel": "Selected drivers for comparison",
             "driverChipAriaLabel": "Driver {driverName}, press backspace or delete to remove from comparison"
+        }
+    },
+    "TournamentForm": {
+        "title": "Zapisy na turniej ELO",
+        "successMessage": "Rejestracja zakończona sukcesem!",
+        "listTitle": "Zarejestrowani kierowcy (Zmockowany GET)",
+        "noDrivers": "Brak zgłoszeń.",
+        "labels": {
+            "driverName": "Nick kierowcy",
+            "steamId": "SteamID64",
+            "car": "Samochód",
+            "selectCar": "Wybierz maszynę"
+        },
+        "buttons": {
+            "submit": "Zatwierdź zgłoszenie",
+            "processing": "Przetwarzanie..."
+        },
+        "errors": {
+            "fetch": "Nie udało się pobrać listy zarejestrowanych kierowców (Błąd sieciowy).",
+            "submit": "Wystąpił błąd sieciowy podczas rejestracji. Spróbuj ponownie."
+        },
+        "validation": {
+            "nameMin": "Nick musi mieć co najmniej 3 znaki",
+            "steamIdRegex": "SteamID musi składać się z dokładnie 17 cyfr",
+            "carRequired": "Wybierz samochód z listy"
         }
     }
 }

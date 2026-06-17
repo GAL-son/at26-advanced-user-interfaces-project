@@ -20,7 +20,8 @@
         "switchLanguageTo": "pl",
         "drivers": "Drivers",
         "events": "Events",
-        "compare": "Comparison"
+        "compare": "Comparison",
+        "register": "Register"
     },
     "Home": {
         "latestEvents": "Latest Events",
@@ -204,5 +205,30 @@
             "listAriaLabel": "Wybrani kierowcy do porównania",
             "driverChipAriaLabel": "Kierowca {driverName}, naciśnij backspace lub delete, aby usunąć z porównania"
         }
+    },
+    "TournamentForm": {
+    "title": "Tournament Registration",
+    "successMessage": "Registration completed successfully!",
+    "listTitle": "Registered Drivers (Mocked GET)",
+    "noDrivers": "No registrations yet.",
+    "labels": {
+      "driverName": "Driver Name",
+      "steamId": "SteamID64",
+      "car": "Car",
+      "selectCar": "Select a machine"
+    },
+    "buttons": {
+      "submit": "Submit Registration",
+      "processing": "Processing..."
+    },
+    "errors": {
+      "fetch": "Failed to fetch registered drivers list (Network error).",
+      "submit": "A network error occurred during registration. Please try again."
+    },
+    "validation": {
+      "nameMin": "Driver name must be at least 3 characters long",
+      "steamIdRegex": "SteamID must consist of exactly 17 digits",
+      "carRequired": "Please select a car from the list"
     }
+  }
 }

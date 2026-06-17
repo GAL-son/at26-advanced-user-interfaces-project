@@ -27,7 +27,8 @@ interface DriverStats {
 const SECTION_ORDER = [
   "menu",
   "driver-back",
-  "driver-chart"
+  "driver-chart",
+    "footer"
 ];
 
 // 1. Wyciągamy zawartość profilu do osobnego komponentu wewnętrznego
