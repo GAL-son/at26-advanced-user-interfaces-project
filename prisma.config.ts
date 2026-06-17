@@ -4,12 +4,13 @@ import { defineConfig } from "prisma/config";
 const poolingUrl = process.env["POSTGRES_PRISMA_URL"] || "";
 const directUrl = process.env["POSTGRES_URL_NON_POOLING"] || "";
 
-// Sprawdzamy, czy kod uruchamia się na Vercelu
-const isVercel = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+// Sprawdzamy, czy aktualnie uruchomiona komenda to migracja (np. migrate deploy lub migrate dev)
+// Szukamy frazy 'migrate' w argumentach procesowych Node.js
+const isMigrationCommand = process.argv.some(arg => arg.includes("migrate") || arg.includes("push"));
 
-// Jeśli jesteśmy na Vercelu, używamy poolingUrl. 
-// Jeśli lokalnie w terminalu (np. do migracji), używamy directUrl, żeby komenda nie wisiała.
-const selectedDatabaseUrl = isVercel ? poolingUrl : (directUrl || poolingUrl);
+// Do migracji ZAWSZE potrzebujemy directUrl (port 5432), niezależnie czy to Vercel, czy lokalny komputer.
+// Do generowania klienta i działania aplikacji na Vercelu używamy poolingUrl (6543).
+const selectedDatabaseUrl = isMigrationCommand ? (directUrl || poolingUrl) : poolingUrl;
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
