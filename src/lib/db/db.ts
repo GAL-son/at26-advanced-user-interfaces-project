@@ -4,30 +4,44 @@ import pg from 'pg';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-let prismaInstance: PrismaClient;
+/**
+ * Usuwa parametry SSL z connection stringa, żeby nie kolidowały
+ * z konfiguracją ssl w pg.Pool — która ma pierwszeństwo.
+ */
+function stripSslParams(connectionString: string): string {
+  try {
+    const url = new URL(connectionString);
+    url.searchParams.delete('sslmode');
+    url.searchParams.delete('uselibpqcompat');
+    return url.toString();
+  } catch {
+    return connectionString;
+  }
+}
 
-if (globalForPrisma.prisma) {
-  prismaInstance = globalForPrisma.prisma;
-} else {
-  // Budujemy connection string ręcznie z Twoich jawnych kluczy, dodając na końcu parametry wyłączające sprawdzanie SSL,
-  // co omija błąd biblioteki pg i błąd self-signed certificate.
-  const connectionString = process.env.NODE_ENV === 'production'
-    ? `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:5432/postgres?sslmode=require&uselibpqcompat=true`
-    : process.env.POSTGRES_PRISMA_URL || "postgresql://localhost:5432";
+function createPrismaClient(): PrismaClient {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Używaj zmiennych generowanych przez integrację Vercel ↔ Supabase,
+  // a nie ręcznie sklejanych z HOST/USER/PASSWORD
+  const rawUrl = isProduction
+    ? (process.env.POSTGRES_PRISMA_URL ?? process.env.POSTGRES_URL ?? '')
+    : (process.env.POSTGRES_PRISMA_URL ?? 'postgresql://localhost:5432');
+
+  const connectionString = stripSslParams(rawUrl);
 
   const pool = new pg.Pool({
     connectionString,
-    // Dodatkowe potrójne zabezpieczenie w obiekcie dla starszych/nowszych wersji pg
-    ssl: process.env.NODE_ENV === 'production' 
-      ? { rejectUnauthorized: false } 
-      : false
+    ssl: isProduction
+      ? { rejectUnauthorized: false }  // akceptuje self-signed cert Supabase
+      : false,
+    max: 1, // krytyczne dla Vercel serverless + pgBouncer (transaction mode)
   });
-  
+
   const adapter = new PrismaPg(pool);
-  
-  prismaInstance = new PrismaClient({ adapter });
+  return new PrismaClient({ adapter });
 }
 
-export const prisma = prismaInstance;
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+// Buforuj instancję — działa zarówno w dev jak i w ciepłych lambdach Vercel
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+globalForPrisma.prisma = prisma;
