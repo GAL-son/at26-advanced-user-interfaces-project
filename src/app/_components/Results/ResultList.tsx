@@ -4,7 +4,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, TableSortLabel, useMediaQuery, useTheme
 } from '@mui/material';
-import { RaceResultExtended } from '../[id]/page';
+import { RaceResultExtended } from '@/app/_pages/EventResultPage';
 import ResultListItem from './ResultListItem';
 import ResultListItemMobile from './ResultListItemMobile';
 import { useTranslations } from 'next-intl';

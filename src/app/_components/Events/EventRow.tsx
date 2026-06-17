@@ -7,14 +7,16 @@ import EventIcon from '@mui/icons-material/Event';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useFormatter, useTranslations } from 'next-intl';
 
+export interface RaceEvent {
+  id: string;
+  server: string;
+  track: string;
+  date: string;
+  name: string;
+}
+
 interface EventRowProps extends Omit<React.ComponentPropsWithoutRef<typeof ListItem>, 'children' | 'href'> {
-  event: {
-    id: string;
-    name: string;
-    server: string;
-    track: string;
-    date: string;
-  };
+  event: RaceEvent,
   onKeyDown?: (e: React.KeyboardEvent<HTMLElement>) => void;
   id?: string;
 }

@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { TableCell, Box, Typography } from '@mui/material';
-import { RaceResultExtended } from '../[id]/page';
+import { RaceResultExtended } from '@/app/_pages/EventResultPage';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import PositionTableCell from '@/app/_components/Common/PositionTableCell';

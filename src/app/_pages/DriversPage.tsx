@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Box } from "@mui/material";
 import { useTranslations } from "next-intl";
-import DriverFilterBar, { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
+import DriverFilterBar from "@/app/_components/Drivers/DriverFilterBar";
+import { SortOption } from "@/app/_components/Drivers/DriverOrderTabs";
 import DriverList from "@/app/_components/Drivers/DriverList";
 import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
 import { focusFlatSection } from "@/app/_utils/navigation";

@@ -75,7 +75,6 @@ export default function ClientLayoutView({ children }: { children: React.ReactNo
               pt: 0,
               mt: 0,
               px: { xs: 2, md: 4 },
-              px: { xs: 2, md: 4 },
               pb: { xs: 4, md: 6 } 
             }}
           >

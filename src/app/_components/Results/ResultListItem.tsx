@@ -68,7 +68,6 @@ export default function ResultListItem({
 
   return (
     <PositionedTableRow
-      id={id}
       ref={registerRef}
       onClick={handleNavigation}
       onKeyDown={handleCombinedKeyDown}

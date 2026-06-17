@@ -11,16 +11,17 @@ export interface SearchResultItem {
   [key: string]: any;
 }
 
-interface UniversalSearchProps<T extends SearchResultItem> extends React.HTMLAttributes<HTMLInputElement> {
-  results: T[];
-  renderItem?: React.ComponentType<{ item: T }>;
-  onSelectResult: (item: T) => void;
-  value: string;
-  onChange: (val: string) => void;
-  placeholder?: string;
-  label?: string;
-  isLoading?: boolean;
-  fullWidth?: boolean;
+interface UniversalSearchProps<T extends SearchResultItem> 
+  extends Omit<React.HTMLAttributes<HTMLInputElement>, "results" | "onChange"> {
+    results: T[];
+    renderItem?: React.ComponentType<{ item: T }>;
+    onSelectResult: (item: T) => void;
+    value: string;
+    onChange: (val: string) => void; // Teraz Twój niestandardowy typ jest w pełni legalny
+    placeholder?: string;
+    label?: string;
+    isLoading?: boolean;
+    fullWidth?: boolean;
 }
 
 export default function UniversalSearch<T extends SearchResultItem>({
@@ -83,7 +84,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
     inputRef.current?.focus();
   };
 
-  const showDropdown = hasDropdown && isDropdownOpen && (value.trim().length > 0 || results.length > 0);
+  const showDropdown = hasDropdown && isDropdownOpen && results.length > 0;
 
   const handleKeyDownInternal = (e: KeyboardEvent<HTMLInputElement>) => {
     if (!showDropdown) {

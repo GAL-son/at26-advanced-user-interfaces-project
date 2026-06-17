@@ -12,17 +12,14 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ focusableRef, onKeyDown }: ThemeToggleProps) {
-  // 1. Wyciągamy mode (aktualny motyw) oraz setMode z MUI
   const { mode, toggleTheme } = useThemeSwitch();
   const [mounted, setMounted] = useState(false);
 
-  // Zapobiegamy błędom hydracji (MUI potrzebuje chwili na odczytanie localStorage po stronie klienta)
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted || !mode) {
-    // Możesz tu zwrócić pusty placeholder o takich samych wymiarach, aby layout nie skakał
     return <Box className="w-[88px] h-8" />;
   }
 
@@ -52,7 +49,7 @@ export default function ThemeToggle({ focusableRef, onKeyDown }: ThemeToggleProp
       <IconButton
         size="small"
         tabIndex={-1}
-        focusable="false"
+        // Usunięto: focusable="false"
         aria-hidden="true"
         sx={{ pointerEvents: 'none' }}
         className={`transition-all duration-200 
@@ -76,7 +73,7 @@ export default function ThemeToggle({ focusableRef, onKeyDown }: ThemeToggleProp
       <IconButton
         size="small"
         tabIndex={-1}
-        focusable="false"
+        // Usunięto: focusable="false"
         aria-hidden="true"
         sx={{ pointerEvents: 'none' }}
         className={`transition-all duration-200 

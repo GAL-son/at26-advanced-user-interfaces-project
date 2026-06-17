@@ -22,7 +22,7 @@ export function useKeyboardNavigation({
 }: NavigationConfig) {
   const itemsRef = useRef<(HTMLElement | null)[]>([]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>, currentIndex: number) => {
+  const handleKeyDown = (e: React.KeyboardEvent<Element>, currentIndex: number) => {
     const isHorizontal = orientation === "horizontal";
 
     // Definiujemy klawisze w zależności od orientacji komponentu
@@ -33,7 +33,7 @@ export function useKeyboardNavigation({
 
     // 1. Ruch WEWNĄTRZ komponentu (lub wyjście przez krawędź przy loop: false)
     if (e.key === nextKey || e.key === prevKey) {
-      
+
       // Sprawdzamy krawędzie, jeśli zapętlanie jest WYŁĄCZONE
       if (!loop) {
         if (e.key === nextKey && currentIndex === itemCount - 1) {

@@ -9,16 +9,8 @@ import UniversalSearch from "@/app/_components/UniversalSearch";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
-
-interface RaceEvent {
-  id: string;
-  server: string;
-  track: string;
-  date: string;
-  jsonUrl: string;
-}
-
-const SECTION_ORDER = ["menu", "events-header", "events-list",   "footer"];
+import { RaceEvent } from "../_components/Events/EventRow";
+const SECTION_ORDER = ["menu", "events-header", "events-list", "footer"];
 
 export default function EventsPage() {
   const t = useTranslations("Events");
@@ -129,6 +121,8 @@ export default function EventsPage() {
                 isLoading={loading || refreshing}
                 data-section-page-start="true"
                 data-focus-order="primary"
+                results={[]}
+                onSelectResult={() => { }}
               />
             </Box>
 

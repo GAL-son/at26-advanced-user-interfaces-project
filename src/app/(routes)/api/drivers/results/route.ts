@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
                     select: {
                         id: true,
                         driverGuid: true,
-                        pos: true,          // Dodane: pozycja w wyścigu
+                        position: true,
                         eloBefore: true,
                         eloAfter: true,
                         combo: true,
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
                         eventDate: event.date.toISOString(),
                         hasRaced: true,
                         id: result.id,
-                        pos: result.pos, // Pozycja z wyścigu
+                        pos: result.position, // Pozycja z wyścigu
                         elo: eloAfter,
                         eloChange: Number(eloAfter - eloBefore),
                         combo: currentCombo

@@ -1,21 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Box, Typography, Alert } from "@mui/material";
-import EventRow from "./EventRow";
+import EventRow, { RaceEvent } from "./EventRow";
 import EventRowSkeleton from "./EventRowSkeleton";
 import ScrollArrow from "@/app/_components/Common/ScrollArrow"; // Import strzałki
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import { useScrollArrowVisibility } from "@/app/_hooks/useScrollArrowVisibility";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface RaceEvent {
-  id: string;
-  server: string;
-  track: string;
-  date: string;
-  name: string;
-}
 
 interface InfiniteEventListProps {
   initialEvents: RaceEvent[];

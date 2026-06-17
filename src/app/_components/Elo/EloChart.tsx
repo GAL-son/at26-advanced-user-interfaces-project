@@ -518,13 +518,10 @@ export default function EloChart({
         >
           <LoadingSpinner text={t("chart.syncingTimeline")} />
         </Box>
-        {scrollMasks.left && (
-          <Box
-            className="absolute top-0 bottom-0 z-30 pointer-events-none w-12"
-            sx={{
-              left: "48px",
-              background: "linear-gradient(to right, var(--color-brand-navy), transparent)"
-            }}
+        {scrollMasks.left && isAtInitialRight && (
+          <ScrollArrow
+            direction="left"
+            className="absolute left-14 top-1/2 -translate-y-1/2 z-10 pointer-events-none select-none !p-0 mix-blend-screen"
           />
         )}
 
@@ -541,7 +538,6 @@ export default function EloChart({
           <ScrollArrow
             direction="left"
             className="absolute left-14 top-1/2 -translate-y-1/2 z-10 pointer-events-none select-none !p-0"
-            style={{ mixBlendMode: 'screen' }}
           />
         )}
 
@@ -640,7 +636,7 @@ export default function EloChart({
                     targetY = Math.max(10, Math.min(targetY, chartHeight - tooltipHeight - 10));
 
                     if (e.activeTooltipIndex !== undefined && e.activeTooltipIndex !== null) {
-                      setFocusedIndex(e.activeTooltipIndex);
+                      setFocusedIndex(Number(e.activeTooltipIndex));
                       setTooltipPos({ x: targetX, y: targetY });
                     }
                   }

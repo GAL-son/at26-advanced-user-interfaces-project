@@ -7,7 +7,7 @@ import DriverRow from "./DriverRow";
 import DriverRowMobile from "./DriverRowMobile";
 import { FormattedDriver } from "./DriverRow";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
-import { SortOption } from "@/app/_components/Drivers/DriverFilterBar";
+import { SortOption } from "@/app/_components/Drivers/DriverOrderTabs";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 import ScrollArrow from "@/app/_components/Common/ScrollArrow";
 import { useScrollArrowVisibility } from "@/app/_hooks/useScrollArrowVisibility";

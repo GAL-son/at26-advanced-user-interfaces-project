@@ -80,12 +80,9 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
           )}
         </div>
 
-        {/* SEKCJA DWUKOLUMNOWA 2 (ZMIANA: gap-6 -> gap-4) */}
         <div data-section="stats" className="w-full flex">
           <GlobalStatsSection
             stats={globalStats}
-            onNavigateHorizontal={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
-            onNavigateVertical={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
           />
         </div>
 
