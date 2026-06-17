@@ -7,10 +7,12 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import SportsScoreIcon from "@mui/icons-material/SportsScore";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import BackButton from "@/app/_components/Common/BackButton";
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EloChart from "@/app/_components/Elo/EloChart";
 import { useTranslations, useFormatter } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
+
+// Import Twojego nowego wrappera
+import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 
 interface DriverStats {
   guid: string;
@@ -28,9 +30,9 @@ const SECTION_ORDER = [
   "driver-chart"
 ];
 
-export default function DriverProfilePage() {
+// 1. Wyciągamy zawartość profilu do osobnego komponentu wewnętrznego
+function DriverProfileContent() {
   const { guid } = useParams() as { guid: string };
-  const router = useRouter();
   const t = useTranslations("Drivers");
   const format = useFormatter();
 
@@ -77,6 +79,7 @@ export default function DriverProfilePage() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
+  // Spinner stanów ładowania API (wewnątrz komponentu, jeśli potrzebny niezależnie od Suspense)
   if (loadingProfile) {
     return (
       <Box 
@@ -86,7 +89,10 @@ export default function DriverProfilePage() {
         className="min-h-screen flex flex-col items-center justify-center gap-3"
         sx={{ backgroundColor: 'var(--color-brand-navy)' }}
       >
-        <LoadingSpinner text={t("profile.loadingTelemetry")} size={20} className="py-2 px-4" />
+        {/* Możesz tu zostawić lokalny spinner lub pozwolić wrapperowi obsłużyć całe ładowanie */}
+        <div className="animate-pulse text-sm uppercase tracking-wider text-center" style={{ color: 'var(--color-brand-text-muted)' }}>
+          {t("profile.loadingTelemetry")}
+        </div>
       </Box>
     );
   }
@@ -95,7 +101,6 @@ export default function DriverProfilePage() {
     return (
       <Box 
         role="alert"
-        /* POPRAWKA: Przejście na ujednolicony token !text-btn-mono dla technicznego błędu */
         className="min-h-screen flex items-center justify-center !text-btn-mono uppercase"
         sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text-muted)' }}
       >
@@ -194,13 +199,11 @@ export default function DriverProfilePage() {
               <div>
                 <Typography 
                   component="h2"
-                  /* POPRAWKA: Czyste wstrzyknięcie !text-btn-mono zamiast variant="caption" i sx */
                   className="!text-btn-mono uppercase block"
                   style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("list.headers.elo")}
                 </Typography>
-                {/* POPRAWKA: Przejście na telemetryczny token !text-stat-value */}
                 <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(Math.round(driver.currentElo || 0))}
                 </p>
@@ -236,10 +239,8 @@ export default function DriverProfilePage() {
                 >
                   {t("profile.totalExperience")}
                 </Typography>
-                {/* POPRAWKA: Użycie !text-stat-value dla głównego licznika wyścigów */}
                 <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(driver.racesCount)}{" "}
-                  {/* POPRAWKA: Jednostka sformatowana czytelną czcionką techniczną Share Tech Mono */}
                   <span className="!text-btn-mono lowercase font-normal !text-brand-text-muted opacity-80">
                     {t("profile.racesUnit")}
                   </span>
@@ -276,7 +277,6 @@ export default function DriverProfilePage() {
                 >
                   {t("profile.lastSync")}
                 </Typography>
-                {/* POPRAWKA: Przejście na bezpieczny i czytelny !font-sans dla daty asynchronicznej */}
                 <h3 className="text-sm font-bold mt-1 !font-sans !text-brand-text">
                   {formattedSyncDate}
                 </h3>
@@ -299,5 +299,16 @@ export default function DriverProfilePage() {
 
       </div>
     </Box>
+  );
+}
+
+// 2. Główny eksport strony staje się czystym wrapperem
+export default function DriverProfilePage() {
+  const t = useTranslations("Drivers");
+
+  return (
+    <PageLoaderWrapper loadingText={t("profile.loadingTelemetry")}>
+      <DriverProfileContent />
+    </PageLoaderWrapper>
   );
 }

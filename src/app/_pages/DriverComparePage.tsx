@@ -14,6 +14,7 @@ import EloChart from "@/app/_components/Elo/EloChart";
 import { DriverBasicInfo } from "@/app/_components/Elo/SelectedDriverList";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
+import PageLoaderWrapper from "../_components/Common/PageLoaderWrapper";
 
 const SECTION_ORDER = [
   "menu",
@@ -216,21 +217,8 @@ export default function CompareDriversPage() {
   const t = useTranslations("CompareDrivers");
 
   return (
-    <Suspense
-      fallback={
-        <Box
-          className="min-h-screen flex flex-col items-center justify-center gap-3"
-          sx={{ backgroundColor: 'var(--color-brand-navy)' }}
-        >
-          <LoadingSpinner
-            text={t("loadingText")}
-            size={20}
-            className="py-2 px-4"
-          />
-        </Box>
-      }
-    >
+    <PageLoaderWrapper loadingText={t("loadingText")}>
       <CompareDriversContent />
-    </Suspense>
+    </PageLoaderWrapper>
   );
 }

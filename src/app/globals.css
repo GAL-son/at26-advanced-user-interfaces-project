@@ -168,6 +168,23 @@ body {
   transition: opacity 300ms ease-in-out;
 }
 
+/* PO — w @layer base, utilities mają wyższy priorytet */
+@layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    *, *::before, *::after {
+      transition-property: background-color, border-color, color, fill, box-shadow;
+      transition-duration: 300ms;
+      transition-timing-function: ease;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition: none !important;
+    }
+  }
+}
+
 @utility focus-brand {
   &:focus {
     outline: none !important;
@@ -178,22 +195,6 @@ body {
     outline: 2px solid var(--color-brand-yellow) !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent) !important;
-  }
-}
-
-
-@media (prefers-reduced-motion: no-preference) {
-  *, *::before, *::after {
-    transition-property: background-color, border-color, color, fill, box-shadow;
-    transition-duration: 300ms;
-    transition-timing-function: ease;
-  }
-}
-
-/* Wyłączenie przejść dla osób, które wolą ich brak */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    transition: none !important;
   }
 }
 

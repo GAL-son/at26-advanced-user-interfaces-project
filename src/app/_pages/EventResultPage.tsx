@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import { Container, Typography, Box } from "@mui/material";
 import RaceInfo from "@/app/_components/Results/RaceInfo";
 import ResultList from "@/app/_components/Results/ResultList";
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import BackButton from "@/app/_components/Common/BackButton";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
-import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
+
+// Import nowego wrappera ładowania
+import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 
 export interface RaceResultExtended {
   guid: string;
@@ -28,7 +29,8 @@ export interface RaceResultExtended {
 
 const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list"];
 
-export default function EventResultsPage() {
+// 1. Logika i widok strony wyciągnięte do wewnętrznego komponentu
+function EventResultsContent() {
   const t = useTranslations("Results");
   const params = useParams();
   const id = params?.id as string;
@@ -112,18 +114,19 @@ export default function EventResultsPage() {
     focusFlatSection(currentSection, direction, PAGE_SECTION_ORDER);
   };
 
-  // STAN ŁADOWANIA
+  // Lokalny stan ładowania API (opcjonalny, jeśli wrapper pokrywa początkowy montaż komponentu)
   if (loading) {
     return (
       <Box
         component="div"
         role="status"
         aria-live="polite"
-        className="min-h-screen flex flex-col items-center justify-center gap-3"
+        className="min-h-screen flex flex-col items-center justify-center"
         sx={{ backgroundColor: 'var(--color-brand-navy)' }}
       >
-        <LoadingSpinner className="py-2 px-4" />
-        <Typography variant="srOnly">{t("metaLoading")}</Typography>
+        <div className="animate-pulse text-sm uppercase tracking-wider" style={{ color: 'var(--color-brand-text-muted)' }}>
+          {t("metaLoading")}
+        </div>
       </Box>
     );
   }
@@ -165,7 +168,7 @@ export default function EventResultsPage() {
     >
       <Container maxWidth="lg" component="main" className="p-0!">
 
-        {/* 3. Sekcja przycisku powrotu */}
+        {/* Sekcja przycisku powrotu */}
         <Box
           data-section="back-action"
           className="mb-4 flex items-center gap-3 outline-none"
@@ -194,7 +197,7 @@ export default function EventResultsPage() {
           </Typography>
         </Box>
 
-        {/* 4. Sekcja informacji o wyścigu */}
+        {/* Sekcja informacji o wyścigu */}
         <Box
           data-section="race-info"
           className="outline-none"
@@ -205,7 +208,7 @@ export default function EventResultsPage() {
           />
         </Box>
 
-        {/* 5. Tabela z wynikami */}
+        {/* Tabela z wynikami */}
         <Box
           data-section="results-list"
           className="outline-none"
@@ -218,5 +221,16 @@ export default function EventResultsPage() {
 
       </Container>
     </Box>
+  );
+}
+
+// 2. Główny komponent staje się generycznym wrapperem
+export default function EventResultsPage() {
+  const t = useTranslations("Results");
+
+  return (
+    <PageLoaderWrapper loadingText={t("metaLoading")}>
+      <EventResultsContent />
+    </PageLoaderWrapper>
   );
 }
