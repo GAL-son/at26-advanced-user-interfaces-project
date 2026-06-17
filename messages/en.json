@@ -50,8 +50,11 @@
     "Drivers": {
         "title": "Driver Standings",
         "filter": {
-            "searchLabel": "Search driver or alias...",
-            "searchPlaceholder": "Type here..."
+            "searchLabel": "Szukaj kierowcy lub aliasu...",
+            "searchPlaceholder": "Wpisz tutaj...",
+            "searchHint": "Wyszukaj kierowcę wpisując jego imię, nazwisko lub zarejestrowany pseudonim.",
+            "barAriaLabel": "Panel filtrowania i sortowania listy kierowców",
+            "sortGroupLabel": "Wybór kryterium sortowania tabeli kierowców"
         },
         "tabs": {
             "rating": "Rating",
@@ -59,6 +62,7 @@
             "alphabetical": "A - Z",
             "lastActive": "Last Active"
         },
+        "tabsAriaLabel": "Driver standings sorting criteria",
         "list": {
             "ariaLabel": "Drivers global standings",
             "loadingInitial": "Loading drivers leaderboard...",
@@ -76,6 +80,11 @@
                 "lastActive": "Last Active",
                 "elo": "ELO Rating"
             }
+        },
+        "sr": {
+            "resultsFound": "Retrieved {count} matching drivers on the initial view.",
+            "loadedMore": "Synchronized additional records. Currently rendering {total} drivers total.",
+            "errorLoading": "An error occurred while establishing link to standings registry."
         },
         "profile": {
             "loadingTelemetry": "Loading telemetry stream...",
@@ -159,7 +168,8 @@
             "laps": "Laps completed",
             "totalTime": "Total duration",
             "gap": "Interval",
-            "winner": "Winner"
+            "winner": "Winner",
+            "goToProfile": "Go to drivers profile"
         }
     },
     "CompareDrivers": {

@@ -1,4 +1,5 @@
 "use client";
+
 import React from 'react';
 import { TableCell, Box } from '@mui/material';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
@@ -86,72 +87,73 @@ export default function ResultListItem({
     >
       <PositionTableCell position={row.pos} />
 
+      {/* Nazwa Kierowcy */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
-          <span style={{ color: 'var(--color-brand-text-muted)' }}>{row.name}</span>
+          {/* POPRAWKA: Przejście na unifikowany kolor tekstu interfejsu */}
+          <span className="text-[var(--color-brand-text-muted)] font-medium">{row.name}</span>
           {row.combo > 0 && <ComboBadge combo={row.combo} />}
         </Box>
       </TableCell>
 
+      {/* Punkty ELO + Zmiana */}
       <TableCell>
-        <Box className="flex items-center gap-2 font-mono text-sm">
-          <span style={{ color: 'var(--color-brand-text)' }}>
+        <Box className="flex items-center gap-2">
+          {/* POPRAWKA: Token !text-btn-mono dla głównej wartości ELO */}
+          <span className="!text-btn-mono text-[var(--color-brand-text)]">
             {row.eloAfter}
           </span>
           <Box
             component="span"
-            className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold border"
-            sx={{
-              backgroundColor: isGain
-                ? 'color-mix(in srgb, var(--color-elo-gain) 10%, transparent)'
-                : 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
-              color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)',
-              borderColor: isGain
-                ? 'color-mix(in srgb, var(--color-elo-gain) 20%, transparent)'
-                : 'color-mix(in srgb, var(--color-elo-loss) 20%, transparent)',
-            }}
+            /* POPRAWKA: Usunięcie sx blocku stylów inline i przeniesienie logiki kolorowania na natywne klasy narzędziowe v4 */
+            className={`ml-1 px-1.5 py-0.5 rounded !text-btn-mono font-bold border ${
+              isGain 
+                ? 'bg-[color-mix(in_srgb,var(--color-elo-gain)_10%,transparent)] text-[var(--color-elo-gain)] border-[color-mix(in_srgb,var(--color-elo-gain)_20%,transparent)]'
+                : 'bg-[color-mix(in_srgb,var(--color-elo-loss)_10%,transparent)] text-[var(--color-elo-loss)] border-[color-mix(in_srgb,var(--color-elo-loss)_20%,transparent)]'
+            }`}
           >
             {isGain ? `+${row.eloChange}` : row.eloChange}
           </Box>
         </Box>
       </TableCell>
 
-      <TableCell
-        className="font-medium text-xs tracking-wide uppercase"
-        style={{ color: 'var(--color-brand-text-muted)' }}
-      >
-        {row.car}
+      {/* Nazwa Samochodu */}
+      <TableCell className="hidden md:table-cell">
+        {/* POPRAWKA: Zmiana na token !text-data-mono z wymuszonym uppercase i kolorem wyciszonym */}
+        <span className="!text-data-mono uppercase text-[var(--color-brand-text-muted)]">
+          {row.car}
+        </span>
       </TableCell>
 
-      <TableCell
-        className="font-mono text-center hidden md:table-cell"
-        style={{ color: 'var(--color-brand-text-muted)' }}
-      >
-        {row.laps}
+      {/* Liczba Okrążeń */}
+      <TableCell className="text-center hidden md:table-cell">
+        {/* POPRAWKA: Token !text-data-mono */}
+        <span className="!text-data-mono text-[var(--color-brand-text-muted)]">
+          {row.laps}
+        </span>
       </TableCell>
 
-      <TableCell
-        className="font-mono font-medium"
-        style={{ color: 'var(--color-brand-text)' }}
-      >
-        {formatTime(row.totalTime)}
+      {/* Łączny Czas */}
+      <TableCell>
+        {/* POPRAWKA: Token !text-data-mono z kolorem pełnego tekstu */}
+        <span className="!text-data-mono text-[var(--color-brand-text)] font-semibold">
+          {formatTime(row.totalTime)}
+        </span>
       </TableCell>
 
-      <TableCell className="font-mono text-xs">
+      {/* Różnica (Gap) / Zwycięzca */}
+      <TableCell>
         {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
           <Box
             component="span"
-            className="font-semibold text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border"
-            sx={{
-              color: 'var(--color-brand-yellow-text)',
-              backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)',
-              borderColor: 'color-mix(in srgb, var(--color-brand-yellow) 20%, transparent)',
-            }}
+            /* POPRAWKA: Zmiana rozmiaru czcionki na zunifikowany token HUD, rezygnacja z sx */
+            className="font-bold !text-btn-mono uppercase tracking-wider px-1.5 py-0.5 rounded border bg-[color-mix(in_srgb,var(--color-brand-yellow)_12%,transparent)] text-[var(--color-brand-yellow-text)] border-[color-mix(in_srgb,var(--color-brand-yellow)_20%,transparent)]"
           >
             {t("winner")}
           </Box>
         ) : (
-          <span style={{ color: 'var(--color-brand-text-muted)' }}>
+          /* POPRAWKA: Token !text-data-mono dla klasycznych różnic czasowych */
+          <span className="!text-data-mono text-[var(--color-brand-text-muted)]">
             {row.gap}
           </span>
         )}

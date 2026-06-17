@@ -45,8 +45,11 @@
     "Drivers": {
         "title": "Klasyfikacja Kierowców",
         "filter": {
-            "searchLabel": "Szukaj kierowcy lub aliasu...",
-            "searchPlaceholder": "Wpisz tutaj..."
+            "searchLabel": "Search driver or alias...",
+            "searchPlaceholder": "Type here...",
+            "searchHint": "Search for a driver by name or alias.",
+            "barAriaLabel": "Driver standings filtering and sorting controls",
+            "sortGroupLabel": "Driver standing sorting criteria groups"
         },
         "tabs": {
             "rating": "Ranking",
@@ -54,6 +57,7 @@
             "alphabetical": "A - Z",
             "lastActive": "Ostatnia Aktywność"
         },
+        "tabsAriaLabel": "Kryteria sortowania klasyfikacji kierowców",
         "list": {
             "ariaLabel": "Globalna klasyfikacja kierowców",
             "loadingInitial": "Ładowanie klasyfikacji kierowców...",
@@ -71,6 +75,11 @@
                 "lastActive": "Ostatni start",
                 "elo": "Ranking ELO"
             }
+        },
+        "sr": {
+            "resultsFound": "Znaleziono {count} pasujących kierowców na pierwszej stronie.",
+            "loadedMore": "Załadowano kolejną partię danych. Wyświetlam teraz {total} kierowców.",
+            "errorLoading": "Wystąpił błąd podczas pobierania danych klasyfikacji."
         },
         "profile": {
             "loadingTelemetry": "Wczytywanie strumienia telemetrycznego...",
@@ -107,7 +116,8 @@
             "loadingMoreAria": "Pobieranie kolejnych wyścigów z serwera",
             "endOfGrid": "— Koniec bazy danych telemetrycznych —",
             "rowAriaLabel": "Wyścig: {name}, tor: {track}. Rozegrano: {date} na serwerze {server}. Kliknij, aby zobaczyć pełne wyniki i telemetrię.",
-            "loadMore": "Zobacz więcej wydarzeń"
+            "loadMore": "Zobacz więcej wydarzeń",
+            "goToProfile": "Przejdź do profilu kierowcy"
         }
     },
     "Common": {
