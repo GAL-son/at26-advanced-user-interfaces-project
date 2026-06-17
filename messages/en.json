@@ -195,16 +195,16 @@
             "title": "No drivers selected ",
             "description": "Utilize the interface search node above to stage competitor profiles for evaluation."
         },
-        "search": {
-            "label": "Przeszukaj rejestr kierowców",
-            "placeholder": "Wpisz pseudonim zawodnika...",
-            "currentlyComparing": "Wybrane profile do porównania",
-            "noDriversSelected": "Nie wybrano żadnego kierowcy do weryfikacji",
-            "statusSearching": "Przeszukiwanie bazy danych rejestru...",
-            "statusNoResults": "Nie odnaleziono pasujących rekordów kierowców.",
-            "statusFoundResults": "Znaleziono {count} pasujących pozycji. Użyj strzałek klawiatury, aby poruszać się po liście.",
-            "listAriaLabel": "Wybrani kierowcy do porównania",
-            "driverChipAriaLabel": "Kierowca {driverName}, naciśnij backspace lub delete, aby usunąć z porównania"
+         "search": {
+            "label": "Query driver registry",
+            "placeholder": "Input competitive driver alias...",
+            "currentlyComparing": "Staged index targets",
+            "noDriversSelected": "No profiles selected for cross-evaluation",
+            "statusSearching": "Querying registry database...",
+            "statusNoResults": "No matching driver records found.",
+            "statusFoundResults": "Retrieved {count} records. Use keyboard arrow elements to review options.",
+            "listAriaLabel": "Selected drivers for comparison",
+            "driverChipAriaLabel": "Driver {driverName}, press backspace or delete to remove from comparison"
         }
     },
     "TournamentForm": {
