@@ -127,7 +127,7 @@ export default function VirtualDuelsSection({
             </div>
 
             {/* SEKCJA BOTTOM */}
-            <div className="h2h-reveal grid grid-rows-[0fr] group-hover:grid-rows-[1fr] group-focus-within:grid-rows-[1fr] transition-grid duration-300 ease-in-out w-full">
+            <div className="h2h-reveal grid grid-rows-[0fr] group-hover:grid-rows-[1fr] group-focus-within:grid-rows-[1fr] transition-grid w-full">
               <div className="overflow-hidden">
                 <div className="pt-2 mt-2 border-t border-brand-navy-light/40 text-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 ease-in-out delay-100">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-brand-yellow-hover">

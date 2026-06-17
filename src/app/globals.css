@@ -3,6 +3,27 @@
 /* Ominięcie restrykcji kolejności parsera poprzez jawne wskazanie warstwy bazowej */
 @layer base {
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
+
+  @media (prefers-reduced-motion: no-preference) {
+
+    *,
+    *::before,
+    *::after {
+      transition-property: background-color, border-color, color, fill, box-shadow;
+      transition-duration: 300ms;
+      transition-timing-function: ease;
+    }
+  }
+
+  /* Wyłączenie przejść dla osób, które wolą ich brak */
+  @media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+    }
+  }
 }
 
 @theme {
@@ -166,23 +187,6 @@ body {
 
 @utility fade-in-out {
   transition: opacity 300ms ease-in-out;
-}
-
-/* PO — w @layer base, utilities mają wyższy priorytet */
-@layer base {
-  @media (prefers-reduced-motion: no-preference) {
-    *, *::before, *::after {
-      transition-property: background-color, border-color, color, fill, box-shadow;
-      transition-duration: 300ms;
-      transition-timing-function: ease;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      transition: none !important;
-    }
-  }
 }
 
 @utility focus-brand {
