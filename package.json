@@ -9,9 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
-    "db:events-seed-local": "tsx --env-file=.env src/scripts/events-save-local.mts",
-    "db:drivers-seed-local": "tsx --env-file=.env src/scripts/drivers-save-local.mts",
-    "db:process-events": "tsx --env-file=.env src/scripts/process-events-local.mts"
+    "db:full-sync": "tsx --env-file=.env src/scripts/full-sync.mts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

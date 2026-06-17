@@ -11,9 +11,10 @@ if (globalForPrisma.prisma) {
 } else {
   let connectionString = process.env.POSTGRES_PRISMA_URL || "postgresql://localhost:5432";
 
-  // Jeśli jesteśmy na produkcji/preview, wstrzykujemy parametry SSL wprost do adresu URL.
-  // To ostatecznie eliminuje błąd "self-signed certificate in certificate chain".
-  if (process.env.NODE_ENV === 'production' && connectionString.startsWith('postgres')) {
+  // Sprawdzamy czy adres wskazuje na Supabase
+  const isSupabase = connectionString.includes('supabase.co') || connectionString.includes('pooler.supabase.com');
+
+  if (connectionString.startsWith('postgres')) {
     const urlObj = new URL(connectionString);
     urlObj.searchParams.set('sslmode', 'require');
     urlObj.searchParams.set('uselibpqcompat', 'true');
@@ -22,7 +23,8 @@ if (globalForPrisma.prisma) {
 
   const pool = new pg.Pool({
     connectionString,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    // Akceptujemy samopodpisane certyfikaty na produkcji ORAZ przy lokalnym połączeniu z Supabase
+    ssl: (process.env.NODE_ENV === 'production' || isSupabase) ? { rejectUnauthorized: false } : false,
   });
   
   const adapter = new PrismaPg(pool);
