@@ -9,13 +9,16 @@ let prismaInstance: PrismaClient;
 if (globalForPrisma.prisma) {
   prismaInstance = globalForPrisma.prisma;
 } else {
-  // Tworzymy klasyczną pulę połączeń pg przy użyciu zmiennej z Vercela
-  const pool = new pg.Pool({ connectionString: process.env.POSTGRES_URL });
+  // Dodajemy konfigurację SSL akceptującą certyfikaty Supabase
+  const pool = new pg.Pool({ 
+    connectionString: process.env.POSTGRES_URL,
+    ssl: process.env.NODE_ENV === 'production' 
+      ? { rejectUnauthorized: false } 
+      : false
+  });
   
-  // Mapujemy ją na adapter akceptowany przez Prisma 7
   const adapter = new PrismaPg(pool);
   
-  // Przekazujemy adapter bezpośrednio do opcji klienta
   prismaInstance = new PrismaClient({ adapter });
 }
 
