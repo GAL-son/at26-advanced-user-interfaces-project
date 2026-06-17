@@ -12,7 +12,8 @@
             "signUp": "Zapisz się",
             "serverAriaLabel": "Przejdź do serwera {name} (otwiera się w nowej karcie)",
             "aboutText": "Dołącz do naszej społeczności simracingowej, śledź statystyki kierowców i bierz udział w ekscytujących wydarzeniach.",
-            "rightsReserved": "Wszelkie prawa zastrzeżone."
+            "rightsReserved": "Wszelkie prawa zastrzeżone.",
+            "serverAVEAriaLabel": "Dołącz do naszego serwear {name} (w nowej karcie)"
         }
     },
     "Menu": {

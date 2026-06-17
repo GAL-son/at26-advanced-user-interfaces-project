@@ -12,7 +12,9 @@
             "signUp": "Sign up",
             "serverAriaLabel": "Go to server {name} (opens in a new tab)",
             "aboutText": "Join our competitive simracing community, track driver performance metrics, and participate in scheduled championship events.",
-            "rightsReserved": "All rights reserved."
+            "rightsReserved": "All rights reserved.",
+            "serverAVEAriaLabel": "Join our server {name} (opens in a new tab)",
+
         }
     },
     "Menu": {
