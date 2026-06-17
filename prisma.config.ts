@@ -9,8 +9,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Dla procesów migracji/push Prisma 7 potrzebuje bezpośredniego połączenia (DIRECT_URL)
-    // Jeśli go nie ma, użyje głównego POSTGRES_URL
-    url: process.env["DIRECT_URL"] || process.env["POSTGRES_URL"],
+    // 1. Najpierw szukamy połączenia bezpośredniego do migracji (NON_POOLING)
+    // 2. Jako fallback używamy głównego linku PRISMA_URL
+    url: process.env["POSTGRES_URL_NON_POOLING"] || process.env["POSTGRES_PRISMA_URL"],
   },
 });

@@ -9,13 +9,22 @@ let prismaInstance: PrismaClient;
 if (globalForPrisma.prisma) {
   prismaInstance = globalForPrisma.prisma;
 } else {
-  // Tworzymy klasyczną pulę połączeń pg przy użyciu zmiennej z Vercela
-  const pool = new pg.Pool({ connectionString: process.env.POSTGRES_URL });
+  // Czytamy dokładną nazwę klucza, który masz na Vercelu
+  const connectionString = process.env.POSTGRES_PRISMA_URL;
+
+  if (!connectionString && process.env.NODE_ENV === 'production') {
+    console.error("🚨 CRITICAL ERROR: Brak klucza POSTGRES_PRISMA_URL na produkcji!");
+  }
+
+  const pool = new pg.Pool({ 
+    connectionString: connectionString,
+    ssl: process.env.NODE_ENV === 'production' 
+      ? { rejectUnauthorized: false } 
+      : false
+  });
   
-  // Mapujemy ją na adapter akceptowany przez Prisma 7
   const adapter = new PrismaPg(pool);
   
-  // Przekazujemy adapter bezpośrednio do opcji klienta
   prismaInstance = new PrismaClient({ adapter });
 }
 
