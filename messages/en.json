@@ -2,14 +2,28 @@
     "Common": {
         "searchPlaceholder": "Search...",
         "noResults": "[NO TELEMETRY FOUND]",
-        "back": "Go back"
+        "back": "Go back",
+        "community": {
+            "ariaLabel": "Our community and servers",
+            "joinTitle": "Join the Community",
+            "discordBtn": "Discord Server",
+            "discordAriaLabel": "Join our Discord server (opens in a new tab)",
+            "serversTitle": "Our AC Servers",
+            "signUp": "Sign up",
+            "serverAriaLabel": "Go to server {name} (opens in a new tab)",
+            "aboutText": "Join our competitive simracing community, track driver performance metrics, and participate in scheduled championship events.",
+            "rightsReserved": "All rights reserved.",
+            "serverAVEAriaLabel": "Join our server {name} (opens in a new tab)",
+
+        }
     },
     "Menu": {
         "currentLocale": "en",
         "switchLanguageTo": "pl",
         "drivers": "Drivers",
         "events": "Events",
-        "compare": "Comparison"
+        "compare": "Comparison",
+        "register": "Register"
     },
     "Home": {
         "latestEvents": "Latest Events",
@@ -51,7 +65,10 @@
         "title": "Driver Standings",
         "filter": {
             "searchLabel": "Search driver or alias...",
-            "searchPlaceholder": "Type here..."
+            "searchPlaceholder": "Type here...",
+            "searchHint": "Search for a driver by name or alias.",
+            "barAriaLabel": "Driver standings filtering and sorting controls",
+            "sortGroupLabel": "Driver standing sorting criteria groups"
         },
         "tabs": {
             "rating": "Rating",
@@ -59,6 +76,7 @@
             "alphabetical": "A - Z",
             "lastActive": "Last Active"
         },
+        "tabsAriaLabel": "Driver standings sorting criteria",
         "list": {
             "ariaLabel": "Drivers global standings",
             "loadingInitial": "Loading drivers leaderboard...",
@@ -68,6 +86,7 @@
             "aliases": "Aliases",
             "notAvailable": "N/A",
             "rowAriaLabel": "Driver {name}, view profile",
+            "loadMore": "See more drivers",
             "headers": {
                 "pos": "Pos",
                 "profile": "Driver Profile",
@@ -75,6 +94,11 @@
                 "lastActive": "Last Active",
                 "elo": "ELO Rating"
             }
+        },
+        "sr": {
+            "resultsFound": "Retrieved {count} matching drivers on the initial view.",
+            "loadedMore": "Synchronized additional records. Currently rendering {total} drivers total.",
+            "errorLoading": "An error occurred while establishing link to standings registry."
         },
         "profile": {
             "loadingTelemetry": "Loading telemetry stream...",
@@ -88,28 +112,30 @@
         }
     },
     "Events": {
-        "title": "Race Events History",
-        "searchPlaceholder": "Search by track or server...",
-        "searchLabel": "Filter race events",
-        "loadingAria": "Loading historical events database stream",
+        "title": "Event Archive",
+        "searchPlaceholder": "Search track or server...",
+        "searchLabel": "Filter sessions",
+        "loadingAria": "Querying historical event registry stream",
         "buttons": {
             "refresh": "Refresh",
-            "refreshing": "Refreshed",
-            "refreshAria": "Reload race events list",
-            "refreshingAria": "Rebuilding telemetry list database"
+            "refreshing": "Refreshing",
+            "refreshAria": "Reload race event registry",
+            "refreshingAria": "Rebuilding telemetry database index"
         },
         "errors": {
-            "fetchFailed": "Failed to connect to events core API.",
-            "searchFailed": "Search query stream dropped by the API.",
-            "loadMoreFailed": "Could not synchronize the next batch of historical events.",
-            "unexpected": "An unexpected synchronization anomaly occurred.",
-            "connection": "Network timeout. Check your connection telemetry data."
+            "fetchFailed": "Connection error with core race API.",
+            "searchFailed": "Search pipeline aborted by interface.",
+            "loadMoreFailed": "Failed to synchronize next historical batch.",
+            "unexpected": "Unexpected anomaly during data synchronization.",
+            "connection": "Network timeout exceeded. Verify connection parameters."
         },
         "list": {
-            "emptyState": "No events found matching your filter criteria.",
-            "gridAria": "Race telemetry archive list",
-            "loadingMoreAria": "Fetching more archived races from the server",
-            "endOfGrid": "— End of telemetry database —"
+            "emptyState": "No races found matching search parameters.",
+            "gridAria": "Race telemetry list archive",
+            "loadingMoreAria": "Fetching next scheduled items from database",
+            "endOfGrid": "— End of telemetry records database —",
+            "rowAriaLabel": "Race: {name}, track: {track}. Conducted on: {date} via server {server}. Click to inspect complete telemetry results.",
+            "loadMore": "See more events"
         }
     },
     "Elo": {
@@ -156,7 +182,8 @@
             "laps": "Laps completed",
             "totalTime": "Total duration",
             "gap": "Interval",
-            "winner": "Winner"
+            "winner": "Winner",
+            "goToProfile": "Go to drivers profile"
         }
     },
     "CompareDrivers": {
@@ -180,5 +207,30 @@
             "listAriaLabel": "Wybrani kierowcy do porównania",
             "driverChipAriaLabel": "Kierowca {driverName}, naciśnij backspace lub delete, aby usunąć z porównania"
         }
+    },
+    "TournamentForm": {
+    "title": "Tournament Registration",
+    "successMessage": "Registration completed successfully!",
+    "listTitle": "Registered Drivers (Mocked GET)",
+    "noDrivers": "No registrations yet.",
+    "labels": {
+      "driverName": "Driver Name",
+      "steamId": "SteamID64",
+      "car": "Car",
+      "selectCar": "Select a machine"
+    },
+    "buttons": {
+      "submit": "Submit Registration",
+      "processing": "Processing..."
+    },
+    "errors": {
+      "fetch": "Failed to fetch registered drivers list (Network error).",
+      "submit": "A network error occurred during registration. Please try again."
+    },
+    "validation": {
+      "nameMin": "Driver name must be at least 3 characters long",
+      "steamIdRegex": "SteamID must consist of exactly 17 digits",
+      "carRequired": "Please select a car from the list"
     }
+  }
 }

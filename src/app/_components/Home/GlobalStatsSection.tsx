@@ -37,7 +37,8 @@ export default function GlobalStatsSection({ stats }: GlobalStatsSectionProps) {
   ];
 
   const renderIcon = (type: string) => {
-    const iconClass = "text-[var(--color-brand-yellow-hover)] text-2xl sm:text-3xl";
+    // Migracja ikony na czyste klasy kolorów Tailwind v4
+    const iconClass = "text-brand-yellow-hover text-2xl sm:text-3xl";
     switch (type) {
       case "drivers":
         return <PeopleIcon className={iconClass} />;
@@ -52,18 +53,19 @@ export default function GlobalStatsSection({ stats }: GlobalStatsSectionProps) {
 
   return (
     <section 
-      className="w-full bg-[var(--color-brand-navy-dark)]/20 rounded-xl p-6 border border-[var(--color-brand-navy-light)]/40 flex-1"
+      // Usunięcie arbitralnych zmiennych var() z kontenera sekcji
+      className="w-full bg-brand-navy-dark/20 rounded-xl p-6 border border-brand-navy-light/40 flex-1"
       aria-label={t("stats.ariaLabel")}
     >
-      <dl className="flex flex-col gap-4 m-0 p-0 h-full justify-between">
+      <dl className="flex flex-col sm:flex-row gap-4 m-0 p-0 h-full justify-between">
         {statItems.map((item) => (
           <div 
             key={item.id} 
-            className="flex items-center gap-4 p-4 rounded-lg bg-[var(--color-brand-navy-dark)] border border-[var(--color-brand-navy-light)]/40 shadow-sm flex-1"
+            className="flex items-center gap-4 p-4 rounded-lg bg-brand-navy-dark border border-brand-navy-light/40 shadow-sm flex-1"
           >
-            {/* Dekoracyjny kontener ikony w pełni ukryty przed czytnikami ekranu */}
+            {/* Dekoracyjny kontener ikony w wersji Tailwind v4 */}
             <div 
-              className="flex items-center justify-center w-12 h-12 rounded-lg bg-[var(--color-brand-navy)] border border-[var(--color-brand-navy-light)] shrink-0"
+              className="flex items-center justify-center w-12 h-12 rounded-lg bg-brand-navy border border-brand-navy-light shrink-0"
               aria-hidden="true"
             >
               {renderIcon(item.iconType)}
@@ -71,10 +73,11 @@ export default function GlobalStatsSection({ stats }: GlobalStatsSectionProps) {
 
             {/* Kontener tekstowy z parą definicji */}
             <div className="flex flex-col min-w-0 flex-1">
-              <dt className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-text-muted)] opacity-80 truncate">
+              <dt className="text-xs font-semibold uppercase tracking-wider text-brand-text-muted opacity-80 truncate">
                 {item.label}
               </dt>
-              <dd className="text-xl sm:text-2xl font-black tracking-tight text-[var(--color-brand-text)] m-0 mt-0.5 font-mono">
+              {/* Zmiana na ujednolicony token !text-stat-value dla czytelnych, dużych danych liczbowych */}
+              <dd className="text-brand-text m-0 mt-0.5 !text-stat-value">
                 {item.value}
               </dd>
             </div>

@@ -8,19 +8,13 @@ import EventRowSkeleton from "@/app/_components/Events/EventRowSkeleton";
 import UniversalSearch from "@/app/_components/UniversalSearch";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
-
-interface RaceEvent {
-  id: string;
-  server: string;
-  track: string;
-  date: string;
-  jsonUrl: string;
-}
-
-const SECTION_ORDER = ["menu", "events-header", "events-list"];
+import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
+import { RaceEvent } from "../_components/Events/EventRow";
+const SECTION_ORDER = ["menu", "events-header", "events-list", "footer"];
 
 export default function EventsPage() {
   const t = useTranslations("Events");
+  usePageInitialFocus();
 
   const [initialData, setInitialData] = useState<{
     data: RaceEvent[];
@@ -66,10 +60,7 @@ export default function EventsPage() {
     loadInitialData(false);
   }, []);
 
-  // Obsługa nawigacji wewnątrz nagłówka (wyszukiwarka <-> przycisk odświeżania)
   const handleHeaderKeyDown = (e: React.KeyboardEvent, element: "search" | "refresh") => {
-    // Jeśli lista podpowiedzi w wyszukiwarce jest aktywna i użytkownik klika strzałki góra/dół,
-    // pozwól wyszukiwarce obsłużyć wybór elementu z dropdownu i nie zmieniaj sekcji.
     const target = e.target as HTMLElement;
     const isComboboxExpanded = target.getAttribute("aria-expanded") === "true";
 
@@ -82,7 +73,6 @@ export default function EventsPage() {
       document.getElementById("events-refresh-btn")?.focus();
     } else if (e.key === "ArrowLeft" && element === "refresh") {
       e.preventDefault();
-      // Szukamy bezpośredniego inputu wewnątrz kontenera wyszukiwarki
       const searchInput = document.getElementById("events-search-container")?.querySelector("input");
       if (searchInput) {
         (searchInput as HTMLInputElement).focus();
@@ -99,12 +89,7 @@ export default function EventsPage() {
   return (
     <Box
       component="div"
-      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
-      sx={{
-        backgroundColor: 'var(--color-brand-navy)',
-        color: 'var(--color-brand-text)',
-        transition: 'background-color 0.3s ease, color 0.3s ease'
-      }}
+      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300 bg-[var(--color-brand-navy)] text-[var(--color-brand-text)]"
     >
       <Container component="main" maxWidth="lg" className="p-0!">
         {/* SEKCJA NAGŁÓWKA */}
@@ -113,19 +98,16 @@ export default function EventsPage() {
           data-section="events-header"
           className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
+          {/* POPRAWKA: Dodane !font-display dla aktywacji Orbitrona */}
           <Typography
-            variant="h4"
             component="h1"
-            className="tracking-tight uppercase text-2xl sm:text-3xl shrink-0"
-            sx={{ color: 'var(--color-brand-text)', fontWeight: 900 }}
+            className="!text-page-title !font-display font-black tracking-tight uppercase shrink-0 !text-[var(--color-brand-text)]"
           >
             {t("title")}
           </Typography>
 
-          {/* 🟢 POPRAWKA 1: Zamiana md:w-auto na md:w-full dla odblokowania przestrzeni */}
           <Box className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-full md:max-w-xl flex-1 justify-end">
 
-            {/* 🟢 POPRAWKA 2: Dodanie sm:flex-1 oraz md:max-w-full */}
             <Box
               id="events-search-container"
               className="w-full sm:flex-1 md:max-w-full"
@@ -137,10 +119,14 @@ export default function EventsPage() {
                 placeholder={t("searchPlaceholder")}
                 label={t("searchLabel")}
                 isLoading={loading || refreshing}
+                data-section-page-start="true"
                 data-focus-order="primary"
+                results={[]}
+                onSelectResult={() => { }}
               />
             </Box>
 
+            {/* POPRAWKA: Wpięcie klasy focus-brand i zabezpieczenie !text-btn-mono */}
             <Button
               id="events-refresh-btn"
               variant="outlined"
@@ -150,32 +136,10 @@ export default function EventsPage() {
               disabled={loading || refreshing}
               startIcon={<RefreshIcon />}
               aria-label={refreshing ? t("buttons.refreshingAria") : t("buttons.refreshAria")}
-              sx={{
-                transition: "all 0.2s ease",
-                fontFamily: "var(--font-geist-mono), monospace",
-                fontSize: "0.75rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontWeight: 700,
-                px: 2.5,
-                py: 1.5,
-                height: "48px", // 🟢 Dopasowanie wysokości idealnie pod input wyszukiwarki (który ma height: 48px w sx)
-                borderRadius: "var(--radius-brand-card)",
-                whiteSpace: "nowrap",
-                color: 'var(--color-brand-text-muted)',
-                borderColor: 'var(--color-brand-navy-light)',
-                backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)',
-
-                '&:hover': {
-                  borderColor: 'var(--color-brand-yellow-hover)',
-                  color: 'var(--color-brand-yellow-text)',
-                  backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 8%, transparent)',
-                },
-                '&:disabled': {
-                  color: 'color-mix(in srgb, var(--color-brand-text-muted) 40%, transparent)',
-                  borderColor: 'var(--color-brand-navy-light)',
-                }
-              }}
+              className="!text-btn-mono focus-brand uppercase px-5 py-3 h-12 rounded-[var(--radius-brand-card)] whitespace-nowrap transition-all duration-200
+                !text-[var(--color-brand-text-muted)] !border-[var(--color-brand-navy-light)] bg-[color-mix(in_srgb,var(--color-brand-navy-dark)_40%,transparent)]
+                hover:!border-[var(--color-brand-yellow-hover)] hover:!text-[var(--color-brand-yellow-text)] hover:bg-[color-mix(in_srgb,var(--color-brand-yellow)_8%,transparent)]
+                disabled:!text-[color-mix(in_srgb,var(--color-brand-text-muted)_40%,transparent)] disabled:!border-[var(--color-brand-navy-light)]"
             >
               {refreshing ? t("buttons.refreshing") : t("buttons.refresh")}
             </Button>
@@ -196,10 +160,11 @@ export default function EventsPage() {
           )}
 
           {error && (
+            /* POPRAWKA: Wymuszenie czcionki podstawowej !font-sans dla komunikatu o błędzie */
             <Alert
               severity="error"
               role="alert"
-              className="mb-6 font-medium"
+              className="mb-6 font-medium !font-sans"
               sx={{
                 borderRadius: 'var(--radius-brand-card)',
                 backgroundColor: 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',

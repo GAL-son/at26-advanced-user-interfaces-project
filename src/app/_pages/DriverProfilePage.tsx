@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Box, Paper, Typography } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import SportsScoreIcon from "@mui/icons-material/SportsScore";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import BackButton from "@/app/_components/Common/BackButton";
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EloChart from "@/app/_components/Elo/EloChart";
 import { useTranslations, useFormatter } from "next-intl";
+import { focusFlatSection } from "@/app/_utils/navigation";
+
+// Import Twojego nowego wrappera
+import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 
 interface DriverStats {
   guid: string;
@@ -21,14 +24,24 @@ interface DriverStats {
   lastRaced: string;
 }
 
-export default function DriverProfilePage() {
+const SECTION_ORDER = [
+  "menu",
+  "driver-back",
+  "driver-chart",
+    "footer"
+];
+
+// 1. Wyciągamy zawartość profilu do osobnego komponentu wewnętrznego
+function DriverProfileContent() {
   const { guid } = useParams() as { guid: string };
-  const router = useRouter();
   const t = useTranslations("Drivers");
   const format = useFormatter();
 
   const [driver, setDriver] = useState<DriverStats | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+
+  const backButtonRef = useRef<HTMLButtonElement | null>(null);
+  const chartSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function fetchDriverProfile() {
@@ -47,7 +60,27 @@ export default function DriverProfilePage() {
     fetchDriverProfile();
   }, [guid]);
 
-  // EKRAN ŁADOWANIA WSTĘPNEGO
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const activeEl = document.activeElement;
+        if (activeEl?.tagName === "INPUT" || activeEl?.tagName === "TEXTAREA") {
+          return;
+        }
+
+        const chartInteractiveZone = chartSectionRef.current?.querySelector('[tabindex="0"]') as HTMLElement;
+        
+        if (chartInteractiveZone && document.activeElement !== chartInteractiveZone) {
+          chartInteractiveZone.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  // Spinner stanów ładowania API (wewnątrz komponentu, jeśli potrzebny niezależnie od Suspense)
   if (loadingProfile) {
     return (
       <Box 
@@ -57,17 +90,19 @@ export default function DriverProfilePage() {
         className="min-h-screen flex flex-col items-center justify-center gap-3"
         sx={{ backgroundColor: 'var(--color-brand-navy)' }}
       >
-        <LoadingSpinner text={t("profile.loadingTelemetry")} size={20} className="py-2 px-4" />
+        {/* Możesz tu zostawić lokalny spinner lub pozwolić wrapperowi obsłużyć całe ładowanie */}
+        <div className="animate-pulse text-sm uppercase tracking-wider text-center" style={{ color: 'var(--color-brand-text-muted)' }}>
+          {t("profile.loadingTelemetry")}
+        </div>
       </Box>
     );
   }
 
-  // BŁĄD POŁĄCZENIA
   if (!driver) {
     return (
       <Box 
         role="alert"
-        className="min-h-screen flex items-center justify-center font-mono text-sm"
+        className="min-h-screen flex items-center justify-center !text-btn-mono uppercase"
         sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text-muted)' }}
       >
         {t("profile.connectionError")}
@@ -75,7 +110,6 @@ export default function DriverProfilePage() {
     );
   }
 
-  // Zlokalizowany format daty i czasu synchronizacji
   const hasValidDate = driver.lastRaced && driver.lastRaced !== "N/A";
   const formattedSyncDate = hasValidDate
     ? format.dateTime(new Date(driver.lastRaced), {
@@ -91,7 +125,7 @@ export default function DriverProfilePage() {
     <Box 
       component="main"
       id="main-content"
-      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
+      className="pt-10 pb-4 px-4 sm:px-6 lg:px-8"
       sx={{
         backgroundColor: 'var(--color-brand-navy)',
         color: 'var(--color-brand-text)',
@@ -100,19 +134,36 @@ export default function DriverProfilePage() {
     >
       <div className="container mx-auto max-w-5xl">
         
-        {/* NAGŁÓWEK / POWRÓT */}
-        <div className="flex items-center gap-4 mb-8">
-          <BackButton ariaLabel={t("profile.backToLeaderboard")} />
+        {/* SEKCJA: Przycisk powrotu + Nagłówek */}
+        <div 
+          data-section="driver-back"
+          data-section-page-start="true"
+          className="flex items-center gap-4 mb-8"
+        >
+          <BackButton 
+            ref={backButtonRef}
+            ariaLabel={t("profile.backToLeaderboard")} 
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                focusFlatSection("driver-back", "next", SECTION_ORDER);
+              }
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                focusFlatSection("driver-back", "prev", SECTION_ORDER);
+              }
+            }}
+          />
           <div>
             <h1 
-              className="text-3xl font-black uppercase tracking-tight leading-tight"
+              className="!text-page-title uppercase leading-tight shrink-0"
               style={{ color: 'var(--color-brand-text)' }}
             >
               {driver.mainName}
             </h1>
             {driver.altNames && driver.altNames !== driver.mainName && (
               <p 
-                className="text-xs mt-1"
+                className="!text-btn-mono mt-1 uppercase"
                 style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
               >
                 {t("list.aliases")}: {driver.altNames}
@@ -148,17 +199,13 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  className="!text-btn-mono uppercase block"
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("list.headers.elo")}
                 </Typography>
-                <p 
-                  className="text-2xl font-black font-mono"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(Math.round(driver.currentElo || 0))}
                 </p>
               </div>
@@ -187,19 +234,15 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  className="!text-btn-mono uppercase block"
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.totalExperience")}
                 </Typography>
-                <p 
-                  className="text-2xl font-black font-mono"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                <p className="!text-stat-value tracking-tight !text-brand-text">
                   {format.number(driver.racesCount)}{" "}
-                  <span className="text-xs font-normal" style={{ color: 'var(--color-brand-text-muted)' }}>
+                  <span className="!text-btn-mono lowercase font-normal !text-brand-text-muted opacity-80">
                     {t("profile.racesUnit")}
                   </span>
                 </p>
@@ -229,17 +272,13 @@ export default function DriverProfilePage() {
               </Box>
               <div>
                 <Typography 
-                  variant="caption"
                   component="h2"
-                  className="text-[10px] font-mono uppercase tracking-widest font-bold block"
-                  sx={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
+                  className="!text-btn-mono uppercase block"
+                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
                 >
                   {t("profile.lastSync")}
                 </Typography>
-                <h3 
-                  className="text-sm font-bold mt-1"
-                  style={{ color: 'var(--color-brand-text)' }}
-                >
+                <h3 className="text-sm font-bold mt-1 !font-sans !text-brand-text">
                   {formattedSyncDate}
                 </h3>
               </div>
@@ -247,12 +286,29 @@ export default function DriverProfilePage() {
           </div>
         </section>
 
-        {/* ASYNCHRONICZNY WYKRES ELO KIEROWCY */}
-        <section aria-label={t("profile.chartSection")}>
-          <EloChart guids={[guid]} isComparable={true} />
-        </section>
-
+        {/* SEKCJA: Wykres ELO */}
+        <div data-section="driver-chart" ref={chartSectionRef}>
+          <EloChart 
+            data-focus-order="driver-chart"
+            guids={[guid]} 
+            isComparable={true} 
+            onNavigateVertical={(direction) => {
+              focusFlatSection("driver-chart", direction === "up" ? "prev" : "next", SECTION_ORDER);
+            }}
+          />
+        </div>
       </div>
     </Box>
+  );
+}
+
+// 2. Główny eksport strony staje się czystym wrapperem
+export default function DriverProfilePage() {
+  const t = useTranslations("Drivers");
+
+  return (
+    <PageLoaderWrapper loadingText={t("profile.loadingTelemetry")}>
+      <DriverProfileContent />
+    </PageLoaderWrapper>
   );
 }

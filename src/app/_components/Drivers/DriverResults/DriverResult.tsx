@@ -2,7 +2,7 @@
 import React from 'react';
 import { Box, TableCell } from '@mui/material';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
-import { RaceResultExtended } from '../../../(routes)/events/page';
+import { RaceResultExtended } from '@/app/_pages/EventResultPage';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 
@@ -14,7 +14,7 @@ export default function DriverResult({ row }: DriverResultProps) {
   const isGain = row.eloChange >= 0;
 
   return (
-    <PositionedTableRow position={row.pos}>
+    <PositionedTableRow>
       {/* Combo */}
       <TableCell>
         <Box className="flex items-center gap-2">

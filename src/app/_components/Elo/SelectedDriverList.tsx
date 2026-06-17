@@ -14,28 +14,65 @@ export interface DriverBasicInfo {
 interface SelectedDriversListProps {
   drivers: DriverBasicInfo[];
   onRemove: (guid: string) => void;
+  onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
-export default function SelectedDriversList({ drivers, onRemove }: SelectedDriversListProps) {
+export default function SelectedDriversList({ 
+  drivers, 
+  onRemove,
+  onNavigateVertical 
+}: SelectedDriversListProps) {
   const t = useTranslations("CompareDrivers.search");
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>, index: number) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextChip = document.getElementById(`selected-driver-chip-${index + 1}`);
+      nextChip?.focus();
+    }
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (index === 0) {
+        const searchInput = document.getElementById("driver-search-input");
+        searchInput?.focus();
+      } else {
+        const prevChip = document.getElementById(`selected-driver-chip-${index - 1}`);
+        prevChip?.focus();
+      }
+    }
+
+    if (e.key === "ArrowUp" && onNavigateVertical) {
+      e.preventDefault();
+      onNavigateVertical("up"); 
+    }
+
+    if (e.key === "ArrowDown" && onNavigateVertical) {
+      e.preventDefault();
+      onNavigateVertical("down"); 
+    }
+  };
 
   return (
     <div className="md:mt-0">
-      <h2 className="text-[10px] font-mono uppercase tracking-widest text-brand-text-muted font-bold mb-3">
+      {/* POPRAWKA: Przejście z surowych klas rozmiaru na token !text-btn-mono z wagą czcionki i trackingiem */}
+      <h2 className="!text-btn-mono uppercase font-bold text-brand-text-muted mb-3">
         {t("currentlyComparing")}
       </h2>
       <div className="flex flex-wrap gap-2" role="list" aria-label={t("listAriaLabel")}>
         {drivers.length === 0 ? (
-          <p className="text-xs text-brand-text-muted/60 font-mono italic" role="status">
+          /* POPRAWKA: Stan pusty dostosowany do tokenu !text-btn-mono */
+          <p className="!text-btn-mono text-brand-text-muted/60 italic lowercase" role="status">
             {t("noDriversSelected")}
           </p>
         ) : (
-          drivers.map((driver) => (
+          drivers.map((driver, index) => (
             <div key={driver.guid} role="listitem">
               <Chip
+                id={`selected-driver-chip-${index}`}
                 label={`${driver.mainName} ${driver.currentElo ? `(${Math.round(driver.currentElo)})` : ""}`}
                 onDelete={() => onRemove(driver.guid)}
-                // 🌐 Dynamiczna interpolacja parametrów i18n gwarantuje poprawną składnię w każdym języku
+                onKeyDown={(e) => handleKeyDown(e, index)}
                 aria-label={t("driverChipAriaLabel", { driverName: driver.mainName })}
                 deleteIcon={
                   <CloseIcon
@@ -43,16 +80,17 @@ export default function SelectedDriversList({ drivers, onRemove }: SelectedDrive
                     aria-hidden="true"
                   />
                 }
-                className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light font-mono text-xs uppercase !p-1"
+                /* POPRAWKA: Podpięcie klasy !text-btn-mono i wyczyszczenie inline styles czcionek */
+                className="!bg-brand-navy !text-brand-text !border !border-brand-navy-light !text-btn-mono uppercase !p-1 focus-brand"
                 sx={{
                   borderRadius: "4px",
                   transition: "all 0.2s ease",
                   "&:hover": {
                     borderColor: "var(--color-brand-yellow-hover)",
                   },
-                  "&:focus-visible": {
-                    outline: "2px solid var(--color-brand-yellow-hover) !important",
-                    outlineOffset: "1px"
+                  /* POPRAWKA: Kontrolę nad focusem w pełni oddajemy do spójnej klasy narzędziowej focus-brand */
+                  "&:focus, &:focus-visible": {
+                    outline: "none",
                   }
                 }}
               />

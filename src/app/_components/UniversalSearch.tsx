@@ -5,23 +5,23 @@ import { Box, TextField, InputAdornment, CircularProgress } from "@mui/material"
 import { useTranslations } from "next-intl";
 import SearchIcon from "@mui/icons-material/Search";
 
-// Rozszerzamy bazowy kontrakt, aby upewnić się, że każdy element generyczny posiada identyfikator
 export interface SearchResultItem {
   guid: string;
   mainName: string;
   [key: string]: any;
 }
 
-interface UniversalSearchProps<T extends SearchResultItem> {
-  results: T[];
-  renderItem?: React.ComponentType<{ item: T }>;
-  onSelectResult: (item: T) => void;
-  value: string;
-  onChange: (val: string) => void;
-  placeholder?: string;
-  label?: string;
-  isLoading?: boolean;
-  fullWidth?: boolean;
+interface UniversalSearchProps<T extends SearchResultItem> 
+  extends Omit<React.HTMLAttributes<HTMLInputElement>, "results" | "onChange"> {
+    results: T[];
+    renderItem?: React.ComponentType<{ item: T }>;
+    onSelectResult: (item: T) => void;
+    value: string;
+    onChange: (val: string) => void; // Teraz Twój niestandardowy typ jest w pełni legalny
+    placeholder?: string;
+    label?: string;
+    isLoading?: boolean;
+    fullWidth?: boolean;
 }
 
 export default function UniversalSearch<T extends SearchResultItem>({
@@ -34,18 +34,18 @@ export default function UniversalSearch<T extends SearchResultItem>({
   onSelectResult,
   fullWidth = true,
   renderItem: RenderItem,
+  onKeyDown,
+  ...props
 }: UniversalSearchProps<T>) {
   const t = useTranslations("Common");
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  // Śledzenie aktywnego indeksu za pomocą klawiatury
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasDropdown = Array.isArray(results);
 
-  // Generowanie unikalnych ID dla zachowania integralności ARIA (Kryterium WCAG 4.1.2)
   const uniqueId = React.useId();
   const listboxId = `combobox-listbox-${uniqueId}`;
   const getOptionId = (index: number) => `combobox-option-${uniqueId}-${index}`;
@@ -62,12 +62,10 @@ export default function UniversalSearch<T extends SearchResultItem>({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [hasDropdown]);
 
-  // Resetowanie indeksu fokusu, kiedy zmieniają się wyniki wyszukiwania
   useEffect(() => {
     setFocusedIndex(-1);
   }, [results]);
 
-  // Automatyczne przewijanie listy do wybranego klawiaturą elementu
   useEffect(() => {
     if (focusedIndex >= 0) {
       const activeOption = document.getElementById(getOptionId(focusedIndex));
@@ -86,11 +84,14 @@ export default function UniversalSearch<T extends SearchResultItem>({
     inputRef.current?.focus();
   };
 
-  // Obsługa pełnego cyklu sterowania klawiaturą (WCAG 2.1.1 - Keyboard)
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const showDropdown = hasDropdown && isDropdownOpen && results.length > 0;
+
+  const handleKeyDownInternal = (e: KeyboardEvent<HTMLInputElement>) => {
     if (!showDropdown) {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        setIsDropdownOpen(true);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowRight") {
+        if (onKeyDown) {
+          onKeyDown(e);
+        }
       }
       return;
     }
@@ -114,17 +115,18 @@ export default function UniversalSearch<T extends SearchResultItem>({
         e.preventDefault();
         setIsDropdownOpen(false);
         setFocusedIndex(-1);
+        inputRef.current?.focus();
         break;
       case "Tab":
-        // Pozwól opuścić pole, ale zamknij listę
         setIsDropdownOpen(false);
         break;
       default:
+        if (onKeyDown) {
+          onKeyDown(e);
+        }
         break;
     }
   };
-
-  const showDropdown = hasDropdown && isDropdownOpen && (value.trim().length > 0 || results.length > 0);
 
   return (
     <Box ref={dropdownRef} className="relative w-full">
@@ -139,7 +141,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
           onChange(e.target.value);
           setIsDropdownOpen(true);
         }}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleKeyDownInternal}
         inputRef={inputRef}
         slotProps={{
           htmlInput: {
@@ -149,6 +151,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
             "aria-controls": showDropdown ? listboxId : undefined,
             "aria-autocomplete": "list",
             "aria-activedescendant": focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined,
+            ...props,
           },
           input: {
             startAdornment: (
@@ -163,6 +166,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
             ),
           },
         }}
+        /* POPRAWKA: Dodanie !font-sans do klas TextField oraz inputu, aby wymusić Rajdhani */
+        className="!font-sans"
         sx={{
           "& .MuiOutlinedInput-root": {
             height: "48px",
@@ -176,10 +181,12 @@ export default function UniversalSearch<T extends SearchResultItem>({
           },
           "& .MuiInputLabel-root": {
             color: "var(--color-brand-text-muted)",
+            fontFamily: "var(--font-sans) !important", /* Wymuszenie w MUI */
             "&.Mui-focused": { color: "var(--color-brand-yellow-text)" }
           },
           "& .MuiInputBase-input": {
             color: "var(--color-brand-text)",
+            fontFamily: "var(--font-sans) !important", /* Wymuszenie w MUI dla wpisywanego tekstu */
             "&::placeholder": { color: "var(--color-brand-text-muted)", opacity: 0.7 }
           },
         }}
@@ -191,7 +198,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
           id={listboxId}
           role="listbox"
           aria-label={label || "Search results"}
-          className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto font-mono text-sm shadow-xl"
+          /* POPRAWKA: Zamiana font-mono na ujednolicony token !text-btn-mono z Share Tech Mono */
+          className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto !text-btn-mono shadow-xl"
           sx={{
             backgroundColor: "color-mix(in srgb, var(--color-brand-navy-dark) 95%, transparent)",
             backdropFilter: "blur(12px)",
@@ -200,7 +208,7 @@ export default function UniversalSearch<T extends SearchResultItem>({
           }}
         >
           {results.length === 0 && !isLoading ? (
-            <Box className="p-4 text-center text-xs" sx={{ color: "var(--color-brand-text-muted)", opacity: 0.6 }}>
+            <Box className="p-4 text-center text-xs !text-btn-mono" sx={{ color: "var(--color-brand-text-muted)", opacity: 0.6 }}>
               {t("noResults")}
             </Box>
           ) : (
@@ -228,7 +236,8 @@ export default function UniversalSearch<T extends SearchResultItem>({
                   {RenderItem ? (
                     <RenderItem item={item} />
                   ) : (
-                    <Box component="span" sx={{ color: "var(--color-brand-text)" }}>
+                    /* POPRAWKA: Wymuszenie prawidłowej czcionki monotypowej dla tekstu domyślnego */
+                    <Box component="span" className="!text-btn-mono" sx={{ color: "var(--color-brand-text)" }}>
                       {item.mainName}
                     </Box>
                   )}

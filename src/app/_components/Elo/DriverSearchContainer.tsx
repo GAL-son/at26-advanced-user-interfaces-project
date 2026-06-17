@@ -11,12 +11,14 @@ interface DriverSearchContainerProps {
   selectedDrivers: DriverBasicInfo[];
   onAddDriver: (driver: DriverBasicInfo) => void;
   onRemoveDriver: (guid: string) => void;
+  onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
 export default function DriverSearchContainer({
   selectedDrivers,
   onAddDriver,
   onRemoveDriver,
+  onNavigateVertical,
 }: DriverSearchContainerProps) {
   const t = useTranslations("CompareDrivers.search");
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +41,7 @@ export default function DriverSearchContainer({
           `/api/drivers/search?q=${encodeURIComponent(searchQuery)}`,
         );
         const data = await res.json();
-        
+
         if (active && data.success && Array.isArray(data.results)) {
           setSearchResults(data.results);
         }
@@ -63,13 +65,32 @@ export default function DriverSearchContainer({
     setSearchQuery("");
   };
 
-  // Dynamiczny komunikat dla czytników ekranu (WCAG Status Messages - Kryterium 4.1.3)
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "ArrowUp" && onNavigateVertical) {
+      e.preventDefault();
+      onNavigateVertical("up");
+    }
+
+    if (e.key === "ArrowDown" && onNavigateVertical) {
+      e.preventDefault();
+      onNavigateVertical("down");
+    }
+
+    if (e.key === "ArrowRight") {
+      const firstChip = document.getElementById("selected-driver-chip-0");
+      if (firstChip) {
+        e.preventDefault();
+        firstChip.focus();
+      }
+    }
+  };
+
   const getSearchStatusMessage = () => {
     if (isSearching) return t("statusSearching");
     if (searchQuery && searchResults.length === 0) return t("statusNoResults");
     if (searchResults.length > 0) {
-      return t("statusFoundResults", { 
-        count: searchResults.length 
+      return t("statusFoundResults", {
+        count: searchResults.length
       });
     }
     return "";
@@ -87,26 +108,28 @@ export default function DriverSearchContainer({
         transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
-      {/* Sekcja ukryta wizualnie, ale dostępna dla czytników (Aria Live Region) */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {getSearchStatusMessage()}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        
+
         {/* LEWA STRONA: Wyszukiwarka */}
         <div className="w-full">
-          <Box 
-            component="p"
-            className="text-[10px] font-mono uppercase tracking-widest font-bold mb-2 opacity-80"
-            sx={{ color: "var(--color-brand-text-muted)" }}
+          {/* POPRAWKA: Przejście z surowych klas rozmiaru na token !text-btn-mono z wagą czcionki i trackingiem */}
+          <p 
+            className="!text-btn-mono uppercase tracking-widest font-bold mb-2 opacity-80"
+            style={{ color: "var(--color-brand-text-muted)" }}
           >
             {t("label")}
-          </Box>
+          </p>
 
           <UniversalSearch
+            id="driver-search-input"
+            data-focus-order="primary"
             value={searchQuery}
             onChange={setSearchQuery}
+            onKeyDown={handleSearchKeyDown}
             placeholder={t("placeholder")}
             isLoading={isSearching}
             results={searchResults}
@@ -117,12 +140,13 @@ export default function DriverSearchContainer({
 
         {/* PRAWA STRONA: Wybrani kierowcy */}
         <div className="w-full">
-          <SelectedDriversList 
-            drivers={selectedDrivers} 
-            onRemove={onRemoveDriver} 
+          <SelectedDriversList
+            drivers={selectedDrivers}
+            onRemove={onRemoveDriver}
+            onNavigateVertical={onNavigateVertical}
           />
         </div>
-        
+
       </div>
     </Paper>
   );

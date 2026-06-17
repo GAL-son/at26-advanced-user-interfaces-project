@@ -1,27 +1,33 @@
 "use client";
+
 import React from 'react';
 import ComboBadge from "./ComboBadge";
 import { Box } from "@mui/material";
 import { useTranslations, useFormatter } from "next-intl";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 export interface EventTooltipProps {
   active?: boolean;
   payload?: any[];
   guids: string[];
+  keyboardRawData?: any;
 }
 
-export default function EventTooltip({ active, payload, guids }: EventTooltipProps) {
-  // Pobieramy tłumaczenia z namespace "Elo" dla spójności danych wykresu
+export default function EventTooltip({ active, payload, guids, keyboardRawData }: EventTooltipProps) {
   const tElo = useTranslations("Elo");
   const tDrivers = useTranslations("Drivers");
   const format = useFormatter();
 
-  if (active && payload && payload.length) {
-    const rawData = payload[0].payload;
+  const hasData = keyboardRawData || (active && payload && payload.length);
+  
+  if (hasData) {
+    const rawData = keyboardRawData ? keyboardRawData : payload![0].payload;
 
     return (
       <Box 
-        className="p-3 shadow-2xl font-mono text-xs min-w-[220px] z-[100]"
+        /* POPRAWKA: Pełny token monospaced dla zachowania wyścigowego HUD */
+        className="p-3 shadow-2xl !text-btn-mono min-w-[230px] z-[100]"
         sx={{
           backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 96%, transparent)',
           backdropFilter: 'blur(8px)',
@@ -31,7 +37,7 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
       >
         {/* NAZWA WYDARZENIA */}
         <p 
-          className="mb-2 font-bold text-center truncate max-w-[240px]"
+          className="mb-2 font-bold text-center truncate max-w-[240px] uppercase pb-1"
           style={{ 
             color: 'var(--color-brand-text-muted)',
             borderBottom: '1px solid var(--color-brand-navy-light)'
@@ -60,7 +66,7 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
                 <div className="flex justify-between items-center gap-4">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span 
-                      className="font-bold truncate max-w-[115px]"
+                      className="font-bold truncate max-w-[115px] uppercase"
                       style={{ color: 'var(--color-brand-text)' }}
                     >
                       {meta.driverName}
@@ -76,16 +82,18 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
                   </span>
                 </div>
 
-                {/* Dolny wiersz: Status obecności i zmiana ELO */}
-                <div className="flex justify-between items-center text-[10px]">
+                {/* Dolny wiersz: Status obecności (Emoji) i Zmiana ELO (MUI Ikona dla WCAG) */}
+                <div className="flex justify-between items-center text-[11px] tracking-tight mt-0.5">
                   <span 
+                    className="flex items-center"
                     style={{ 
                       color: meta.hasRaced ? 'var(--color-brand-text-muted)' : 'var(--color-brand-yellow-text)',
                       fontWeight: meta.hasRaced ? 'normal' : 'bold',
                       opacity: meta.hasRaced ? 0.6 : 1
                     }}
                   >
-                    <span aria-hidden="true" className="mr-1">
+                    {/* ZACHOWANE EMOJI: Jasna identyfikacja kształtu (pełne vs puste) */}
+                    <span aria-hidden="true" className="mr-1 text-xs">
                       {meta.hasRaced ? "🔴" : "⚪"}
                     </span>
                     {meta.hasRaced ? tElo("chart.status.participated") : tElo("chart.status.skipped")}
@@ -93,18 +101,24 @@ export default function EventTooltip({ active, payload, guids }: EventTooltipPro
                   
                   {meta.hasRaced && (
                     <span 
-                      className="font-bold flex items-center"
+                      className="font-bold flex items-center gap-0.5"
                       style={{ 
                         color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)' 
                       }}
                     >
-                      <span aria-hidden="true" className="mr-0.5 text-[8px]">
-                        {isGain ? "▲" : "▼"}
+                      {/* POPRAWKA WCAG: Zróżnicowane kształtem ikony MUI zamiast surowego tekstu */}
+                      {isGain ? (
+                        <ArrowDropUpIcon className="!text-base -mr-1" aria-hidden="true" />
+                      ) : (
+                        <ArrowDropDownIcon className="!text-base -mr-1" aria-hidden="true" />
+                      )}
+                      
+                      <span>
+                        {isGain 
+                          ? `${format.number(meta.eloChange)}` 
+                          : format.number(-1 * meta.eloChange)
+                        }
                       </span>
-                      {isGain 
-                        ? `+${format.number(meta.eloChange)}` 
-                        : format.number(meta.eloChange)
-                      }
                     </span>
                   )}
                 </div>

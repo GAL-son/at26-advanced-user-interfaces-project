@@ -1,11 +1,41 @@
 @import "tailwindcss";
 
-/* 1. Rejestracja motywu i zmiennych (Tailwind v4) */
+/* Ominięcie restrykcji kolejności parsera poprzez jawne wskazanie warstwy bazowej */
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
+
+  @media (prefers-reduced-motion: no-preference) {
+
+    *,
+    *::before,
+    *::after {
+      transition-property: background-color, border-color, color, fill, box-shadow;
+      transition-duration: 300ms;
+      transition-timing-function: ease;
+    }
+  }
+
+  /* Wyłączenie przejść dla osób, które wolą ich brak */
+  @media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+    }
+  }
+}
+
 @theme {
   --breakpoint-sm: 600px;
   --breakpoint-md: 900px;
   --breakpoint-lg: 1200px;
   --breakpoint-xl: 1536px;
+
+  /* Rejestracja nowych rodzin czcionek w Tailwind v4 */
+  --font-sans: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Orbitron', sans-serif;
 
   --color-brand-navy: #f8fafc;
   --color-brand-navy-dark: #ffffff;
@@ -15,10 +45,11 @@
   --color-brand-yellow: #eab308;
   --color-brand-yellow-hover: #ca8a04;
   --color-brand-yellow-text: #854d0e;
-  
+
   --color-race-gold: #d97706;
   --color-race-gold-text: #b45309;
-  --color-race-silver: #475569;
+  --color-race-silver: #cbd5e1;
+  --color-race-silver-text: #0b1224 
   --color-race-bronze: #b45309;
   --color-elo-gain: #15803d;
   --color-elo-loss: #b91c1c;
@@ -27,9 +58,99 @@
   --color-streak-text: #c2410c;
 
   --radius-brand-card: 12px;
+
+  --text-nav-logo: 1.35rem;
+  --text-nav-link: 0.95rem;
+  --text-nav-button: 0.875rem;
+  --text-page-title: 2rem;
+  --text-btn-mono: 0.8rem;
 }
 
-/* 2. Style bazowe dla dokumentu */
+/* --- Utilities --- */
+
+@utility text-nav-logo {
+  font-size: var(--text-nav-logo);
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+}
+
+@utility text-nav-link {
+  font-size: var(--text-nav-link);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@utility text-nav-button {
+  font-size: var(--text-nav-button);
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: 0.05em;
+}
+
+@utility text-page-title {
+  font-size: var(--text-page-title);
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+@utility text-btn-mono {
+  font-size: var(--text-btn-mono);
+  font-weight: 400;
+  font-family: var(--font-mono);
+}
+
+@utility text-podium-number {
+  font-size: 2.25rem;
+  font-weight: 900;
+  font-family: var(--font-display);
+
+  @media (min-width: 640px) {
+    font-size: 3.5rem;
+  }
+}
+
+@utility text-duel-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+
+  @media (min-width: 640px) {
+    font-size: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+  }
+}
+
+@utility text-stat-value {
+  font-size: 1.5rem;
+  font-weight: 400;
+  font-family: var(--font-mono);
+
+  @media (min-width: 640px) {
+    font-size: 1.875rem;
+  }
+}
+
+@utility text-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+
+  @media (min-width: 640px) {
+    font-size: 1.25rem;
+  }
+}
+
+/* --- Style bazowe i motywy --- */
 html[data-mui-color-scheme="dark"] {
   --color-brand-navy: #0b1224;
   --color-brand-navy-dark: #070b16;
@@ -39,44 +160,133 @@ html[data-mui-color-scheme="dark"] {
   --color-brand-yellow: #fff200;
   --color-brand-yellow-hover: #e6da00;
   --color-brand-yellow-text: #fff200;
+  
+  /* Złoto (Już poprawione przez Ciebie) */
   --color-race-gold: #ffd700;
-  --color-race-gold-text: #ffd700;
+  --color-race-gold-text: #0b1224; 
+  
+  /* POPRAWKA: Srebro - tekst musi być ciemny */
   --color-race-silver: #cbd5e1;
-  --color-race-silver-text: #e2e8f0;
+  --color-race-silver-text: #e2e8f0; /* Poprawiono z #e2e8f0 */
   --color-race-silver-bg: #1e293b;
-  --color-race-bronze: #cd7f32;
+  
+  /* Brąz (Już poprawione przez Ciebie) */
+  --color-race-bronze: #e2954a;
   --color-race-bronze-text: #ffedd5;
   --color-race-bronze-bg: #431407;
-  --color-elo-gain: #15803d;
-  --color-elo-loss: #b91c1c;
+  
+  /* POPRAWKA: ELO Gain & Loss rozjaśnione dla ciemnego tła */
+  --color-elo-gain: #22c55e;  /* Poprawiono z #15803d */
+  --color-elo-loss: #ef4444;  /* Poprawiono z #b91c1c */
+  
+  /* Seria (Już poprawione przez Ciebie) */
   --color-streak-bg: #2a1405;
   --color-streak-border: #451a03;
-  --color-streak-text: #f97316;
+  --color-streak-text: #ff8d3b;
 }
 
 body {
+  font-family: var(--font-sans);
   background-color: var(--color-brand-navy);
   color: var(--color-brand-text);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 3. Rejestracja własnej klasy pomocniczej w Tailwind v4 (BEZ @layer) */
 @utility transition-grid {
   transition-property: grid-template-rows;
 }
 
+@utility fade-in-out {
+  transition: opacity 300ms ease-in-out;
+}
+
 @utility focus-brand {
-  &:focus-visible {
-    outline: 2px solid var(--color-brand-yellow);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent);
-  }
   &:focus {
-    outline: none;
+    outline: none !important;
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-yellow) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-yellow) 40%, transparent) !important;
   }
 }
 
-/* 4. Logika płynnego przełączania motywów */
-html.theme-toggling,
-html.theme-toggling * {
-  transition: color 300ms ease, background-color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease !important;
+@utility custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-yellow) var(--color-brand-navy-light);
+
+  &::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-brand-navy-light);
+    border-radius: var(--radius-brand-card);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-brand-yellow);
+    border-radius: 10px;
+    border: 3px solid var(--color-brand-navy-light);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-brand-yellow-hover);
+  }
+
+  &::-webkit-scrollbar-button:single-button {
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 10px;
+    height: 14px;
+    width: 14px;
+  }
+
+  &::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
+  }
+
+  &::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+  }
+
+  &::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z'/></svg>");
+  }
+
+  &::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23eab308'><path d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z'/></svg>");
+  }
+}
+
+html[data-mui-color-scheme="dark"] {
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:vertical:decrement,
+  &::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/></svg>");
+  }
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:vertical:increment,
+  &::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+  }
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:horizontal:decrement,
+  &::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z'/></svg>");
+  }
+
+  & .custom-scrollbar::-webkit-scrollbar-button:single-button:horizontal:increment,
+  &::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff200'><path d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z'/></svg>");
+  }
+}
+
+a {
+  color: inherit !important;
+  text-decoration: none !important;
 }

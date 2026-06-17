@@ -5,9 +5,12 @@ import { useEffect, useState } from "react";
 import { Container, Typography, Box } from "@mui/material";
 import RaceInfo from "@/app/_components/Results/RaceInfo";
 import ResultList from "@/app/_components/Results/ResultList";
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import BackButton from "@/app/_components/Common/BackButton";
 import { useTranslations } from "next-intl";
+import { focusFlatSection } from "@/app/_utils/navigation";
+
+// Import nowego wrappera ładowania
+import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 
 export interface RaceResultExtended {
   guid: string;
@@ -24,7 +27,10 @@ export interface RaceResultExtended {
   combo: number;
 }
 
-export default function EventResultsPage() {
+const PAGE_SECTION_ORDER = ["menu", "back-action", "race-info", "results-list",   "footer"];
+
+// 1. Logika i widok strony wyciągnięte do wewnętrznego komponentu
+function EventResultsContent() {
   const t = useTranslations("Results");
   const params = useParams();
   const id = params?.id as string;
@@ -90,11 +96,10 @@ export default function EventResultsPage() {
       })
       .catch((err) => {
         console.error("Error loading race data:", err);
-        setLoading(false);
+        loading && setLoading(false);
       });
   }, [id, t]);
 
-  // WCAG: Dynamiczne zarządzanie tytułem dokumentu
   useEffect(() => {
     if (raceInfo?.name) {
       document.title = `${t("metaTitle")} - ${raceInfo.name}`;
@@ -105,18 +110,23 @@ export default function EventResultsPage() {
     }
   }, [raceInfo, loading, t]);
 
-  // STAN ŁADOWANIA
+  const handleSectionNavigation = (currentSection: string, direction: "up" | "down") => {
+    focusFlatSection(currentSection, direction, PAGE_SECTION_ORDER);
+  };
+
+  // Lokalny stan ładowania API (opcjonalny, jeśli wrapper pokrywa początkowy montaż komponentu)
   if (loading) {
     return (
       <Box
         component="div"
         role="status"
         aria-live="polite"
-        className="min-h-screen flex flex-col items-center justify-center gap-3"
+        className="min-h-screen flex flex-col items-center justify-center"
         sx={{ backgroundColor: 'var(--color-brand-navy)' }}
       >
-        <LoadingSpinner className="py-2 px-4" />
-        <Typography variant="srOnly">{t("metaLoading")}</Typography>
+        <div className="animate-pulse text-sm uppercase tracking-wider" style={{ color: 'var(--color-brand-text-muted)' }}>
+          {t("metaLoading")}
+        </div>
       </Box>
     );
   }
@@ -124,12 +134,12 @@ export default function EventResultsPage() {
   // STAN BŁĘDU / BRAKU DANYCH
   if (!raceInfo || results.length === 0) {
     return (
-      <Box 
+      <Box
         className="min-h-screen flex items-center justify-center p-4"
         sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}
       >
-        <Container 
-          maxWidth="md" 
+        <Container
+          maxWidth="md"
           className="p-8 text-center shadow-xl border flex flex-col items-center gap-4"
           sx={{
             backgroundColor: 'var(--color-brand-navy-dark)',
@@ -137,13 +147,13 @@ export default function EventResultsPage() {
             borderRadius: 'var(--radius-brand-card)'
           }}
         >
-          <Typography 
-            variant="h6" 
+          <Typography
+            variant="h6"
             className="font-bold text-[var(--color-elo-loss)]"
           >
             {t("notFoundMessage")}
           </Typography>
-          
+
           <BackButton fallbackHref="/events" ariaLabel={t("backButton")} />
         </Container>
       </Box>
@@ -152,20 +162,35 @@ export default function EventResultsPage() {
 
   // WŁAŚCIWY LAYOUT STRONY
   return (
-    <Box 
+    <Box
       className="min-h-screen py-8 px-4 sm:px-6 lg:px-8"
       sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text)' }}
     >
       <Container maxWidth="lg" component="main" className="p-0!">
 
         {/* Sekcja przycisku powrotu */}
-        <Box className="mb-6 flex items-center gap-3">
-          <BackButton fallbackHref="/events" ariaLabel={t("backButton")} />
-          
+        <Box
+          data-section="back-action"
+          className="mb-4 flex items-center gap-3 outline-none"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              handleSectionNavigation("back-action", "down");
+            }
+          }}
+        >
+          <BackButton
+            fallbackHref="/events"
+            ariaLabel={t("backButton")}
+            tabIndex={0}
+            data-focus-order="primary"
+            data-section-page-start="true"
+          />
+
           <Typography
             variant="caption"
             aria-hidden="true"
-            className="font-mono text-xs uppercase tracking-wider select-none"
+            className="!text-btn-mono uppercase select-none"
             sx={{ color: 'var(--color-brand-text-muted)' }}
           >
             {t("backButton")}
@@ -173,12 +198,39 @@ export default function EventResultsPage() {
         </Box>
 
         {/* Sekcja informacji o wyścigu */}
-        <RaceInfo info={raceInfo} />
+        <Box
+          data-section="race-info"
+          className="outline-none"
+        >
+          <RaceInfo
+            info={raceInfo}
+            onNavigateVertical={(direction) => handleSectionNavigation("race-info", direction)}
+          />
+        </Box>
 
         {/* Tabela z wynikami */}
-        <ResultList results={results} />
+        <Box
+          data-section="results-list"
+          className="outline-none"
+        >
+          <ResultList
+            results={results}
+            onNavigateVertical={(direction) => handleSectionNavigation("results-list", direction)}
+          />
+        </Box>
 
       </Container>
     </Box>
+  );
+}
+
+// 2. Główny komponent staje się generycznym wrapperem
+export default function EventResultsPage() {
+  const t = useTranslations("Results");
+
+  return (
+    <PageLoaderWrapper loadingText={t("metaLoading")}>
+      <EventResultsContent />
+    </PageLoaderWrapper>
   );
 }

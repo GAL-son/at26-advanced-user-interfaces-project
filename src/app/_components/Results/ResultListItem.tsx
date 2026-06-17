@@ -1,4 +1,5 @@
 "use client";
+
 import React from 'react';
 import { TableCell, Box } from '@mui/material';
 import ComboBadge from '@/app/_components/Elo/ComboBadge';
@@ -6,6 +7,7 @@ import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import PositionTableCell from '../Common/PositionTableCell';
+import { Transition } from 'framer-motion';
 
 interface RaceResultExtended {
   guid: string;
@@ -23,10 +25,22 @@ interface RaceResultExtended {
 }
 
 interface ResultListItemProps {
+  id?: string;
   row: RaceResultExtended;
+  index: number;
+  onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void;
+  registerRef: (el: HTMLElement | null) => void;
+  transition?: Transition;
 }
 
-export default function ResultListItem({ row }: ResultListItemProps) {
+export default function ResultListItem({
+  id,
+  row,
+  index,
+  onKeyDown,
+  registerRef,
+  transition,
+}: ResultListItemProps) {
   const t = useTranslations("Results.table");
   const router = useRouter();
 
@@ -34,11 +48,13 @@ export default function ResultListItem({ row }: ResultListItemProps) {
     router.push(`/drivers/${row.guid}`);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleCombinedKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleNavigation();
+      return;
     }
+    onKeyDown(e);
   };
 
   const formatTime = (ms: number) => {
@@ -51,89 +67,92 @@ export default function ResultListItem({ row }: ResultListItemProps) {
   const isGain = row.eloChange >= 0;
 
   return (
-    <PositionedTableRow 
+    <PositionedTableRow
+      ref={registerRef}
       onClick={handleNavigation}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
+      onKeyDown={handleCombinedKeyDown}
+      transition={transition}
+      tabIndex={0} 
       role="link"
       aria-label={`${row.pos}. ${row.name}, ${t("goToProfile")}`}
-      sx={{ display: { xs: 'none', md: 'table-row' }, cursor: 'pointer', outline: 'none' }}
+      className="focus-brand" 
+      sx={{
+        display: { xs: 'none', md: 'table-row' },
+        cursor: 'pointer',
+        "&:focus, &:focus-visible": {
+          outline: "none",
+        }
+      }}
     >
-      {/* JAWNE I REUŻYWALNE WSTRZYKNIĘCIE KOMÓRKI POZYCJI */}
       <PositionTableCell position={row.pos} />
 
-      {/* REZTA TWOICH KOMÓREK BEZ ZMIAN */}
+      {/* Nazwa Kierowcy */}
       <TableCell className="py-4">
         <Box className="flex items-center gap-2">
-          <span style={{ color: 'var(--color-brand-text-muted)' }}>{row.name}</span>
+          {/* POPRAWKA: Przejście na unifikowany kolor tekstu interfejsu */}
+          <span className="text-[var(--color-brand-text-muted)] font-medium">{row.name}</span>
           {row.combo > 0 && <ComboBadge combo={row.combo} />}
         </Box>
       </TableCell>
-      
-      {/* COL 3: ZMIANA ELO */}
+
+      {/* Punkty ELO + Zmiana */}
       <TableCell>
-        <Box className="flex items-center gap-2 font-mono text-sm">
-          <span style={{ color: 'var(--color-brand-text)' }}>
+        <Box className="flex items-center gap-2">
+          {/* POPRAWKA: Token !text-btn-mono dla głównej wartości ELO */}
+          <span className="!text-btn-mono text-[var(--color-brand-text)]">
             {row.eloAfter}
           </span>
-          <Box 
-            component="span" 
-            className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold border"
-            sx={{
-              backgroundColor: isGain 
-                ? 'color-mix(in srgb, var(--color-elo-gain) 10%, transparent)' 
-                : 'color-mix(in srgb, var(--color-elo-loss) 10%, transparent)',
-              color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)',
-              borderColor: isGain 
-                ? 'color-mix(in srgb, var(--color-elo-gain) 20%, transparent)' 
-                : 'color-mix(in srgb, var(--color-elo-loss) 20%, transparent)',
-            }}
+          <Box
+            component="span"
+            /* POPRAWKA: Usunięcie sx blocku stylów inline i przeniesienie logiki kolorowania na natywne klasy narzędziowe v4 */
+            className={`ml-1 px-1.5 py-0.5 rounded !text-btn-mono font-bold border ${
+              isGain 
+                ? 'bg-[color-mix(in_srgb,var(--color-elo-gain)_10%,transparent)] text-[var(--color-elo-gain)] border-[color-mix(in_srgb,var(--color-elo-gain)_20%,transparent)]'
+                : 'bg-[color-mix(in_srgb,var(--color-elo-loss)_10%,transparent)] text-[var(--color-elo-loss)] border-[color-mix(in_srgb,var(--color-elo-loss)_20%,transparent)]'
+            }`}
           >
             {isGain ? `+${row.eloChange}` : row.eloChange}
           </Box>
         </Box>
       </TableCell>
 
-      {/* COL 4: SAMOCHÓD */}
-      <TableCell 
-        className="font-medium text-xs tracking-wide uppercase"
-        style={{ color: 'var(--color-brand-text-muted)' }}
-      >
-        {row.car}
+      {/* Nazwa Samochodu */}
+      <TableCell className="hidden md:table-cell">
+        {/* POPRAWKA: Zmiana na token !text-data-mono z wymuszonym uppercase i kolorem wyciszonym */}
+        <span className="!text-data-mono uppercase text-[var(--color-brand-text-muted)]">
+          {row.car}
+        </span>
       </TableCell>
 
-      {/* COL 5: OKRĄŻENIA */}
-      <TableCell 
-        className="font-mono text-center hidden md:table-cell"
-        style={{ color: 'var(--color-brand-text-muted)' }}
-      >
-        {row.laps}
+      {/* Liczba Okrążeń */}
+      <TableCell className="text-center hidden md:table-cell">
+        {/* POPRAWKA: Token !text-data-mono */}
+        <span className="!text-data-mono text-[var(--color-brand-text-muted)]">
+          {row.laps}
+        </span>
       </TableCell>
 
-      {/* COL 6: CZAS ŁĄCZNY */}
-      <TableCell 
-        className="font-mono font-medium"
-        style={{ color: 'var(--color-brand-text)' }}
-      >
-        {formatTime(row.totalTime)}
+      {/* Łączny Czas */}
+      <TableCell>
+        {/* POPRAWKA: Token !text-data-mono z kolorem pełnego tekstu */}
+        <span className="!text-data-mono text-[var(--color-brand-text)] font-semibold">
+          {formatTime(row.totalTime)}
+        </span>
       </TableCell>
 
-      {/* COL 7: STRATA (GAP) / WINNER */}
-      <TableCell className="font-mono text-xs">
+      {/* Różnica (Gap) / Zwycięzca */}
+      <TableCell>
         {row.gap === "-" || row.gap === "0.000" || row.pos === 1 ? (
-          <Box 
+          <Box
             component="span"
-            className="font-semibold text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border"
-            sx={{
-              color: 'var(--color-brand-yellow-text)',
-              backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)',
-              borderColor: 'color-mix(in srgb, var(--color-brand-yellow) 20%, transparent)',
-            }}
+            /* POPRAWKA: Zmiana rozmiaru czcionki na zunifikowany token HUD, rezygnacja z sx */
+            className="font-bold !text-btn-mono uppercase tracking-wider px-1.5 py-0.5 rounded border bg-[color-mix(in_srgb,var(--color-brand-yellow)_12%,transparent)] text-[var(--color-brand-yellow-text)] border-[color-mix(in_srgb,var(--color-brand-yellow)_20%,transparent)]"
           >
             {t("winner")}
           </Box>
         ) : (
-          <span style={{ color: 'var(--color-brand-text-muted)' }}>
+          /* POPRAWKA: Token !text-data-mono dla klasycznych różnic czasowych */
+          <span className="!text-data-mono text-[var(--color-brand-text-muted)]">
             {row.gap}
           </span>
         )}

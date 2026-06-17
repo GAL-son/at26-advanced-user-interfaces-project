@@ -1,10 +1,28 @@
 {
+    "Common": {
+        "searchPlaceholder": "Szukaj...",
+        "noResults": "[BRAK DANYCH TELEMETRYCZNYCH]",
+        "back": "Wstecz",
+        "community": {
+            "ariaLabel": "Nasza społeczność i serwery",
+            "joinTitle": "Dołącz do Społeczności",
+            "discordBtn": "Serwer Discord",
+            "discordAriaLabel": "Dołącz do naszego serwera Discord (otwiera się w nowej karcie)",
+            "serversTitle": "Nasze Serwery AC",
+            "signUp": "Zapisz się",
+            "serverAriaLabel": "Przejdź do serwera {name} (otwiera się w nowej karcie)",
+            "aboutText": "Dołącz do naszej społeczności simracingowej, śledź statystyki kierowców i bierz udział w ekscytujących wydarzeniach.",
+            "rightsReserved": "Wszelkie prawa zastrzeżone.",
+            "serverAVEAriaLabel": "Dołącz do naszego serwear {name} (w nowej karcie)"
+        }
+    },
     "Menu": {
         "currentLocale": "pl",
         "switchLanguageTo": "en",
         "drivers": "Kierowcy",
         "events": "Wydarzenia",
-        "compare": "Porównywarka"
+        "compare": "Porównywarka",
+        "register": "Rejestracja"
     },
     "Home": {
         "latestEvents": "Ostatnie Wydarzenia",
@@ -46,7 +64,10 @@
         "title": "Klasyfikacja Kierowców",
         "filter": {
             "searchLabel": "Szukaj kierowcy lub aliasu...",
-            "searchPlaceholder": "Wpisz tutaj..."
+            "searchPlaceholder": "Wpisz tutaj...",
+            "searchHint": "Wyszukaj kierowcę wpisując jego imię, nazwisko lub zarejestrowany pseudonim.",
+            "barAriaLabel": "Panel filtrowania i sortowania listy kierowców",
+            "sortGroupLabel": "Wybór kryterium sortowania tabeli kierowców"
         },
         "tabs": {
             "rating": "Ranking",
@@ -54,6 +75,7 @@
             "alphabetical": "A - Z",
             "lastActive": "Ostatnia Aktywność"
         },
+        "tabsAriaLabel": "Kryteria sortowania klasyfikacji kierowców",
         "list": {
             "ariaLabel": "Globalna klasyfikacja kierowców",
             "loadingInitial": "Ładowanie klasyfikacji kierowców...",
@@ -63,6 +85,7 @@
             "aliases": "Aliasy",
             "notAvailable": "Brak danych",
             "rowAriaLabel": "Kierowca {name}, przejdź do profilu",
+            "loadMore": "Zobacz więcej kierowców",
             "headers": {
                 "pos": "Poz",
                 "profile": "Profil Kierowcy",
@@ -70,6 +93,11 @@
                 "lastActive": "Ostatni start",
                 "elo": "Ranking ELO"
             }
+        },
+        "sr": {
+            "resultsFound": "Znaleziono {count} pasujących kierowców na pierwszej stronie.",
+            "loadedMore": "Załadowano kolejną partię danych. Wyświetlam teraz {total} kierowców.",
+            "errorLoading": "Wystąpił błąd podczas pobierania danych klasyfikacji."
         },
         "profile": {
             "loadingTelemetry": "Wczytywanie strumienia telemetrycznego...",
@@ -104,13 +132,11 @@
             "emptyState": "Nie znaleziono wyścigów spełniających kryteria filtrowania.",
             "gridAria": "Archiwum list telemetrycznych wyścigów",
             "loadingMoreAria": "Pobieranie kolejnych wyścigów z serwera",
-            "endOfGrid": "— Koniec bazy danych telemetrycznych —"
+            "endOfGrid": "— Koniec bazy danych telemetrycznych —",
+            "rowAriaLabel": "Wyścig: {name}, tor: {track}. Rozegrano: {date} na serwerze {server}. Kliknij, aby zobaczyć pełne wyniki i telemetrię.",
+            "loadMore": "Zobacz więcej wydarzeń",
+            "goToProfile": "Przejdź do profilu kierowcy"
         }
-    },
-    "Common": {
-        "searchPlaceholder": "Szukaj...",
-        "noResults": "[BRAK DANYCH TELEMETRYCZNYCH]",
-        "back": "Wstecz"
     },
     "Elo": {
         "comboTooltip": "Seria zwycięstw: {streak} wyścigów. Bonus do mnożnika punktów w kolejnym starcie: +{multiplier}%",
@@ -179,6 +205,31 @@
             "statusFoundResults": "Retrieved {count} records. Use keyboard arrow elements to review options.",
             "listAriaLabel": "Selected drivers for comparison",
             "driverChipAriaLabel": "Driver {driverName}, press backspace or delete to remove from comparison"
+        }
+    },
+    "TournamentForm": {
+        "title": "Zapisy na turniej ELO",
+        "successMessage": "Rejestracja zakończona sukcesem!",
+        "listTitle": "Zarejestrowani kierowcy (Zmockowany GET)",
+        "noDrivers": "Brak zgłoszeń.",
+        "labels": {
+            "driverName": "Nick kierowcy",
+            "steamId": "SteamID64",
+            "car": "Samochód",
+            "selectCar": "Wybierz maszynę"
+        },
+        "buttons": {
+            "submit": "Zatwierdź zgłoszenie",
+            "processing": "Przetwarzanie..."
+        },
+        "errors": {
+            "fetch": "Nie udało się pobrać listy zarejestrowanych kierowców (Błąd sieciowy).",
+            "submit": "Wystąpił błąd sieciowy podczas rejestracji. Spróbuj ponownie."
+        },
+        "validation": {
+            "nameMin": "Nick musi mieć co najmniej 3 znaki",
+            "steamIdRegex": "SteamID musi składać się z dokładnie 17 cyfr",
+            "carRequired": "Wybierz samochód z listy"
         }
     }
 }
