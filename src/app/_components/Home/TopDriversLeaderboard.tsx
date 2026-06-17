@@ -147,6 +147,8 @@
             </div>
           </li>
 
+          <hr className="border-brand-navy-light/60 my-4" aria-hidden="true" />
+
           {/* SEKCJA: MIEJSCA 4-5 */}
           {remainingDrivers.map((driver, index) => {
             const domIndex = visualPodiumOrder.length + index;

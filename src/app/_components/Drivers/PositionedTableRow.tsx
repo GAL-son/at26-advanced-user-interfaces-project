@@ -3,7 +3,8 @@ import React, { forwardRef } from 'react';
 import { TableRow, SxProps, Theme } from '@mui/material';
 import { motion, Transition } from 'framer-motion';
 
-const MotionTableRow = motion(TableRow);
+// POPRAWKA: Zamiana motion(TableRow) na motion.create(TableRow)
+const MotionTableRow = motion.create(TableRow);
 
 const rowVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -20,7 +21,7 @@ interface PositionedTableRowProps {
   className?: string;
   role?: string;
   sx?: SxProps<Theme>;
-  transition?: Transition; // ← nowe
+  transition?: Transition;
 }
 
 const PositionedTableRow = forwardRef<HTMLTableRowElement, PositionedTableRowProps>(({
@@ -32,7 +33,7 @@ const PositionedTableRow = forwardRef<HTMLTableRowElement, PositionedTableRowPro
   className = "",
   role,
   sx = {},
-  transition, // ← nowe
+  transition,
 }, ref) => {
   return (
     <MotionTableRow

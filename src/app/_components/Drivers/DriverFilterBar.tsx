@@ -75,7 +75,7 @@ export default function DriverFilterBar({
           onChange={setSearch}
           label={t("filter.searchLabel")}
           placeholder={t("filter.searchPlaceholder")}
-          ariaDescribedBy="search-hint"
+          aria-describedby="search-hint"
           results={[]}
           onSelectResult={() => {}}
           renderItem={() => null}
