@@ -21,7 +21,7 @@ Create a `.env` file in the root directory of the project based on the following
 
 ```env
 # Link to your local SQLITE DB
-DATABASE_URL="file:./dev.db"
+POSTGRES_URL="file:./dev.db"
 
 # List of ACSM servers that will be used to fetch results separated with coma `,`
 ACSM_SERVERS="server1,server2"
@@ -36,16 +36,8 @@ NEXT_PUBLIC_DISCORD_LINK="https://discord.gg"
 ### 2. Database Seeding
 To initialize the data, run the sync script:
 
-Windows (PowerShell):
-
-```powershell
-npx dotenv -e .env -- npx ts-node --esm src/scripts/full-sync.mts
-```
-
-Linux/macOS (Bash):
-
-```Bash
-npx dotenv -e .env -- npx ts-node --esm src/scripts/full-sync.mts
+```bash
+npm run db:full-sync
 ```
 
 ### 3. Local Development
