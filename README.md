@@ -3,7 +3,7 @@
 ACSM Portal is an advanced platform for visualizing ELO rankings for drivers competing on Assetto Corsa servers. The project aims to increase community engagement through transparent statistics and progress tracking.
 
 ## Demo Link
-[Coming Soon - add your Vercel deployment link here]
+[ACSM Portal](https://project-rshci.vercel.app)
 
 ## Technologies
 The project was built using a modern technology stack:
