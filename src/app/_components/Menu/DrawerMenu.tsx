@@ -3,10 +3,10 @@
 import React from "react";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { Box, Drawer, Typography, Divider, List, ListItem, ListItemButton, ListItemText, Button } from "@mui/material";
-import SpeedIcon from "@mui/icons-material/Speed";
+import { Box, Drawer, Divider, List, ListItem, ListItemButton, ListItemText, Button } from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
 import ThemeToggle from "../Common/ThemeTogle";
+import BrandLogo from "./BrandLogo"; // Import wspólnego komponentu logo
 
 interface NavItem {
   label: string; 
@@ -60,15 +60,13 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
         >
           {/* Góra menu */}
           <Box sx={{ flexGrow: 1 }} onClick={onDrawerToggle}>
-            <Link href='/'>
-              {/* Zastosowanie ! dla text-nav-logo oraz ujednoliconego koloru v4 */}
-              <Typography
-                className="!text-nav-logo uppercase flex items-center justify-center gap-2 my-4 !text-brand-text no-underline"
-              >
-                <SpeedIcon className="text-brand-yellow-hover" /> Simracing App
-              </Typography>
-            </Link>
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+              {/* Zwróć uwagę, że BrandLogo wewnętrznie posiada już komponent Link */}
+              <BrandLogo variant="mobile" />
+            </Box>
+            
             <Divider sx={{ borderColor: 'var(--color-brand-navy-light)', mb: 2 }} />
+            
             <List>
               {navItems.map((item) => {
                 const isActive = currentPathname.startsWith(item.path);
@@ -126,7 +124,6 @@ export default function DrawerMenu({ navItems, pathname, mobileOpen, onDrawerTog
               size="small"
               fullWidth
               startIcon={<LanguageIcon />}
-              /* Migracja obramowania i przezroczystości tła na klasy v4 z operatorem ! */
               className="!text-nav-button uppercase !text-brand-text !border-brand-navy-light hover:!border-brand-text hover:bg-brand-text/4"
             >
               {t("switchLanguageTo")}

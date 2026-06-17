@@ -2,7 +2,18 @@
     "Common": {
         "searchPlaceholder": "Search...",
         "noResults": "[NO TELEMETRY FOUND]",
-        "back": "Go back"
+        "back": "Go back",
+        "community": {
+            "ariaLabel": "Our community and servers",
+            "joinTitle": "Join the Community",
+            "discordBtn": "Discord Server",
+            "discordAriaLabel": "Join our Discord server (opens in a new tab)",
+            "serversTitle": "Our AC Servers",
+            "signUp": "Sign up",
+            "serverAriaLabel": "Go to server {name} (opens in a new tab)",
+            "aboutText": "Join our competitive simracing community, track driver performance metrics, and participate in scheduled championship events.",
+            "rightsReserved": "All rights reserved."
+        }
     },
     "Menu": {
         "currentLocale": "en",
@@ -50,11 +61,11 @@
     "Drivers": {
         "title": "Driver Standings",
         "filter": {
-            "searchLabel": "Szukaj kierowcy lub aliasu...",
-            "searchPlaceholder": "Wpisz tutaj...",
-            "searchHint": "Wyszukaj kierowcę wpisując jego imię, nazwisko lub zarejestrowany pseudonim.",
-            "barAriaLabel": "Panel filtrowania i sortowania listy kierowców",
-            "sortGroupLabel": "Wybór kryterium sortowania tabeli kierowców"
+            "searchLabel": "Search driver or alias...",
+            "searchPlaceholder": "Type here...",
+            "searchHint": "Search for a driver by name or alias.",
+            "barAriaLabel": "Driver standings filtering and sorting controls",
+            "sortGroupLabel": "Driver standing sorting criteria groups"
         },
         "tabs": {
             "rating": "Rating",

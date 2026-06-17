@@ -1,15 +1,16 @@
 "use client";
 
 import React from "react";
-import { Link, useRouter, usePathname } from "@/i18n/routing";
+import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { AppBar, Box, Toolbar, IconButton, Typography, Button, Container } from "@mui/material";
+import { AppBar, Box, Toolbar, IconButton, Button, Container } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import SpeedIcon from "@mui/icons-material/Speed";
-import LanguageIcon from "@mui/icons-material/Language";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import ThemeToggle from "../Common/ThemeTogle";
+import BrandLogo from "./BrandLogo"; // Import nowego komponentu
+import { Link } from "@/i18n/routing";
+import LanguageIcon from "@mui/icons-material/Language";
 
 interface NavItem {
   label: string;
@@ -88,22 +89,12 @@ export default function TopBarMenu({
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ height: 64 }}>
 
-          {/* INDEKS 0: LOGO (Desktop) */}
-          <Typography
-            noWrap
-            component={Link}
-            href="/"
-            ref={registerItem(0)}
-            onKeyDown={(e) => handleKeyDown(e, 0)}
-            tabIndex={0}
-            className="focus-brand !text-nav-logo rounded px-2 py-1 flex outline-none no-underline items-center gap-2 !text-brand-text"
-            sx={{
-              mr: 4,
-              display: { xs: 'none', md: 'flex' },
-            }}
-          >
-            <SpeedIcon className="text-brand-yellow-hover" /> Simracing App
-          </Typography>
+          {/* LOGO (Desktop) - Indeks 0 */}
+          <BrandLogo 
+            variant="desktop" 
+            registerRef={registerItem(0)} 
+            onKeyDown={(e) => handleKeyDown(e, 0)} 
+          />
 
           {/* HAMBURGER: Mobile */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -119,21 +110,9 @@ export default function TopBarMenu({
           </Box>
 
           {/* LOGO: Mobile */}
-          <Typography
-            noWrap
-            component={Link}
-            href="/drivers"
-            tabIndex={0}
-            className="focus-brand !text-nav-logo rounded px-2 no-underline items-center gap-2 !text-brand-text"
-            sx={{
-              flexGrow: 1,
-              display: { xs: 'flex', md: 'none' },
-            }}
-          >
-            <SpeedIcon className="text-brand-yellow-hover" /> Simracing App
-          </Typography>
+          <BrandLogo variant="mobile" />
 
-          {/* INDEKSY 1 do X: LINKI NAWIGACJI (Desktop) */}
+          {/* LINKI NAWIGACJI (Desktop) */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             {navItems.map((item, index) => {
               const isActive = currentPathname.startsWith(item.path);
@@ -146,14 +125,14 @@ export default function TopBarMenu({
                   href={item.path}
                   ref={registerItem(currentItemIndex)}
                   onKeyDown={(e) => handleKeyDown(e, currentItemIndex)}
-                  tabIndex={0} // WŁĄCZA NATURALNE TABOWANIE
+                  tabIndex={0}
                   className={`focus-brand !text-nav-link normal-case flex items-center px-4 py-2 rounded-md transition-all duration-200 
-          ${isActive
+                    ${isActive
                       ? '!font-bold !text-brand-text bg-brand-text/6'
                       : '!font-medium !text-brand-text-muted bg-transparent'
                     } 
-          hover:bg-brand-text/10 hover:!text-brand-text
-          focus:bg-brand-text/10 focus:ring-2 focus:ring-[var(--color-brand-yellow-hover)] focus:outline-none`} // WYMUSZA WIDOCZNY FOCUS
+                    hover:bg-brand-text/10 hover:!text-brand-text
+                    focus:bg-brand-text/10 focus:ring-2 focus:ring-[var(--color-brand-yellow-hover)] focus:outline-none`}
                 >
                   <span className="mr-2 flex items-center">{item.icon}</span>
                   {t(item.label)}
@@ -165,12 +144,12 @@ export default function TopBarMenu({
           {/* PRZYCISKI FUNKCYJNE */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
 
-            {/* JĘZYK BEZ SPANA */}
+            {/* JĘZYK */}
             <Button
               onClick={toggleLanguage}
               ref={registerItem(languageButtonIndex)}
               onKeyDown={(e) => handleKeyDown(e, languageButtonIndex)}
-              tabIndex={0} // WŁĄCZA NATURALNE TABOWANIE
+              tabIndex={0}
               variant="text"
               size="small"
               startIcon={<LanguageIcon />}

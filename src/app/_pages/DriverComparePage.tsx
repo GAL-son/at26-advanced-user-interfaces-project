@@ -105,7 +105,7 @@ function CompareDriversContent() {
 
   return (
     <Box
-      className="min-h-screen py-10 px-4 sm:px-6 lg:px-8"
+      className="pt-10 pb-4 px-4 sm:px-6 lg:px-8"
       sx={{
         backgroundColor: 'var(--color-brand-navy)',
         color: 'var(--color-brand-text)',

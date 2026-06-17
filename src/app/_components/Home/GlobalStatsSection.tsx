@@ -57,7 +57,7 @@ export default function GlobalStatsSection({ stats }: GlobalStatsSectionProps) {
       className="w-full bg-brand-navy-dark/20 rounded-xl p-6 border border-brand-navy-light/40 flex-1"
       aria-label={t("stats.ariaLabel")}
     >
-      <dl className="flex flex-col gap-4 m-0 p-0 h-full justify-between">
+      <dl className="flex flex-col sm:flex-row gap-4 m-0 p-0 h-full justify-between">
         {statItems.map((item) => (
           <div 
             key={item.id} 

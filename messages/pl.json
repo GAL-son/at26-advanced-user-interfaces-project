@@ -1,4 +1,20 @@
 {
+    "Common": {
+        "searchPlaceholder": "Szukaj...",
+        "noResults": "[BRAK DANYCH TELEMETRYCZNYCH]",
+        "back": "Wstecz",
+        "community": {
+            "ariaLabel": "Nasza społeczność i serwery",
+            "joinTitle": "Dołącz do Społeczności",
+            "discordBtn": "Serwer Discord",
+            "discordAriaLabel": "Dołącz do naszego serwera Discord (otwiera się w nowej karcie)",
+            "serversTitle": "Nasze Serwery AC",
+            "signUp": "Zapisz się",
+            "serverAriaLabel": "Przejdź do serwera {name} (otwiera się w nowej karcie)",
+            "aboutText": "Dołącz do naszej społeczności simracingowej, śledź statystyki kierowców i bierz udział w ekscytujących wydarzeniach.",
+            "rightsReserved": "Wszelkie prawa zastrzeżone."
+        }
+    },
     "Menu": {
         "currentLocale": "pl",
         "switchLanguageTo": "en",
@@ -45,11 +61,11 @@
     "Drivers": {
         "title": "Klasyfikacja Kierowców",
         "filter": {
-            "searchLabel": "Search driver or alias...",
-            "searchPlaceholder": "Type here...",
-            "searchHint": "Search for a driver by name or alias.",
-            "barAriaLabel": "Driver standings filtering and sorting controls",
-            "sortGroupLabel": "Driver standing sorting criteria groups"
+            "searchLabel": "Szukaj kierowcy lub aliasu...",
+            "searchPlaceholder": "Wpisz tutaj...",
+            "searchHint": "Wyszukaj kierowcę wpisując jego imię, nazwisko lub zarejestrowany pseudonim.",
+            "barAriaLabel": "Panel filtrowania i sortowania listy kierowców",
+            "sortGroupLabel": "Wybór kryterium sortowania tabeli kierowców"
         },
         "tabs": {
             "rating": "Ranking",
@@ -119,11 +135,6 @@
             "loadMore": "Zobacz więcej wydarzeń",
             "goToProfile": "Przejdź do profilu kierowcy"
         }
-    },
-    "Common": {
-        "searchPlaceholder": "Szukaj...",
-        "noResults": "[BRAK DANYCH TELEMETRYCZNYCH]",
-        "back": "Wstecz"
     },
     "Elo": {
         "comboTooltip": "Seria zwycięstw: {streak} wyścigów. Bonus do mnożnika punktów w kolejnym starcie: +{multiplier}%",

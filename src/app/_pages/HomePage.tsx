@@ -24,7 +24,6 @@ interface HomePageProps {
   globalStats: GlobalStats;
 }
 
-// POPRAWKA: Dodano sekcję "stats", aby nawigacja klawiaturą wiedziała o jej istnieniu
 const SECTION_ORDER = [
   "menu",
   "ticker",
@@ -32,14 +31,12 @@ const SECTION_ORDER = [
   "leaderboard",
   "duels",
   "socials",
-  // "stats", ommited on purposue since it is not interactable
 ];
 
 export default function HomePage({ activeDrivers, latestEvents, topDrivers, virtualDuels, globalStats }: HomePageProps) {
   usePageInitialFocus();
 
   return (
-    // Zmiana na czysty token koloru tła Tailwind v4
     <div className="flex flex-col min-h-screen bg-brand-navy">
 
       {/* SEKCJA: ticker */}
@@ -51,7 +48,8 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
         />
       </div>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 flex flex-col gap-8">
+      {/* ZMIANA: Zmniejszono py-6 -> py-4 oraz gap-8 -> gap-4 */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4">
 
         {/* SEKCJA: events */}
         {latestEvents && latestEvents.length > 0 && (
@@ -63,8 +61,8 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
           </div>
         )}
 
-        {/* SEKCJA DWUKOLUMNOWA 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* SEKCJA DWUKOLUMNOWA 1 (ZMIANA: gap-6 -> gap-4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           <div data-section="leaderboard" className="w-full">
             <TopDriversLeaderboard
               drivers={topDrivers}
@@ -82,23 +80,13 @@ export default function HomePage({ activeDrivers, latestEvents, topDrivers, virt
           )}
         </div>
 
-        {/* SEKCJA DWUKOLUMNOWA 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          <div data-section="socials" className="w-full">
-            <SocialsAndServers
-              onNavigateHorizontal={(dir) => focusFlatSection("socials", dir, SECTION_ORDER)}
-              onNavigateVertical={(dir) => focusFlatSection("socials", dir, SECTION_ORDER)}
-            />
-          </div>
-
-          {/* POPRAWKA: Sekcja zsynchronizowana z SECTION_ORDER oraz obsługa zdarzeń strzałek */}
-          <div data-section="stats" className="w-full flex">
-            <GlobalStatsSection
-              stats={globalStats}
-              onNavigateHorizontal={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
-              onNavigateVertical={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
-            />
-          </div>
+        {/* SEKCJA DWUKOLUMNOWA 2 (ZMIANA: gap-6 -> gap-4) */}
+        <div data-section="stats" className="w-full flex">
+          <GlobalStatsSection
+            stats={globalStats}
+            onNavigateHorizontal={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
+            onNavigateVertical={(dir) => focusFlatSection("stats", dir, SECTION_ORDER)}
+          />
         </div>
 
       </main>
