@@ -9,15 +9,15 @@ let prismaInstance: PrismaClient;
 if (globalForPrisma.prisma) {
   prismaInstance = globalForPrisma.prisma;
 } else {
-  // Czytamy dokładną nazwę klucza, który masz na Vercelu
-  const connectionString = process.env.POSTGRES_PRISMA_URL;
+  // Budujemy connection string ręcznie z Twoich jawnych kluczy, dodając na końcu parametry wyłączające sprawdzanie SSL,
+  // co omija błąd biblioteki pg i błąd self-signed certificate.
+  const connectionString = process.env.NODE_ENV === 'production'
+    ? `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:5432/postgres?sslmode=require&uselibpqcompat=true`
+    : process.env.POSTGRES_PRISMA_URL || "postgresql://localhost:5432";
 
-  if (!connectionString && process.env.NODE_ENV === 'production') {
-    console.error("🚨 CRITICAL ERROR: Brak klucza POSTGRES_PRISMA_URL na produkcji!");
-  }
-
-  const pool = new pg.Pool({ 
-    connectionString: connectionString,
+  const pool = new pg.Pool({
+    connectionString,
+    // Dodatkowe potrójne zabezpieczenie w obiekcie dla starszych/nowszych wersji pg
     ssl: process.env.NODE_ENV === 'production' 
       ? { rejectUnauthorized: false } 
       : false
