@@ -48,7 +48,8 @@
 
   --color-race-gold: #d97706;
   --color-race-gold-text: #b45309;
-  --color-race-silver: #475569;
+  --color-race-silver: #cbd5e1;
+  --color-race-silver-text: #0b1224 
   --color-race-bronze: #b45309;
   --color-elo-gain: #15803d;
   --color-elo-loss: #b91c1c;
@@ -159,19 +160,29 @@ html[data-mui-color-scheme="dark"] {
   --color-brand-yellow: #fff200;
   --color-brand-yellow-hover: #e6da00;
   --color-brand-yellow-text: #fff200;
+  
+  /* Złoto (Już poprawione przez Ciebie) */
   --color-race-gold: #ffd700;
-  --color-race-gold-text: #ffd700;
+  --color-race-gold-text: #0b1224; 
+  
+  /* POPRAWKA: Srebro - tekst musi być ciemny */
   --color-race-silver: #cbd5e1;
-  --color-race-silver-text: #e2e8f0;
+  --color-race-silver-text: #e2e8f0; /* Poprawiono z #e2e8f0 */
   --color-race-silver-bg: #1e293b;
-  --color-race-bronze: #cd7f32;
+  
+  /* Brąz (Już poprawione przez Ciebie) */
+  --color-race-bronze: #e2954a;
   --color-race-bronze-text: #ffedd5;
   --color-race-bronze-bg: #431407;
-  --color-elo-gain: #15803d;
-  --color-elo-loss: #b91c1c;
+  
+  /* POPRAWKA: ELO Gain & Loss rozjaśnione dla ciemnego tła */
+  --color-elo-gain: #22c55e;  /* Poprawiono z #15803d */
+  --color-elo-loss: #ef4444;  /* Poprawiono z #b91c1c */
+  
+  /* Seria (Już poprawione przez Ciebie) */
   --color-streak-bg: #2a1405;
   --color-streak-border: #451a03;
-  --color-streak-text: #f97316;
+  --color-streak-text: #ff8d3b;
 }
 
 body {

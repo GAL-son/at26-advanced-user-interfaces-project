@@ -15,12 +15,14 @@ interface Driver {
     car: string;
 }
 
-const PAGE_ORDER = ["menu", "tournament-registration", "next-section",   "footer"];
+const PAGE_ORDER = ["menu", "tournament-registration", "next-section", "footer"];
 
 export default function TournamentForm() {
     const t = useTranslations("TournamentForm"); // Przestrzeń nazw dla tłumaczeń
     const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [apiError, setApiError] = useState<string | null>(null);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
     const [success, setSuccess] = useState(false);
 
     // Dynamiczny schemat walidacji Zod zintegrowany z next-intl
@@ -53,7 +55,7 @@ export default function TournamentForm() {
             const data = await res.json();
             setDrivers(data);
         } catch {
-            setApiError(t("errors.fetch"));
+            setFetchError(t("errors.fetch"));
         }
     };
 
@@ -62,7 +64,7 @@ export default function TournamentForm() {
     }, []);
 
     const onSubmit = async (data: FormData) => {
-        setApiError(null);
+        setSubmitError(null);
         setSuccess(false);
         try {
             const response = await fetch("/api/mock-tournament", {
@@ -77,7 +79,7 @@ export default function TournamentForm() {
             reset();
             fetchDrivers();
         } catch {
-            setApiError(t("errors.submit"));
+            setSubmitError(t("errors.submit"));
         }
     };
 
@@ -91,9 +93,9 @@ export default function TournamentForm() {
                     {t("title")}
                 </h2>
 
-                {apiError && (
+                {submitError && (
                     <div className="mb-4 p-3 bg-[var(--color-elo-loss)] text-white text-sm font-mono rounded-md">
-                        {apiError}
+                        {submitError}
                     </div>
                 )}
                 {success && (
@@ -191,6 +193,11 @@ export default function TournamentForm() {
                 <h3 className="text-card-title text-[var(--color-brand-text)] mb-4">
                     {t("listTitle")}
                 </h3>
+                {fetchError && (
+                    <div className="mb-4 p-3 bg-[var(--color-elo-loss)] text-white text-sm font-mono rounded-md">
+                        {fetchError}
+                    </div>
+                )}
                 <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
                     {drivers.length === 0 ? (
                         <p className="text-btn-mono text-[var(--color-brand-text-muted)]">{t("noDrivers")}</p>
