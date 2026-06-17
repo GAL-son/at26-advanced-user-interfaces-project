@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "next lint",
     "db:events-seed-local": "tsx --env-file=.env src/scripts/events-save-local.mts",
     "db:drivers-seed-local": "tsx --env-file=.env src/scripts/drivers-save-local.mts",
     "db:process-events": "tsx --env-file=.env src/scripts/process-events-local.mts"
