@@ -4,30 +4,35 @@ import pg from 'pg';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-let prismaInstance: PrismaClient;
+function stripSslParams(connectionString: string): string {
+  try {
+    const url = new URL(connectionString);
+    url.searchParams.delete('sslmode');
+    url.searchParams.delete('uselibpqcompat');
+    return url.toString();
+  } catch {
+    return connectionString;
+  }
+}
 
-if (globalForPrisma.prisma) {
-  prismaInstance = globalForPrisma.prisma;
-} else {
-  // Budujemy connection string ręcznie z Twoich jawnych kluczy, dodając na końcu parametry wyłączające sprawdzanie SSL,
-  // co omija błąd biblioteki pg i błąd self-signed certificate.
-  const connectionString = process.env.NODE_ENV === 'production'
-    ? `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:5432/postgres?sslmode=require&uselibpqcompat=true`
-    : process.env.POSTGRES_PRISMA_URL || "postgresql://localhost:5432";
+function createPrismaClient(): PrismaClient {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const rawUrl = isProduction
+    ? (process.env.POSTGRES_PRISMA_URL ?? '')   // ✅ masz tę zmienną
+    : (process.env.POSTGRES_PRISMA_URL ?? 'postgresql://localhost:5432');
+
+  const connectionString = stripSslParams(rawUrl);
 
   const pool = new pg.Pool({
     connectionString,
-    // Dodatkowe potrójne zabezpieczenie w obiekcie dla starszych/nowszych wersji pg
-    ssl: process.env.NODE_ENV === 'production' 
-      ? { rejectUnauthorized: false } 
-      : false
+    ssl: isProduction ? { rejectUnauthorized: false } : false,
+    max: 1,
   });
-  
+
   const adapter = new PrismaPg(pool);
-  
-  prismaInstance = new PrismaClient({ adapter });
+  return new PrismaClient({ adapter });
 }
 
-export const prisma = prismaInstance;
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+globalForPrisma.prisma = prisma;
