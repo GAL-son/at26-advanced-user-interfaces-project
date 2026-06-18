@@ -61,6 +61,19 @@ function DriverProfileContent() {
   }, [guid]);
 
   useEffect(() => {
+    if (driver?.mainName) {
+      // Jeśli profil się załadował, ustawia np. "Profil - Jan Kowalski"
+      document.title = `${t("profile.metaTitle") || "Profil"} - ${driver.mainName}`;
+    } else if (loadingProfile) {
+      // W trakcie ładowania
+      document.title = t("profile.loadingTelemetry");
+    } else {
+      // W przypadku braku danych / błędu
+      document.title = t("profile.connectionError");
+    }
+  }, [driver, loadingProfile, t]);
+
+  useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         const activeEl = document.activeElement;

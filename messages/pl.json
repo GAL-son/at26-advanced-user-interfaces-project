@@ -25,6 +25,7 @@
         "register": "Rejestracja"
     },
     "Home": {
+        "tab": "ACSM Portal - Strona główna",
         "latestEvents": "Ostatnie Wydarzenia",
         "topDrivers": "Najlepsi Kierowcy",
         "virtualDuels": "Wirtualne Pojedynki",
@@ -61,6 +62,7 @@
         }
     },
     "Drivers": {
+        "tab": "ACSM Portal - Kierowcy",
         "title": "Klasyfikacja Kierowców",
         "filter": {
             "searchLabel": "Szukaj kierowcy lub aliasu...",
@@ -100,6 +102,7 @@
             "errorLoading": "Wystąpił błąd podczas pobierania danych klasyfikacji."
         },
         "profile": {
+            "metaTitle": "Profil Kierowcy",
             "loadingTelemetry": "Wczytywanie strumienia telemetrycznego...",
             "connectionError": "[BŁĄD KRYTYCZNY] Utracono połączenie. Nie można pobrać telemetrii.",
             "backToLeaderboard": "Powrót do klasyfikacji kierowców",
@@ -111,6 +114,7 @@
         }
     },
     "Events": {
+        "tab": "ACSM Portal - Wydażenia",
         "title": "Historia Wydarzeń",
         "searchPlaceholder": "Szukaj toru lub serwera...",
         "searchLabel": "Filtruj wyścigi",
@@ -186,6 +190,7 @@
         }
     },
     "CompareDrivers": {
+        "tab": "ACSM Portal - Porównaj Kierowców",
         "title": "Porównywarka kierowców",
         "subtitle": "Koreluj historyczne zmiany rankingu ELO pomiędzy wybranymi zawodnikami",
         "backButtonAria": "Powrót do katalogu głównego",
@@ -208,6 +213,7 @@
         }
     },
     "TournamentForm": {
+        "tab": "ACSM Portal - Rejestracja",
         "title": "Zapisy na turniej ELO",
         "successMessage": "Rejestracja zakończona sukcesem!",
         "listTitle": "Zarejestrowani kierowcy (Zmockowany GET)",
