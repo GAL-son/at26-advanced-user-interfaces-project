@@ -21,7 +21,7 @@ const SECTION_ORDER = [
   "compare-back",
   "compare-search",
   "compare-chart",
-    "footer"
+  "footer"
 ];
 
 function CompareDriversContent() {
@@ -29,6 +29,10 @@ function CompareDriversContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useTranslations("CompareDrivers");
+
+  useEffect(() => {
+    document.title = t("tab");
+  }, [t])
 
   const [selectedDrivers, setSelectedDrivers] = useState<DriverBasicInfo[]>([]);
 
@@ -142,7 +146,7 @@ function CompareDriversContent() {
           />
           <div>
             {/* POPRAWKA: Przejście na czysty tag h1 + unifikacja tokenem !text-page-title */}
-            <h1 
+            <h1
               className="!text-page-title uppercase leading-tight shrink-0 flex items-center gap-3"
               style={{ color: 'var(--color-brand-text)' }}
             >
@@ -150,7 +154,7 @@ function CompareDriversContent() {
               {t("title")}
             </h1>
             {/* POPRAWKA: Podtytuł ujednolicony bazowym tokenem !font-sans */}
-            <p 
+            <p
               className="text-xs mt-1 !font-sans"
               style={{ color: 'var(--color-brand-text-muted)' }}
             >
@@ -183,14 +187,14 @@ function CompareDriversContent() {
               }}
             >
               {/* POPRAWKA: Użycie tokenu technicznego !text-btn-mono dla komunikatu empty state */}
-              <p 
+              <p
                 className="!text-btn-mono uppercase font-bold tracking-wider"
                 style={{ color: 'var(--color-brand-text-muted)' }}
               >
                 {t("emptyState.title")}
               </p>
               {/* POPRAWKA: Opis pomocniczy sformatowany za pomocą !font-sans */}
-              <p 
+              <p
                 className="text-xs mt-1 opacity-70 !font-sans"
                 style={{ color: 'var(--color-brand-text-muted)' }}
               >

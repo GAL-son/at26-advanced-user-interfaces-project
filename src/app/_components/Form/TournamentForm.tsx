@@ -32,6 +32,10 @@ export default function TournamentForm() {
         car: z.string().min(1, t("validation.carRequired")),
     });
 
+    useEffect(() => {
+        document.title = t("tab");
+    }, [t])
+
     type FormData = z.infer<typeof registrationSchema>;
 
     const totalFormItems = 4;

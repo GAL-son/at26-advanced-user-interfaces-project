@@ -25,6 +25,7 @@
         "register": "Register"
     },
     "Home": {
+        "tab": "ACSM Portal - Dashboard",
         "latestEvents": "Latest Events",
         "topDrivers": "Top Drivers",
         "virtualDuels": "Virtual Duels",
@@ -61,6 +62,7 @@
         }
     },
     "Drivers": {
+        "tab": "ACSM Portal - Drivers",
         "title": "Driver Standings",
         "filter": {
             "searchLabel": "Search driver or alias...",
@@ -100,6 +102,7 @@
             "errorLoading": "An error occurred while establishing link to standings registry."
         },
         "profile": {
+            "metaTitle": "Driver Profile",
             "loadingTelemetry": "Loading telemetry stream...",
             "connectionError": "[CRITICAL] Connection lost. Failed to fetch telemetry data.",
             "backToLeaderboard": "Back to drivers leaderboard",
@@ -111,6 +114,7 @@
         }
     },
     "Events": {
+        "tab": "ACSM Portal - Events",
         "title": "Event Archive",
         "searchPlaceholder": "Search track or server...",
         "searchLabel": "Filter sessions",
@@ -186,6 +190,7 @@
         }
     },
     "CompareDrivers": {
+        "tab": "ACSM Portal - Compare drivers",
         "title": "Driver Cross-Analysis",
         "subtitle": "Correlate dynamic ELO rating records between multiplayer competitors",
         "backButtonAria": "Navigate back to core directory",
@@ -195,7 +200,7 @@
             "title": "No drivers selected ",
             "description": "Utilize the interface search node above to stage competitor profiles for evaluation."
         },
-         "search": {
+        "search": {
             "label": "Query driver registry",
             "placeholder": "Input competitive driver alias...",
             "currentlyComparing": "Staged index targets",
@@ -208,28 +213,29 @@
         }
     },
     "TournamentForm": {
-    "title": "Tournament Registration",
-    "successMessage": "Registration completed successfully!",
-    "listTitle": "Registered Drivers (Mocked GET)",
-    "noDrivers": "No registrations yet.",
-    "labels": {
-      "driverName": "Driver Name",
-      "steamId": "SteamID64",
-      "car": "Car",
-      "selectCar": "Select a machine"
-    },
-    "buttons": {
-      "submit": "Submit Registration",
-      "processing": "Processing..."
-    },
-    "errors": {
-      "fetch": "Failed to fetch registered drivers list (Network error).",
-      "submit": "A network error occurred during registration. Please try again."
-    },
-    "validation": {
-      "nameMin": "Driver name must be at least 3 characters long",
-      "steamIdRegex": "SteamID must consist of exactly 17 digits",
-      "carRequired": "Please select a car from the list"
+        "tab": "ACSM Portal - Registration",
+        "title": "Tournament Registration",
+        "successMessage": "Registration completed successfully!",
+        "listTitle": "Registered Drivers (Mocked GET)",
+        "noDrivers": "No registrations yet.",
+        "labels": {
+            "driverName": "Driver Name",
+            "steamId": "SteamID64",
+            "car": "Car",
+            "selectCar": "Select a machine"
+        },
+        "buttons": {
+            "submit": "Submit Registration",
+            "processing": "Processing..."
+        },
+        "errors": {
+            "fetch": "Failed to fetch registered drivers list (Network error).",
+            "submit": "A network error occurred during registration. Please try again."
+        },
+        "validation": {
+            "nameMin": "Driver name must be at least 3 characters long",
+            "steamIdRegex": "SteamID must consist of exactly 17 digits",
+            "carRequired": "Please select a car from the list"
+        }
     }
-  }
 }

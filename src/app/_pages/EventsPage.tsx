@@ -14,6 +14,10 @@ const SECTION_ORDER = ["menu", "events-header", "events-list", "footer"];
 
 export default function EventsPage() {
   const t = useTranslations("Events");
+
+  useEffect(() => {
+    document.title = t("tab");
+  }, [t])
   usePageInitialFocus();
 
   const [initialData, setInitialData] = useState<{

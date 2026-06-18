@@ -1,7 +1,7 @@
 // src/app/page.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import ActiveDriversTicker from "@/app/_components/Home/ActiveDriversTicker";
 import LatestEventsSection from "@/app/_components/Home/LatestEventsSection";
 import TopDriversLeaderboard from "@/app/_components/Home/TopDriversLeaderboard";
@@ -15,6 +15,7 @@ import { FormattedEvent } from "@/lib/services/events";
 import { DashboardDuels } from "@/lib/services/duels";
 import { GlobalStats } from "@/lib/services/stats";
 import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
+import { useTranslations } from "next-intl";
 
 interface HomePageProps {
   activeDrivers: TickerDriver[];
@@ -35,7 +36,12 @@ const SECTION_ORDER = [
 
 export default function HomePage({ activeDrivers, latestEvents, topDrivers, virtualDuels, globalStats }: HomePageProps) {
   usePageInitialFocus();
+  const t = useTranslations("Home");
 
+  useEffect(() => {
+    document.title = t("tab");
+  }, [t])
+  
   return (
     <div className="flex flex-col min-h-screen bg-brand-navy">
 
