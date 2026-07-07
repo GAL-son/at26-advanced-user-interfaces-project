@@ -1,0 +1,83 @@
+// This is the DEV schema. When making changes for production copy models to main file
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Championship {
+  id    String  @id
+  name  String
+
+  event Event[]
+}
+
+model Event {
+  id             String        @id @default(cuid())
+  championshipId String?
+  championship   Championship? @relation(fields: [championshipId], references: [id])
+  name           String
+  track          String
+  date           DateTime
+  server         String
+
+  session        Session[]
+  rating         Rating[] 
+}
+
+model Session {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id])
+  date            DateTime // Usunęliśmy @unique stąd
+  type            String   // Race or Qualifying
+  durationLaps    Int?
+  durationMinutes Int?
+
+  result          Result[]
+
+  @@unique([eventId, date])
+}
+
+model Result {
+  id         String  @id @default(cuid())
+  sessionId  String
+  session    Session @relation(fields: [sessionId], references: [id])
+  driverGuid String
+  driver     Driver  @relation(fields: [driverGuid], references: [guid])
+
+  start      Int?    // Null for Qualifying
+  finish     Int?    // Null on DNF
+  car        String
+  laps       Int
+  totalTime  Float   // In seconds
+  bestLap    Float   // In seconds
+  gap        Float?  // Gap in seconds
+}
+
+model Rating {
+  id         String @id @default(cuid())
+  eventId    String
+  event      Event  @relation(fields: [eventId], references: [id])
+  driverGuid String
+  driver     Driver @relation(fields: [driverGuid], references: [guid])
+
+  current    Int
+  previous   Int
+  combo      Int    @default(0)
+}
+
+model Driver {
+  guid              String   @id 
+  mainName          String
+  altNames          String?
+  currentRating     Float    @default(500.0)
+  combo             Int      @default(0)
+  
+  rating            Rating[]
+  result            Result[] 
+}

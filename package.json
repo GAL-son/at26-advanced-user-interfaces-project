@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
-    "db:full-sync": "tsx --env-file=.env src/scripts/full-sync.mts"
+    "db:full-sync": "tsx --env-file=.env src/scripts/test-sync.mts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

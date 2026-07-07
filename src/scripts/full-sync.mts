@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/db'; // Added .js suffix often required by pure ESM loaders
 import { type RaceResult } from '@/lib/db/types.js';
-import { type ACSMEventList, type ACSMRaceResult } from '@/lib/acsm/types';
+import { type ACSMEventList, type ACSMRaceResult } from '@/lib/services/acsm/types';
 import { processEventElo } from '@/lib/services/Elo/EloService.js';
 import crypto from 'crypto';
 
