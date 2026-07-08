@@ -4,6 +4,13 @@ import { prisma } from '@/lib/db/db';
 import type { AcsmRaceResult } from '@/lib/services/acsm/types';
 import { Event } from './types';
 
+export async function getEventsByChampionshipId(championshipId: string) {
+  return await prisma.event.findMany({
+    where: { championshipId },
+    orderBy: { date: 'asc' }
+  })
+}
+
 export async function syncEventFromAcsm(id: string, server: string, acsmEvent: AcsmRaceResult): Promise<Event> {
     const newDate = new Date(acsmEvent.Date);
 
