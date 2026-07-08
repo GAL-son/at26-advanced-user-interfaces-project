@@ -1,0 +1,1 @@
+export const startingRating: number = 500;

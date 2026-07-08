@@ -57,6 +57,8 @@ model Result {
   totalTime  Float   // In seconds
   bestLap    Float   // In seconds
   gap        Float?  // Gap in seconds
+
+  @@unique([sessionId, driverGuid])
 }
 
 model Rating {

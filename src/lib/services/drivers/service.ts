@@ -1,19 +1,24 @@
 "use server"
 
 import { prisma } from '@/lib/db/db';
-import type { AcsmRaceResult } from '@/lib/services/acsm/types';
 
-export async function syncDriverFromAcsm(guid: string, name: string, rating: number): Promise<Session> {
+export interface Driver { 
+    guid: string; 
+    mainName: string; 
+    altNames: string | null; 
+    currentRating: number; 
+    combo: number; 
+}
+
+export async function syncDriverFromAcsm(guid: string, name: string, rating: number): Promise<Driver> {
     const existingDriver = await prisma.driver.findUnique({
         where: { guid: guid },
         select: { mainName: true, altNames: true }
     });
 
-    const newName = name;
     let newAltNames = existingDriver?.altNames?.split(',') ?? [];
-
-    if (existingDriver && existingDriver.mainName !== name) {
-        newAltNames = [... new Set([...newAltNames, name])]
+    if (existingDriver && existingDriver.mainName != name) {
+        newAltNames = [... new Set([...newAltNames, existingDriver.mainName])]
     }
 
     const altNames = (newAltNames.length == 0) ? null : newAltNames.join(",");
@@ -31,22 +36,4 @@ export async function syncDriverFromAcsm(guid: string, name: string, rating: num
             currentRating: rating,
         }
     });
-
-
-    // return await prisma.driver.upsert({
-    //     where: {
-    //         guid: guid
-    //     },
-    //     update: {
-    //         name: name,
-    //         altNames: append old name to it
-    //     },
-    //     create: {
-    //         eventId: eventId,
-    //         date: new Date(acsmEvent.Date),
-    //         type: acsmEvent.Type,
-    //         durationLaps: acsmEvent.SessionConfig.laps,
-    //         durationMinutes: acsmEvent.SessionConfig.time,
-    //     }
-    // });
 }

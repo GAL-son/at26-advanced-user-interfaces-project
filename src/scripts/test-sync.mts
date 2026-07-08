@@ -8,6 +8,9 @@ import { syncDriverFromAcsm } from "@/lib/services/drivers/service";
 import { syncEventFromAcsm } from "@/lib/services/event/service";
 import { syncSessionFromAcsm } from "@/lib/services/session/service";
 
+import { startingRating } from "@/lib/services/rating/config";
+import { syncResultFromAcsm } from "@/lib/services/result/service";
+
 const ACMS_RATE_LIMIT_DELAY = 4500; // Time between successful list/detail calls (ms)
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -105,16 +108,18 @@ for (const event of events) {
 
     // Save session
     const session = await syncSessionFromAcsm(eventId, results);
+    const isSessionQualify = event.session_type == AcsmSessionType.QUALIFY
+    const timeToGap = isSessionQualify ? results.Result[0].BestLap :  results.Result[0].TotalTime;
+
 
     // Save drivers and their results
-    for(const result of results.Result) {
-
-        if(result.DriverGuid) {
-            await syncDriverFromAcsm(result.DriverGuid, result.DriverName, 500); // later take base elo from provider
-
-        }
-
-
+    for(const [index, result] of results.Result.entries()) {
+        if(!result.DriverGuid) continue;
+        
+        await syncDriverFromAcsm(result.DriverGuid, result.DriverName, startingRating);
+       
+        const gap = (isSessionQualify ? result.BestLap : result.TotalTime) - timeToGap;
+        await syncResultFromAcsm(session.id, result, isSessionQualify, index+1, gap);
     }
 
     await delay(ACMS_RATE_LIMIT_DELAY)

@@ -27,6 +27,19 @@ export interface AcsmEventList {
   num_pages: number;
 }
 
+export interface AcsmDriverResult {
+  DriverGuid: string,
+  DriverName: string,
+  CarModel: string,
+  BallastKg: number,
+  Restrictor: number,
+  GridPosition: number,
+  TotalTime: number,
+  NumLaps: number,
+  PenaltyTime: number,
+  BestLap: number
+}
+
 export interface AcsmRaceResult {
   EventName: string,
   ChampionshipID: string,
@@ -38,17 +51,6 @@ export interface AcsmRaceResult {
     time: number,
     laps: number,
   },
-  Result: {
-    DriverGuid: string,
-    DriverName: string,
-    CarModel: String,
-    BallastKg: number,
-    Restrictor: number,
-    GridPosition: number,
-    TotalTime: number,
-    NumLaps: number,
-    PenaltyTime: number,
-    BestLap:number
-  }[]
+  Result: AcsmDriverResult[]
 }
 
