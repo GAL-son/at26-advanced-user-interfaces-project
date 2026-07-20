@@ -13,7 +13,7 @@ model Championship {
   id    String  @id
   name  String
 
-  event Event[]
+  events Event[]
 }
 
 model Event {
@@ -25,8 +25,8 @@ model Event {
   date           DateTime
   server         String
 
-  session        Session[]
-  rating         Rating[] 
+  sessions        Session[]
+  ratings         Rating[] 
 }
 
 model Session {
@@ -38,7 +38,7 @@ model Session {
   durationLaps    Int?
   durationMinutes Int?
 
-  result          Result[]
+  results          Result[]
 
   @@unique([eventId, date])
 }
@@ -80,6 +80,6 @@ model Driver {
   currentRating     Float    @default(500.0)
   combo             Int      @default(0)
   
-  rating            Rating[]
-  result            Result[] 
+  ratings            Rating[]
+  results            Result[] 
 }

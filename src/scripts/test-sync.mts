@@ -3,9 +3,9 @@
 import { getAcsmChampionships, getAcsmEvents, getAcsmResult as getAcsmResults } from "@/lib/services/acsm/service";
 import { AcsmChampionshipList, AcsmChampionshipInfo, AcsmEvent, AcsmSessionType } from "@/lib/services/acsm/types";
 
-import { syncChampionshipFromAcsm } from "@/lib/services/championship/service";
-import { syncDriverFromAcsm } from "@/lib/services/drivers/service";
-import { syncEventFromAcsm } from "@/lib/services/event/service";
+import { syncChampionshipFromAcsm } from "@/lib/services/championships.service";
+import { syncDriverFromAcsm } from "@/lib/services/drivers.service";
+import { syncEventFromAcsm } from "@/lib/services/events.service";
 import { syncSessionFromAcsm } from "@/lib/services/session/service";
 
 import { startingRating } from "@/lib/services/rating/config";
@@ -92,18 +92,20 @@ for (const event of events) {
 
     console.log({
         championship: championships[results.ChampionshipID]?.name,
+        championshipId: results.ChampionshipID,
         eventName: results.EventName,
         sessionType: results.Type,
         date: results.Date
     });
 
-    // For each event if it has championship assigned, save this championship
-    if (results.ChampionshipID) {
-        await syncChampionshipFromAcsm(championships[results.ChampionshipID]);
+    // If championship is unknown, skip this event
+    if (!results.ChampionshipID || !championships[results.ChampionshipID]) {
+        continue;
     }
-
+    
+    await syncChampionshipFromAcsm(championships[results.ChampionshipID]);
     // Save event under new id
-    const eventId = results.ChampionshipID + "_" + (results.EventName ?? results.TrackName);
+    const eventId = results.ChampionshipID + "_" + (results.EventName ?? results.TrackName).replaceAll(" ", "_");
     await syncEventFromAcsm(eventId, event.server ?? "", results);
 
     // Save session
