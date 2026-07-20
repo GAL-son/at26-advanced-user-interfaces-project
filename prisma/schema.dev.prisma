@@ -20,6 +20,7 @@ model Event {
   id             String        @id @default(cuid())
   championshipId String?
   championship   Championship? @relation(fields: [championshipId], references: [id])
+  
   name           String
   track          String
   date           DateTime
@@ -63,14 +64,19 @@ model Result {
 
 model Rating {
   id         String @id @default(cuid())
-  eventId    String
+  eventId    String 
   event      Event  @relation(fields: [eventId], references: [id])
   driverGuid String
   driver     Driver @relation(fields: [driverGuid], references: [guid])
 
+  tookPart   Boolean // false on erosion
+  rating     Float  
   current    Int
   previous   Int
   combo      Int    @default(0)
+  erosion    Int    @default(0)
+
+  @@unique([eventId, driverGuid])
 }
 
 model Driver {
@@ -78,7 +84,9 @@ model Driver {
   mainName          String
   altNames          String?
   currentRating     Float    @default(500.0)
+  bestRating        Float    @default(500.0)
   combo             Int      @default(0)
+  erosion           Int      @default(0)
   
   ratings            Rating[]
   results            Result[] 

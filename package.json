@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
-    "db:full-sync": "tsx --env-file=.env src/scripts/test-sync.mts"
+    "db:event-seed": "tsx --env-file=.env src/scripts/test-sync.mts",
+    "db:rating-seed": "tsx --env-file=.env src/scripts/test-rating-seed.mts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

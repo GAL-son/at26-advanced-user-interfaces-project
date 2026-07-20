@@ -43,6 +43,16 @@ export interface ResultDto {
     gap: number | null;
 }
 
+export interface EventListDto {
+    id: string,
+    name: string;
+    championshipId: string | null;
+    track: string;
+    date: Date;
+    server: string;
+    sessions: SessionDto[];
+}
+
 export async function getEventById(id: string): Promise<EventDto | null> {
     const event = await prisma.event.findUnique({
         where: { id: id },
@@ -132,4 +142,83 @@ export async function syncEventFromAcsm(id: string, server: string, acsmEvent: A
             date: resolvedDate,
         }            
     });
+}
+
+export async function getAllEventsChronologically(): Promise<EventListDto[]> {
+    const events = await prisma.event.findMany({
+        orderBy: {
+            date: 'asc' // Od najstarszego do najnowszego
+        },
+        select: {
+            id: true,
+            name: true,
+            championshipId: true,
+            track: true,
+            date: true,
+            server: true,
+            sessions: {
+                orderBy: {
+                    date: 'asc' // Sesje wewnątrz wydarzenia również chronologicznie
+                },
+                select: {
+                    id: true,
+                    date: true,
+                    type: true,
+                    durationLaps: true,
+                    durationMinutes: true,
+                    results: {
+                        select: {
+                            id: true,
+                            driverGuid: true,
+                            start: true,
+                            finish: true,
+                            car: true,
+                            laps: true,
+                            totalTime: true,
+                            bestLap: true,
+                            gap: true,
+                            driver: {
+                                select: {
+                                    mainName: true,
+                                    currentRating: true,
+                                    bestRating: true,
+                                    combo: true,
+                                    erosion: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Mapujemy strukturę dokładnie tak samo jak w getEventById, spłaszczając driver.mainName
+    return events.map(event => ({
+        id: event.id,
+        name: event.name,
+        championshipId: event.championshipId,
+        track: event.track,
+        date: event.date,
+        server: event.server,
+        sessions: event.sessions.map(session => ({
+            id: session.id,
+            date: session.date,
+            type: session.type,
+            durationLaps: session.durationLaps,
+            durationMinutes: session.durationMinutes,
+            results: session.results.map(result => ({
+                id: result.id,
+                driverGuid: result.driverGuid,
+                driverName: result.driver.mainName,
+                start: result.start,
+                finish: result.finish,
+                car: result.car,
+                laps: result.laps,
+                totalTime: result.totalTime,
+                bestLap: result.bestLap,
+                gap: result.gap
+            }))
+        }))
+    })) as unknown as EventListDto[];
 }
