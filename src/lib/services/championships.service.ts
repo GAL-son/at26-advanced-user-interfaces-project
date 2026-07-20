@@ -19,7 +19,8 @@ export interface ChampionshipEventDto {
 export interface ChampionshipDto {
   name: string,
   events: ChampionshipEventDto[];
-  from: Date
+  from: Date,
+  to:Date
 }
 
 
@@ -56,26 +57,31 @@ export async function getAllChampionships(): Promise<ChampionshipListItemDto[]> 
   return await prisma.championship.findMany();
 }
 
-export async function getChampionshipsList(skip: number, take: number, search?: string): Promise<ChampionshipListItemDto[]>  {
-  let whereClause: any = undefined;
+export async function getChampionshipsList(
+  skip: number,
+  take: number,
+  search?: string
+): Promise<ChampionshipListItemDto[]> {
+  
+  // Przygotowujemy bezpieczny parametr dla obu baz (z małych liter dla LOWER)
+  const searchPattern = search ? `%${search.toLowerCase()}%` : null;
 
-  if (search) {
-    const isProduction = process.env.NODE_ENV === 'production';
+  // Zapytanie zgodne ze standardem ANSI SQL - działa w SQLite oraz PostgreSQL
+  const championships = await prisma.$queryRaw<any[]>`
+    SELECT c.id, c.name FROM Championship c
+    LEFT JOIN Event e ON c.id = e.championshipId
+    WHERE 
+      ${searchPattern} IS NULL 
+      OR LOWER(c.name) LIKE ${searchPattern}
+    GROUP BY c.id, c.name
+    ORDER BY COALESCE(MAX(e.date), CAST('1970-01-01' AS TIMESTAMP)) DESC
+    LIMIT ${take} OFFSET ${skip}
+  `;
 
-    whereClause = {
-      name: {
-        contains: search,
-        ...(isProduction && { mode: 'insensitive' })
-      }
-    };
-  }
-
-  return await prisma.championship.findMany({
-    skip,
-    take,
-    where: whereClause,
-    orderBy: { name: 'asc' }
-  });
+  return championships.map(c => ({
+    id: c.id,
+    name: c.name
+  }));
 }
 
 /**
