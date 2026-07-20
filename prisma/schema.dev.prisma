@@ -70,7 +70,6 @@ model Rating {
   driver     Driver @relation(fields: [driverGuid], references: [guid])
 
   tookPart   Boolean // false on erosion
-  rating     Float  
   current    Int
   previous   Int
   combo      Int    @default(0)
@@ -83,10 +82,12 @@ model Driver {
   guid              String   @id 
   mainName          String
   altNames          String?
-  currentRating     Float    @default(500.0)
-  bestRating        Float    @default(500.0)
+  currentRating     Int    @default(500)
+  bestRating        Int    @default(500)
   combo             Int      @default(0)
   erosion           Int      @default(0)
+
+  joined            DateTime @default(now())
   
   ratings            Rating[]
   results            Result[] 

@@ -10,7 +10,7 @@ export interface Driver {
     combo: number; 
 }
 
-export async function syncDriverFromAcsm(guid: string, name: string, rating: number): Promise<Driver> {
+export async function syncDriverFromAcsm(guid: string, name: string, rating: number, joined: Date): Promise<Driver> {
     const existingDriver = await prisma.driver.findUnique({
         where: { guid: guid },
         select: { mainName: true, altNames: true }
@@ -34,6 +34,7 @@ export async function syncDriverFromAcsm(guid: string, name: string, rating: num
             mainName: name,
             altNames: null,
             currentRating: rating,
+            joined: joined
         }
     });
 }

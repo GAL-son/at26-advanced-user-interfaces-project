@@ -118,7 +118,7 @@ for (const event of events) {
     for(const [index, result] of results.Result.entries()) {
         if(!result.DriverGuid) continue;
         
-        await syncDriverFromAcsm(result.DriverGuid, result.DriverName, startingRating);
+        await syncDriverFromAcsm(result.DriverGuid, result.DriverName, startingRating, new Date(results.Date));
        
         const gap = (isSessionQualify ? result.BestLap : result.TotalTime) - timeToGap;
         await syncResultFromAcsm(session.id, result, isSessionQualify, index+1, gap);

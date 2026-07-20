@@ -1,28 +1,37 @@
 import { getAllEventsChronologically } from '@/lib/services/events.service';
 import { updateEventRating, updateEventErosion } from '@/lib/services/rating.service';
-import { config } from '@/lib/services/rating.service'; // Zaimportuj obiekt config, aby mieć dostęp do startingRating
+import { config } from '@/lib/services/rating.service';
 import { prisma } from '../lib/db/db';
 
-// Interfejs opisujący strukturę pamięci podręcznej dla stanu kierowcy
-interface DriverRuntimeState {
-    guid: string;
-    rating: number;
-    bestRating: number;
-    combo: number;
+const testConfig = {
+    limit: 500
 }
 
 async function main() {
-    console.log("🚀 Seeding Ratings - Full Chronological Recalculation");
+    console.log("Seeding Ratings - Full Chronological Recalculation (DB Driven)");
 
     try {
+        await prisma.$transaction([
+            prisma.rating.deleteMany({}),
+            prisma.driver.updateMany({
+                data: {
+                    currentRating: config.startingRating,
+                    bestRating: config.startingRating,
+                    combo: 0,
+                    erosion: 0
+                }
+            })
+        ]);
+
         const allEvents = await getAllEventsChronologically();
         console.log(`Found ${allEvents.length} Events.`);
 
-        // Słownik przechowujący bieżący stan każdego kierowcy w pamięci ram skryptu.
-        // Będzie on aktualizowany po każdym evencie i przekazywany do następnego.
-        const driversStateCache: Record<string, DriverRuntimeState> = {};
-
+        let processedCount = 0;
         for (const event of allEvents) {
+            if (processedCount >= testConfig.limit) {
+                break;
+            }
+
             console.log(`\nProcessing: [${event.date.toISOString().split('T')[0]}] - ${event.name}`);
 
             const driverGuidsInEvent = new Set<string>();
@@ -33,71 +42,57 @@ async function main() {
             const guidsArray = Array.from(driverGuidsInEvent);
 
             if (guidsArray.length === 0) {
-                console.log(`No drivers in this event`);
-            } else {
-                // POPRAWKA: Zamiast pytać bazę o stan kierowcy, inicjalizujemy go z configu 
-                // lub wyciągamy stan zapamiętany z POPRZEDNIEGO eventu.
-                const currentDriversData = guidsArray.map(guid => {
-                    // Jeśli kierowca pojawia się w historii po raz pierwszy:
-                    if (!driversStateCache[guid]) {
-                        driversStateCache[guid] = {
-                            guid: guid,
-                            rating: config.startingRating,     // Wartość bazowa ELO
-                            bestRating: config.startingRating, // Wartość bazowa Best ELO
-                            combo: 0                           // Startowe combo
-                        };
-                    }
-                    return driversStateCache[guid];
-                });
-
-                const eventDataDto = {
-                    id: event.id,
-                    drivers: currentDriversData.map(d => ({
-                        guid: d.guid,
-                        rating: d.rating,
-                        bestRating: d.bestRating,
-                        combo: d.combo
-                    })),
-                    sessions: event.sessions
-                };
-
-                // Obliczamy i zapisujemy w bazie wyścigowy rating.
-                await updateEventRating(eventDataDto);
-                console.log(`Updated rating for ${currentDriversData.length} drivers.`);
+                console.log(`No drivers in this event - skipping rating & erosion`);
+                processedCount++;
+                continue; 
             }
 
-            // Naliczanie erozji dla nieobecnych
+            const driversFromDb = await prisma.driver.findMany({
+                where: {
+                    guid: { in: guidsArray }
+                },
+                select: {
+                    guid: true,
+                    currentRating: true,
+                    bestRating: true,
+                    combo: true,
+                    joined: true
+                }
+            });
+
+            const eventDataDto = {
+                id: event.id,
+                date: event.date,
+                drivers: driversFromDb.map(d => ({
+                    guid: d.guid,
+                    rating: d.currentRating,
+                    bestRating: d.bestRating,
+                    combo: d.combo,
+                    joined: d.joined
+                })),
+                sessions: event.sessions
+            };
+
+            await updateEventRating(eventDataDto);
+            console.log(`Updated rating for ${driversFromDb.length} drivers.`);
+
             const erosionEventDto = {
                 id: event.id,
-                drivers: guidsArray.map(guid => ({ guid, rating: 0, bestRating: 0, combo: 0 })),
+                date: event.date,
+                drivers: driversFromDb.map(d => ({
+                    guid: d.guid,
+                    rating: d.currentRating,
+                    bestRating: d.bestRating,
+                    combo: d.combo,
+                    joined: d.joined
+                })),
                 sessions: []
             };
 
             await updateEventErosion(erosionEventDto);
             console.log(`Erosion calculated`);
 
-            // === STRATEGICZNA POPRAWKA: ODŚWIEŻENIE CACHE'U PO ZAPISIE W BAZIE ===
-            // Po wykonaniu updateEventRating oraz updateEventErosion, Prisma zapisała nowe dane w tabeli Driver.
-            // Musimy je pobrać z bazy i zaktualizować nasz lokalny driversStateCache, 
-            // aby w KOLEJNEJ iteracji pętli (dla następnego eventu) skrypt miał w pamięci te nowe, świeże wartości.
-            const updatedDriversFromDb = await prisma.driver.findMany({
-                select: {
-                    guid: true,
-                    currentRating: true,
-                    bestRating: true,
-                    combo: true
-                }
-            });
-
-            // Aktualizujemy lokalny stan dla wszystkich znanych systemowi kierowców
-            for (const d of updatedDriversFromDb) {
-                driversStateCache[d.guid] = {
-                    guid: d.guid,
-                    rating: d.currentRating,
-                    bestRating: d.bestRating,
-                    combo: d.combo
-                };
-            }
+            processedCount++;
         }
 
         console.log("\nFinished successfully!");

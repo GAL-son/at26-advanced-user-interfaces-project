@@ -1,23 +1,26 @@
 import { prisma } from '@/lib/db/db';
 
 export const config = {
-    startingRating: 500,
-    comboMutliplierLimit: 10, // 10 weeks
-    maxComboMultiplier: 2,
+    startingRating: 1000,
+    comboMutliplierLimit: 15,
+    maxComboMultiplier: 3,
     erosionStart: 10, // 10 weeks
     erosionValue: 2, // points every week over start
-    positionAdjustmentMutiplier: 0.1,
-    raceK: 32,
-    qualiK: 16,
+    erosionLimitOffset: 500, // 500 points below base
+    positionAdjustmentMutiplier: 100,
+    raceK: 64,
+    qualiK: 32,
 }
 
 export interface EventDataDto {
     id: string;
+    date: Date,
     drivers: {
         guid: string,
         rating: number,
         bestRating: number
         combo: number,
+        joined: Date,
     }[]
     sessions: SessionDataDto[]
 }
@@ -33,12 +36,19 @@ export interface SessionDataDto {
 }
 
 export async function updateEventErosion(eventData: EventDataDto): Promise<void> {
+    if(eventData.drivers.length <= 1) {
+        return;
+    }
+
     const activeDriverGuids = eventData.drivers.map(d => d.guid);
 
     const erodedDrivers = await prisma.driver.findMany({
         where: {
             guid: {
                 notIn: activeDriverGuids
+            },
+            joined: {
+                lte: eventData.date
             }
         }
     });
@@ -66,7 +76,6 @@ export async function updateEventErosion(eventData: EventDataDto): Promise<void>
                 },
                 update: {
                     tookPart: false,
-                    rating: newRating,
                     current: currentRatingInt,
                     previous: previousRatingInt,
                     combo: driver.combo,
@@ -76,7 +85,6 @@ export async function updateEventErosion(eventData: EventDataDto): Promise<void>
                     eventId: eventData.id,
                     driverGuid: driver.guid,
                     tookPart: false,
-                    rating: newRating,
                     current: currentRatingInt,
                     previous: previousRatingInt,
                     combo: driver.combo,
@@ -106,6 +114,10 @@ export async function updateEventErosion(eventData: EventDataDto): Promise<void>
 }
 
 export async function updateEventRating(eventData: EventDataDto): Promise<void> {
+    if(eventData.drivers.length <= 1) {
+        return;
+    }
+
     // Initialize rating change
     const ratingChange: Record<string, { base: number, change: number }> = {};
     eventData.drivers.forEach(driver => ratingChange[driver.guid] = { base: driver.rating, change: 0 })
@@ -130,11 +142,20 @@ export async function updateEventRating(eventData: EventDataDto): Promise<void> 
 
         const nextDriverCombo = driver.combo + 1;
         const ratingHistoryCombo = driver.combo;
-        const erosion = 0 // Reset erosion on participation
+        const erosion = 0 // Reset erosion on participation     
 
-        const nextBestRating = calculatedNewRating > driver.bestRating
+        const nextBestRating = Math.round(calculatedNewRating > driver.bestRating
             ? calculatedNewRating
-            : driver.bestRating;
+            : driver.bestRating);
+
+        console.debug(`Driver ${driver.guid}`)
+        console.debug({
+            prev: previousRatingInt,
+            next: currentRatingInt,
+            best: nextBestRating,
+            combo:ratingHistoryCombo,
+            nextcombo: nextDriverCombo,
+        })
 
         prismaOperations.push(
             prisma.rating.upsert({
@@ -146,7 +167,6 @@ export async function updateEventRating(eventData: EventDataDto): Promise<void> 
                 },
                 update: {
                     tookPart: true,
-                    rating: calculatedNewRating,
                     current: currentRatingInt,
                     previous: previousRatingInt,
                     combo: ratingHistoryCombo,
@@ -156,7 +176,6 @@ export async function updateEventRating(eventData: EventDataDto): Promise<void> 
                     eventId: eventData.id,
                     driverGuid: driver.guid,
                     tookPart: true,
-                    rating: calculatedNewRating,
                     current: currentRatingInt,
                     previous: previousRatingInt,
                     combo: ratingHistoryCombo,
@@ -169,7 +188,7 @@ export async function updateEventRating(eventData: EventDataDto): Promise<void> 
             prisma.driver.update({
                 where: { guid: driver.guid },
                 data: {
-                    currentRating: calculatedNewRating,
+                    currentRating: currentRatingInt,
                     bestRating: nextBestRating,
                     combo: nextDriverCombo,
                     erosion: erosion
@@ -191,10 +210,19 @@ function calculateRatingChange(
     eloChange: Record<string, { base: number, change: number }>,
     sessionData: SessionDataDto,
 ) {
-    const driverCount = sessionData.results.length - 1;
+    console.debug(sessionData.type)
+    const driverCount = sessionData.results.length;
+    const eventChange: Record<string, number> = {};
+    sessionData.results.forEach(result => {eventChange[result.driverGuid] = 0})
+
 
     for (let i = 0; i < sessionData.results.length; i++) {
         for (let j = i + 1; j < sessionData.results.length; j++) {
+            const driverA = sessionData.results[i];
+            const driverB = sessionData.results[j];
+
+            console.debug(`Comparing drivers: A: ${driverA.driverGuid} vs. B: ${driverB.driverGuid}`);
+            console.debug(`A: ${driverA.start} => ${driverA.finish} vs B: ${driverB.start} => ${driverB.finish}`)
             const resultA = sessionData.results[i];
             const resultB = sessionData.results[j];
 
@@ -204,6 +232,8 @@ function calculateRatingChange(
 
             let ratingA = eloChange[resultA.driverGuid].base;
             let ratingB = eloChange[resultB.driverGuid].base;
+
+            console.debug(`Raw A: ${ratingA} vs B: ${ratingB}`)
 
             // Standard head to head is the base case (quali)
             let K = config.qualiK;
@@ -215,21 +245,35 @@ function calculateRatingChange(
                 ratingB = adjustForStartingPosition(ratingB, driverCount, resultB.start as number)
             }
 
+            console.debug(`Adjusted A: ${ratingA} vs B: ${ratingB}`)
+
             const expectedA = 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
             const actualA = Number((resultA.finish as number) < (resultB.finish as number));
+            console.log(`ExpectedA ${expectedA} vs ActualA ${actualA}`)
 
-            const pointsExchanged = (K * (expectedA - actualA));
+            const pointsExchanged = (K * (actualA - expectedA));
+            console.debug(`Exchanged points for A: ${pointsExchanged}`)
 
-            eloChange[resultA.driverGuid].change += pointsExchanged;
-            eloChange[resultB.driverGuid].change += pointsExchanged * (-1);
+            eventChange[resultA.driverGuid] += pointsExchanged;
+            eventChange[resultB.driverGuid] += pointsExchanged * (-1);
+
+            console.debug("Current Elo change A: " + eventChange[resultA.driverGuid])
+            console.debug("Current Elo change B: " + eventChange[resultB.driverGuid])
         }
     }
 
-    for (const guid in eloChange) {
-        if (eloChange.hasOwnProperty(guid)) {
-            eloChange[guid].change /= (driverCount - 1);
+    console.debug(driverCount - 1)
+    for (const guid in eventChange) {
+        if (eventChange.hasOwnProperty(guid)) {
+            
+            eventChange[guid] /= (driverCount - 1);
+            eloChange[guid].change += eventChange[guid];
+            console.debug(`TOTAL ${guid} => ${eventChange[guid]}`)
+            console.debug(`CHANGE FOR ${guid} => ${eloChange[guid].change}`)
         }
     }
+
+    
 }
 
 /**
@@ -256,7 +300,7 @@ function calculateErosion(erosion: number): number {
 }
 
 function calcuateEventErodedRating(rating: number, erosion: number): number {
-    return Math.max(config.startingRating, rating - calculateErosion(erosion));
+    return Math.max(config.startingRating - config.erosionLimitOffset, rating - calculateErosion(erosion));
 }
 
 function calcualteEventResultRating(rating: number, combo: number, ratingChange: number): number {
@@ -266,10 +310,11 @@ function calcualteEventResultRating(rating: number, combo: number, ratingChange:
         comboMultiplier = calculateComboMultiplier(combo);
     }
 
-    return Math.max(config.startingRating, rating + ratingChange * comboMultiplier);
+    return Math.max(0, rating + ratingChange * comboMultiplier);
 }
 
 function adjustForStartingPosition(rating: number, numberOfDrivers: number, startingPosition: number): number {
-    return rating + (startingPosition / numberOfDrivers) * config.positionAdjustmentMutiplier;
+    const adjustmentRate = ((startingPosition-1) - (numberOfDrivers - 1) / numberOfDrivers ) / numberOfDrivers; // 0.5 dla 4 kierowców,
+    return rating - adjustmentRate * config.positionAdjustmentMutiplier;
 }
 
