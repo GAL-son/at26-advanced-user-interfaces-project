@@ -11,6 +11,8 @@ import { syncSessionFromAcsm } from "@/lib/services/session/service";
 import { startingRating } from "@/lib/services/rating/config";
 import { syncResultFromAcsm } from "@/lib/services/result/service";
 
+import crypto from 'crypto';
+
 const ACMS_RATE_LIMIT_DELAY = 4500; // Time between successful list/detail calls (ms)
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -53,6 +55,21 @@ async function getAllEvents(servers: string[]): Promise<AcsmEvent[]> {
     }
 
     return allEvents;
+}
+
+/**
+ * Generates a unique ID based on track configuration and date ISO string
+ */
+function generateEventId(championshipId: string, track: string, date: string): string {
+  const dateObject = new Date(date);
+  if (isNaN(dateObject.getTime())) {
+    throw new RangeError(`Invalid time value: ${date}`);
+  }
+  const dateString = dateObject.toISOString().split('T')[0];
+  const normalizedTrack = track.toLowerCase().trim();
+  const normalizedChampionship = championshipId.toLowerCase().trim();
+
+  return crypto.createHash('md5').update(`${normalizedChampionship}_${normalizedTrack}_${dateString}`).digest('hex');
 }
 
 
@@ -105,7 +122,7 @@ for (const event of events) {
     
     await syncChampionshipFromAcsm(championships[results.ChampionshipID]);
     // Save event under new id
-    const eventId = results.ChampionshipID + "_" + (results.EventName ?? results.TrackName).replaceAll(" ", "_");
+    const eventId = generateEventId(results.ChampionshipID, results.TrackName, results.Date);
     await syncEventFromAcsm(eventId, event.server ?? "", results);
 
     // Save session
