@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, KeyboardEvent } from "react";
-import { Box, TextField, InputAdornment, CircularProgress } from "@mui/material";
 import { useTranslations } from "next-intl";
-import SearchIcon from "@mui/icons-material/Search";
+import { Search, Loader2 } from "lucide-react";
 
 export interface SearchResultItem {
   guid: string;
@@ -17,7 +16,7 @@ interface UniversalSearchProps<T extends SearchResultItem>
     renderItem?: React.ComponentType<{ item: T }>;
     onSelectResult: (item: T) => void;
     value: string;
-    onChange: (val: string) => void; // Teraz Twój niestandardowy typ jest w pełni legalny
+    onChange: (val: string) => void;
     placeholder?: string;
     label?: string;
     isLoading?: boolean;
@@ -129,124 +128,110 @@ export default function UniversalSearch<T extends SearchResultItem>({
   };
 
   return (
-    <Box ref={dropdownRef} className="relative w-full">
-      <TextField
-        fullWidth={fullWidth}
-        label={label}
-        variant="outlined"
-        placeholder={placeholder || t("searchPlaceholder")}
-        value={value}
-        onFocus={() => setIsDropdownOpen(true)}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setIsDropdownOpen(true);
-        }}
-        onKeyDown={handleKeyDownInternal}
-        inputRef={inputRef}
-        slotProps={{
-          htmlInput: {
-            "role": "combobox",
-            "aria-expanded": showDropdown,
-            "aria-haspopup": "listbox",
-            "aria-controls": showDropdown ? listboxId : undefined,
-            "aria-autocomplete": "list",
-            "aria-activedescendant": focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined,
-            ...props,
-          },
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: "var(--color-brand-text-muted)" }} />
-              </InputAdornment>
-            ),
-            endAdornment: isLoading && (
-              <InputAdornment position="end">
-                <CircularProgress size={20} sx={{ color: "var(--color-brand-yellow-hover)" }} />
-              </InputAdornment>
-            ),
-          },
-        }}
-        /* POPRAWKA: Dodanie !font-sans do klas TextField oraz inputu, aby wymusić Rajdhani */
-        className="!font-sans"
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            height: "48px",
-            borderRadius: "var(--radius-brand-card)",
-            color: "var(--color-brand-text)",
-            backgroundColor: "var(--color-brand-navy-dark)",
-            transition: "all 0.3s ease",
-            "& fieldset": { borderColor: "var(--color-brand-navy-light)" },
-            "&:hover fieldset": { borderColor: "var(--color-brand-text-muted)" },
-            "&.Mui-focused fieldset": { borderColor: "var(--color-brand-yellow-hover)" },
-          },
-          "& .MuiInputLabel-root": {
-            color: "var(--color-brand-text-muted)",
-            fontFamily: "var(--font-sans) !important", /* Wymuszenie w MUI */
-            "&.Mui-focused": { color: "var(--color-brand-yellow-text)" }
-          },
-          "& .MuiInputBase-input": {
-            color: "var(--color-brand-text)",
-            fontFamily: "var(--font-sans) !important", /* Wymuszenie w MUI dla wpisywanego tekstu */
-            "&::placeholder": { color: "var(--color-brand-text-muted)", opacity: 0.7 }
-          },
-        }}
-      />
+    <div ref={dropdownRef} className={`relative ${fullWidth ? "w-full" : "w-auto"}`}>
+      {/* Etykieta (Label) jeśli podano w propsach */}
+      {label && (
+        <label 
+          htmlFor={uniqueId} 
+          className="block mb-1.5 text-xs uppercase font-bold tracking-wider font-sans text-[var(--color-brand-text-muted)]"
+        >
+          {label}
+        </label>
+      )}
+
+      {/* Kontener pola tekstowego */}
+      <div className="relative flex items-center w-full">
+        {/* Ikona wyszukiwania z lewej */}
+        <div className="absolute left-3.5 inset-y-0 flex items-center pointer-events-none text-[var(--color-brand-text-muted)]">
+          <Search className="w-5 h-5" />
+        </div>
+
+        {/* Natywny Input */}
+        <input
+          id={uniqueId}
+          ref={inputRef}
+          type="text"
+          value={value}
+          placeholder={placeholder || t("searchPlaceholder")}
+          onFocus={() => setIsDropdownOpen(true)}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setIsDropdownOpen(true);
+          }}
+          onKeyDown={handleKeyDownInternal}
+          role="combobox"
+          aria-expanded={showDropdown}
+          aria-haspopup="listbox"
+          aria-controls={showDropdown ? listboxId : undefined}
+          aria-autocomplete="list"
+          aria-activedescendant={focusedIndex >= 0 ? getOptionId(focusedIndex) : undefined}
+          className={`
+            w-full h-12 pl-11 ${isLoading ? "pr-11" : "pr-4"}
+            bg-[var(--color-brand-navy-dark)] 
+            text-[var(--color-brand-text)] 
+            placeholder:[var(--color-brand-text-muted)] placeholder:opacity-70
+            font-sans text-sm sm:text-base
+            border border-[var(--color-brand-navy-light)] 
+            rounded-[var(--radius-brand-card)]
+            transition-all duration-300 outline-none
+            hover:border-[var(--color-brand-text-muted)]
+            focus:border-[var(--color-brand-yellow-hover)] focus:ring-1 focus:ring-[var(--color-brand-yellow-hover)]
+          `.trim()}
+          {...props}
+        />
+
+        {/* Wskaźnik ładowania z prawej */}
+        {isLoading && (
+          <div className="absolute right-3.5 inset-y-0 flex items-center pointer-events-none text-[var(--color-brand-yellow-hover)]">
+            <Loader2 className="w-5 h-5 animate-spin" />
+          </div>
+        )}
+      </div>
 
       {/* ROZWIJANA LISTA WYNIKÓW */}
       {showDropdown && (
-        <Box
+        <div
           id={listboxId}
           role="listbox"
           aria-label={label || "Search results"}
-          /* POPRAWKA: Zamiana font-mono na ujednolicony token !text-btn-mono z Share Tech Mono */
-          className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto !text-btn-mono shadow-xl"
-          sx={{
-            backgroundColor: "color-mix(in srgb, var(--color-brand-navy-dark) 95%, transparent)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid var(--color-brand-navy-light)",
-            borderRadius: "var(--radius-brand-card)",
-          }}
+          className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto text-btn-mono shadow-xl bg-[color-mix(in_srgb,var(--color-brand-navy-dark)_95%,transparent)] backdrop-blur-md border border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)]"
         >
           {results.length === 0 && !isLoading ? (
-            <Box className="p-4 text-center text-xs !text-btn-mono" sx={{ color: "var(--color-brand-text-muted)", opacity: 0.6 }}>
+            <div className="p-4 text-center text-xs text-btn-mono text-[var(--color-brand-text-muted)] opacity-60">
               {t("noResults")}
-            </Box>
+            </div>
           ) : (
             results.map((item, index) => {
               const isKeyboardFocused = index === focusedIndex;
               return (
-                <Box
+                <div
                   key={item.guid}
                   id={getOptionId(index)}
                   role="option"
                   aria-selected={isKeyboardFocused}
                   onClick={() => handleItemClick(item)}
-                  className="p-3 cursor-pointer flex justify-between items-center transition-colors"
-                  sx={{
-                    borderBottom: "1px solid var(--color-brand-navy-light)",
-                    "&:last-child": { borderBottom: "none" },
-                    backgroundColor: isKeyboardFocused 
-                      ? "color-mix(in srgb, var(--color-brand-text) 10%, transparent) !important" 
-                      : "transparent",
-                    "&:hover": {
-                      backgroundColor: "color-mix(in srgb, var(--color-brand-text) 6%, transparent)",
-                    },
-                  }}
+                  className={`
+                    p-3 cursor-pointer flex justify-between items-center transition-colors
+                    border-b border-[var(--color-brand-navy-light)] last:border-b-0
+                    ${isKeyboardFocused 
+                      ? "bg-[color-mix(in_srgb,var(--color-brand-text)_10%,transparent)]" 
+                      : "hover:bg-[color-mix(in_srgb,var(--color-brand-text)_6%,transparent)]"
+                    }
+                  `.trim()}
                 >
                   {RenderItem ? (
                     <RenderItem item={item} />
                   ) : (
-                    /* POPRAWKA: Wymuszenie prawidłowej czcionki monotypowej dla tekstu domyślnego */
-                    <Box component="span" className="!text-btn-mono" sx={{ color: "var(--color-brand-text)" }}>
+                    <span className="text-btn-mono text-[var(--color-brand-text)]">
                       {item.mainName}
-                    </Box>
+                    </span>
                   )}
-                </Box>
+                </div>
               );
             })
           )}
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

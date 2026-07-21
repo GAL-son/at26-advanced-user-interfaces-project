@@ -1,11 +1,9 @@
 "use client";
 import React from 'react';
-import { TableCell } from '@mui/material';
 
 interface PositionTableCellProps {
   position: number;
   className?: string;
-  /** Opcjonalne wyrównanie zawartości komórki (domyślnie 'center') */
   align?: 'left' | 'center' | 'right' | 'inherit' | 'justify';
 }
 
@@ -15,53 +13,40 @@ export default function PositionTableCell({
   align = "center" 
 }: PositionTableCellProps) {
   
-  const getPositionStyles = (pos: number) => {
+  const getPositionClasses = (pos: number) => {
     if (pos === 1) {
-      return {
-        color: 'var(--color-brand-yellow-text)',
-        backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)',
-      };
+      return "text-[var(--color-brand-yellow-text)] bg-[color-mix(in_srgb,var(--color-brand-yellow)_12%,transparent)] font-black";
     }
     if (pos === 2) {
-      return {
-        color: 'var(--color-race-silver-text)',
-        backgroundColor: 'var(--color-race-silver-bg)',
-      };
+      return "text-[var(--color-race-silver-text)] bg-[var(--color-race-silver-bg)] font-bold";
     }
     if (pos === 3) {
-      return {
-        color: 'var(--color-race-bronze-text)',
-        backgroundColor: 'var(--color-race-bronze-bg)',
-      };
+      return "text-[var(--color-race-bronze-text)] bg-[var(--color-race-bronze-bg)] font-bold";
     }
-    return {
-      color: 'var(--color-brand-text-muted)',
-    };
+    return "text-[var(--color-brand-text-muted)] font-medium";
   };
 
-  // Dobieramy wage fontu zależnie od pozycji na podium
-  const getPodiumWeight = (pos: number) => {
-    if (pos === 1) return "font-black";
-    if (pos === 2 || pos === 3) return "font-bold";
-    return "font-medium";
+  const getAlignClass = (alignment: string) => {
+    switch (alignment) {
+      case 'left': return 'text-left';
+      case 'right': return 'text-right';
+      case 'justify': return 'text-justify';
+      case 'inherit': return '';
+      case 'center':
+      default: return 'text-center';
+    }
   };
 
   return (
-    <TableCell
-      component="th"
-      scope="row"
-      align={align}
-      /* ZASTOSOWANIE ROZMIARÓW I CZCIONKI:
-        - !text-stat-value wstrzykuje Share Tech Mono oraz dynamiczny rozmiar (1.5rem na mobile -> 1.875rem na desktopie)
-        - tabular-nums stabilizuje szerokość cyfr w tabeli, aby nie skakały przy odświeżaniu
-      */
-      className={`w-16 !text-stat-value ${getPodiumWeight(position)} tabular-nums ${className}`}
-      sx={{
-        ...getPositionStyles(position),
-        borderBottom: 'none',
-      }}
+    <td
+      className={`
+        w-16 min-w-[4rem] align-middle tabular-nums text-stat-value py-2 px-4
+        ${getAlignClass(align)} 
+        ${getPositionClasses(position)} 
+        ${className}
+      `.trim()}
     >
       {position}
-    </TableCell>
+    </td>
   );
 }

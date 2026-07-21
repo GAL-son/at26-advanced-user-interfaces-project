@@ -1,19 +1,14 @@
 "use client";
 
 import React from "react";
-import { Box, ButtonBase } from "@mui/material";
 import { useTranslations } from "next-intl";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
-import SortByAlphaIcon from "@mui/icons-material/SortByAlpha";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { Trophy, Award, ArrowDownAZ, Clock } from "lucide-react";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
-
-export type SortOption = "elo" | "races" | "name" | "lastRaced";
+import { DriverSortOption } from "@/lib/services/drivers.service";
 
 interface DriverOrderTabsProps {
-  sortBy: SortOption;
-  setSortBy: (val: SortOption) => void;
+  sortBy: DriverSortOption;
+  setSortBy: (val: DriverSortOption) => void;
   ariaLabel?: string;
   onNavigateVertical: (direction: "up" | "down") => void;
 }
@@ -25,12 +20,29 @@ export default function DriverOrderTabs({
   onNavigateVertical 
 }: DriverOrderTabsProps) {
   const t = useTranslations("Drivers");
-  
-  const tabsConfig: { value: SortOption; label: string; icon: React.ReactNode }[] = [
-    { value: "elo", label: t("tabs.rating"), icon: <EmojiEventsIcon sx={{ fontSize: "1.1rem" }} /> },
-    { value: "races", label: t("tabs.experience"), icon: <MilitaryTechIcon sx={{ fontSize: "1.2rem" }} /> },
-    { value: "name", label: t("tabs.alphabetical"), icon: <SortByAlphaIcon sx={{ fontSize: "1.1rem" }} /> },
-    { value: "lastRaced", label: t("tabs.lastActive"), icon: <AccessTimeIcon sx={{ fontSize: "1.1rem" }} /> },
+
+  // Tablica opcji dopasowana dokładnie do wspieranych w backendzie wartości DriverSortOption
+  const tabsConfig: { value: DriverSortOption; label: string; icon: React.ReactNode }[] = [
+    { 
+      value: "RATING_DESC", 
+      label: t("tabs.rating"), 
+      icon: <Trophy className="w-4 h-4" /> 
+    },
+    { 
+      value: "BEST_RATING_DESC", 
+      label: t("tabs.bestRating"), 
+      icon: <Award className="w-4 h-4" /> 
+    },
+    { 
+      value: "NAME_ASC", 
+      label: t("tabs.alphabetical"), 
+      icon: <ArrowDownAZ className="w-4 h-4" /> 
+    },
+    { 
+      value: "LAST_ACTIVE_DESC", 
+      label: t("tabs.lastActive"), 
+      icon: <Clock className="w-4 h-4" /> 
+    },
   ];
 
   const { registerItem, handleKeyDown } = useKeyboardNavigation({
@@ -69,87 +81,41 @@ export default function DriverOrderTabs({
   };
 
   return (
-    <Box 
-      className="flex-grow w-full"
+    <div 
+      className="grid grid-cols-2 md:grid-cols-4 gap-1.5 p-1 w-full flex-grow bg-[var(--color-brand-navy)] border border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)]"
       role="tablist" 
       aria-label={ariaLabel}
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
-        gap: "6px",
-        p: "4px",
-        backgroundColor: "var(--color-brand-navy)",
-        border: "1px solid var(--color-brand-navy-light)",
-        borderRadius: "var(--radius-brand-card)",
-      }}
     >
       {tabsConfig.map((tab, index) => {
         const isSelected = sortBy === tab.value;
 
         return (
-          <ButtonBase
+          <button
             key={tab.value}
             id={`tab-driver-sort-${tab.value}`} 
-            ref={registerItem(index)}
+            ref={registerItem(index) as any}
             onClick={() => setSortBy(tab.value)}
             onKeyDown={(e) => handleCombinedKeyDown(e, index)}
-            focusRipple
             aria-selected={isSelected}
             role="tab"
             tabIndex={isSelected ? 0 : -1} 
-            /* POPRAWKA:
-              - Wstrzyknięcie !text-btn-mono, który wymusza Share Tech Mono oraz rozmiar 0.8rem z globals.css
-              - Dodanie uppercase oraz font-bold bezpośrednio z klas użytkowych
-              - Podpięcie focus-brand
-            */
-            className="group focus-brand !text-btn-mono uppercase font-bold tracking-wider"
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "8px",
-              minHeight: "40px",
-              py: 1,
-              px: 2,
-              borderRadius: "8px",
-              width: "100%", 
-              transition: "all 0.2s ease",
-              color: "var(--color-brand-text-muted)",
-
-              "&:focus, &:focus-visible": {
-                outline: "none",
-              },
-
-              "& .MuiSvgIcon-root": {
-                color: "var(--color-brand-text-muted)",
-                transition: "color 0.2s ease",
-              },
-              ...(isSelected && {
-                color: "var(--color-brand-yellow-text) !important",
-                backgroundColor: "color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)",
-                "& .MuiSvgIcon-root": {
-                  color: "var(--color-brand-yellow-text) !important",
-                },
-              }),
-              "&:hover": {
-                backgroundColor: isSelected 
-                  ? "color-mix(in srgb, var(--color-brand-yellow) 12%, transparent)"
-                  : "color-mix(in srgb, var(--color-brand-text) 8%, transparent)",
-                color: isSelected ? "var(--color-brand-yellow-text)" : "var(--color-brand-text)",
-                "& .MuiSvgIcon-root": {
-                  color: isSelected ? "var(--color-brand-yellow-text)" : "var(--color-brand-text)",
-                }
-              },
-            }}
+            className={`
+              group focus-brand text-btn-mono uppercase font-bold tracking-wider
+              flex flex-row items-center justify-center gap-2
+              min-h-[40px] py-2 px-4 rounded-lg w-full transition-all duration-200 cursor-pointer
+              ${isSelected 
+                ? "text-[var(--color-brand-yellow-text)] bg-[color-mix(in_srgb,var(--color-brand-yellow)_12%,transparent)]" 
+                : "text-[var(--color-brand-text-muted)] hover:text-[var(--color-brand-text)] hover:bg-[color-mix(in_srgb,var(--color-brand-text)_8%,transparent)]"
+              }
+            `.trim()}
           >
             <span aria-hidden="true" className="flex items-center">
               {tab.icon}
             </span>
             <span>{tab.label}</span>
-          </ButtonBase>
+          </button>
         );
       })}
-    </Box>
+    </div>
   );
 }
