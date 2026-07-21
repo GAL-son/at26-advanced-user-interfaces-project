@@ -1,56 +1,43 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Box, Paper, Typography } from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import SportsScoreIcon from "@mui/icons-material/SportsScore";
-import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import { useParams } from "next/navigation";
+import { Box } from "@mui/material";
 import BackButton from "@/app/_components/Common/BackButton";
 import EloChart from "@/app/_components/Elo/EloChart";
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
 
-// Import Twojego nowego wrappera
+// Importy nowych typów i akcji
+import { DriverDetailsDto } from "@/lib/services/drivers.service";
+import { getDriverDetailsAction } from "@/app/_actions/drivers.actions"; // Dostosuj ścieżkę do akcji
+import DriverStatsCards from "@/app/_components/Drivers/Profile/DriverStatsCards"; // Dostosuj ścieżkę do komponentu kart
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
-
-interface DriverStats {
-  guid: string;
-  mainName: string;
-  altNames: string | null;
-  combo: number;
-  currentElo: number;
-  racesCount: number;
-  lastRaced: string;
-}
+import RatingChart from "../_components/Rating/RatingChart";
 
 const SECTION_ORDER = [
   "menu",
   "driver-back",
   "driver-chart",
-    "footer"
+  "footer"
 ];
 
-// 1. Wyciągamy zawartość profilu do osobnego komponentu wewnętrznego
 function DriverProfileContent() {
   const { guid } = useParams() as { guid: string };
   const t = useTranslations("Drivers");
-  const format = useFormatter();
 
-  const [driver, setDriver] = useState<DriverStats | null>(null);
+  const [driver, setDriver] = useState<DriverDetailsDto | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const backButtonRef = useRef<HTMLButtonElement | null>(null);
   const chartSectionRef = useRef<HTMLDivElement | null>(null);
 
+  // Pobieranie danych kierowcy za pomocą Akcji Serwerowej
   useEffect(() => {
     async function fetchDriverProfile() {
       try {
-        const res = await fetch(`/api/drivers/${guid}`);
-        const data = await res.json();
-        if (data.success) {
-          setDriver(data.driver);
-        }
+        const data = await getDriverDetailsAction(guid);
+        setDriver(data);
       } catch (err) {
         console.error("Error fetching driver profile:", err);
       } finally {
@@ -60,19 +47,18 @@ function DriverProfileContent() {
     fetchDriverProfile();
   }, [guid]);
 
+  // Dynamiczny tytuł karty w przeglądarce
   useEffect(() => {
     if (driver?.mainName) {
-      // Jeśli profil się załadował, ustawia np. "Profil - Jan Kowalski"
       document.title = `${t("profile.metaTitle") || "Profil"} - ${driver.mainName}`;
     } else if (loadingProfile) {
-      // W trakcie ładowania
       document.title = t("profile.loadingTelemetry");
     } else {
-      // W przypadku braku danych / błędu
       document.title = t("profile.connectionError");
     }
   }, [driver, loadingProfile, t]);
 
+  // Nawigacja klawiaturą dla wykresu
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -93,7 +79,6 @@ function DriverProfileContent() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  // Spinner stanów ładowania API (wewnątrz komponentu, jeśli potrzebny niezależnie od Suspense)
   if (loadingProfile) {
     return (
       <Box 
@@ -103,7 +88,6 @@ function DriverProfileContent() {
         className="min-h-screen flex flex-col items-center justify-center gap-3"
         sx={{ backgroundColor: 'var(--color-brand-navy)' }}
       >
-        {/* Możesz tu zostawić lokalny spinner lub pozwolić wrapperowi obsłużyć całe ładowanie */}
         <div className="animate-pulse text-sm uppercase tracking-wider text-center" style={{ color: 'var(--color-brand-text-muted)' }}>
           {t("profile.loadingTelemetry")}
         </div>
@@ -122,17 +106,6 @@ function DriverProfileContent() {
       </Box>
     );
   }
-
-  const hasValidDate = driver.lastRaced && driver.lastRaced !== "N/A";
-  const formattedSyncDate = hasValidDate
-    ? format.dateTime(new Date(driver.lastRaced), {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-    : t("list.notAvailable");
 
   return (
     <Box 
@@ -185,123 +158,12 @@ function DriverProfileContent() {
           </div>
         </div>
 
-        {/* STATYSTYKI - KARTY HUD */}
-        <section aria-label={t("profile.statsSummary")}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            
-            {/* KARTA 1: CURRENT ELO */}
-            <Paper 
-              component="article" 
-              className="p-5 flex items-center gap-4 shadow-sm" 
-              sx={{ 
-                backgroundImage: 'none',
-                backgroundColor: 'var(--color-brand-navy-dark)',
-                border: '1px solid var(--color-brand-navy-light)',
-                borderRadius: 'var(--radius-brand-card)'
-              }}
-            >
-              <Box 
-                className="p-3 rounded-lg flex-shrink-0"
-                aria-hidden="true"
-                sx={{ 
-                  backgroundColor: 'color-mix(in srgb, var(--color-brand-yellow-hover) 12%, transparent)',
-                  color: 'var(--color-brand-yellow-hover)'
-                }}
-              >
-                <TrendingUpIcon fontSize="large" />
-              </Box>
-              <div>
-                <Typography 
-                  component="h2"
-                  className="!text-btn-mono uppercase block"
-                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
-                >
-                  {t("list.headers.elo")}
-                </Typography>
-                <p className="!text-stat-value tracking-tight !text-brand-text">
-                  {format.number(Math.round(driver.currentElo || 0))}
-                </p>
-              </div>
-            </Paper>
-
-            {/* KARTA 2: TOTAL EXPERIENCE */}
-            <Paper 
-              component="article" 
-              className="p-5 flex items-center gap-4 shadow-sm" 
-              sx={{ 
-                backgroundImage: 'none',
-                backgroundColor: 'var(--color-brand-navy-dark)',
-                border: '1px solid var(--color-brand-navy-light)',
-                borderRadius: 'var(--radius-brand-card)'
-              }}
-            >
-              <Box 
-                className="p-3 rounded-lg flex-shrink-0"
-                aria-hidden="true"
-                sx={{ 
-                  backgroundColor: 'color-mix(in srgb, var(--color-brand-text) 6%, transparent)',
-                  color: 'var(--color-brand-text-muted)'
-                }}
-              >
-                <SportsScoreIcon fontSize="large" />
-              </Box>
-              <div>
-                <Typography 
-                  component="h2"
-                  className="!text-btn-mono uppercase block"
-                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
-                >
-                  {t("profile.totalExperience")}
-                </Typography>
-                <p className="!text-stat-value tracking-tight !text-brand-text">
-                  {format.number(driver.racesCount)}{" "}
-                  <span className="!text-btn-mono lowercase font-normal !text-brand-text-muted opacity-80">
-                    {t("profile.racesUnit")}
-                  </span>
-                </p>
-              </div>
-            </Paper>
-
-            {/* KARTA 3: LAST ONLINE SYNC */}
-            <Paper 
-              component="article" 
-              className="p-5 flex items-center gap-4 shadow-sm" 
-              sx={{ 
-                backgroundImage: 'none',
-                backgroundColor: 'var(--color-brand-navy-dark)',
-                border: '1px solid var(--color-brand-navy-light)',
-                borderRadius: 'var(--radius-brand-card)'
-              }}
-            >
-              <Box 
-                className="p-3 rounded-lg flex-shrink-0"
-                aria-hidden="true"
-                sx={{ 
-                  backgroundColor: 'var(--color-brand-navy-light)',
-                  color: 'var(--color-brand-text-muted)'
-                }}
-              >
-                <EventAvailableIcon fontSize="large" />
-              </Box>
-              <div>
-                <Typography 
-                  component="h2"
-                  className="!text-btn-mono uppercase block"
-                  style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
-                >
-                  {t("profile.lastSync")}
-                </Typography>
-                <h3 className="text-sm font-bold mt-1 !font-sans !text-brand-text">
-                  {formattedSyncDate}
-                </h3>
-              </div>
-            </Paper>
-          </div>
-        </section>
+        {/* UŻYCIE TWOJEGO NOWEGO KOMPONENTU KART */}
+        <DriverStatsCards driver={driver} />
 
         {/* SEKCJA: Wykres ELO */}
         <div data-section="driver-chart" ref={chartSectionRef}>
-          <EloChart 
+          <RatingChart 
             data-focus-order="driver-chart"
             guids={[guid]} 
             isComparable={true} 
@@ -315,7 +177,7 @@ function DriverProfileContent() {
   );
 }
 
-// 2. Główny eksport strony staje się czystym wrapperem
+// Główny wrapper komponentu
 export default function DriverProfilePage() {
   const t = useTranslations("Drivers");
 

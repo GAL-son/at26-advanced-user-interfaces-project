@@ -1,16 +1,7 @@
 import { prisma } from '@/lib/db/db';
 
-export const config = {
-    startingRating: 1000,
-    comboMutliplierLimit: 15,
-    maxComboMultiplier: 3,
-    erosionStart: 10, // 10 weeks
-    erosionValue: 2, // points every week over start
-    erosionLimitOffset: 500, // 500 points below base
-    positionAdjustmentMutiplier: 100,
-    raceK: 64,
-    qualiK: 32,
-}
+import { RATING_CONFIG } from '../config/rating.config';
+export const config = RATING_CONFIG;
 
 export interface EventDataDto {
     id: string;
@@ -78,7 +69,7 @@ export async function updateEventErosion(eventData: EventDataDto): Promise<void>
                     tookPart: false,
                     current: currentRatingInt,
                     previous: previousRatingInt,
-                    combo: driver.combo,
+                    combo: nextDriverCombo,
                     erosion: driver.erosion,
                 },
                 create: {
@@ -87,7 +78,7 @@ export async function updateEventErosion(eventData: EventDataDto): Promise<void>
                     tookPart: false,
                     current: currentRatingInt,
                     previous: previousRatingInt,
-                    combo: driver.combo,
+                    combo: nextDriverCombo,
                     erosion: driver.erosion,
                 },
             })
@@ -236,7 +227,7 @@ function calculateRatingChange(
             console.debug(`Raw A: ${ratingA} vs B: ${ratingB}`)
 
             // Standard head to head is the base case (quali)
-            let K = config.qualiK;
+            let K: number = config.qualiK;
 
             // When processing races need to adjust for starting position
             if (sessionData.type == "RACE") {
@@ -296,7 +287,7 @@ function calculateComboMultiplier(combo: number): number {
  * @param erosion 
  */
 function calculateErosion(erosion: number): number {
-    return Math.max(0, erosion - config.erosionStart + 1) * config.erosionValue;
+    return Math.max(0, erosion - config.erosionStart) * config.erosionValue;
 }
 
 function calcuateEventErodedRating(rating: number, erosion: number): number {

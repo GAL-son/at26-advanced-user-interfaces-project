@@ -29,9 +29,8 @@ const theme = createTheme({
 // Dodany czwarty element z ikoną formularza rejestracji
 const navItems = [
   { label: "drivers", path: "/drivers", icon: <GroupIcon sx={{ mr: 1 }} /> },
-  { label: "events", path: "/events", icon: <EventIcon sx={{ mr: 1 }} /> },
+  { label: "events", path: "/championships", icon: <EventIcon sx={{ mr: 1 }} /> },
   { label: "compare", path: "/drivers/compare", icon: <CompareArrowsIcon sx={{ mr: 1 }} /> },
-  { label: "register", path: "/register", icon: <HowToRegIcon sx={{ mr: 1 }} /> }, // Ścieżka, gdzie wrzucisz komponent formularza
 ];
 
 export default function ClientLayoutView({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   ResponsiveContainer,
@@ -10,12 +11,14 @@ import {
 } from "recharts";
 import LoadingSpinner from "@/app/_components/LoadingSpinner";
 import EventDot from "@/app/_components/Rating/EventDot";
-import EventTooltip from "@/app/_components/Elo/EventTooltip";
+import EventTooltip from "./EventTooltip";
 import ScrollArrow from "@/app/_components/Common/ScrollArrow";
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import { useRouter } from "next/navigation";
 import { useTranslations, useFormatter } from "next-intl";
+import {  getDriverRatingHistoryAction } from "@/app/_actions/drivers.actions";
+import { DriverRatingHistoryGroupDto } from "@/lib/services/drivers.service";
 
 const DRIVER_COLORS = [
   "var(--color-brand-yellow-hover)",
@@ -25,30 +28,13 @@ const DRIVER_COLORS = [
   "#7c3aed",
 ];
 
-interface RaceDataPoint {
-  eventId: string;
-  eventName: string;
-  eventDate: string;
-  hasRaced: boolean;
-  id: string | null;
-  elo: number;
-  eloChange: number;
-  combo: number;
-}
-
-interface DriverGroup {
-  guid: string;
-  name: string;
-  data: RaceDataPoint[];
-}
-
 interface EloChartProps extends React.HTMLAttributes<HTMLElement> {
   guids: string[];
   isComparable?: boolean;
   onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
-export default function EloChart({
+export default function RatingChart({
   guids,
   isComparable = false,
   onNavigateVertical,
@@ -127,91 +113,90 @@ export default function EloChart({
       setLoading(true);
 
       try {
-        const res = await fetch(`/api/elo?guids=${guidsString}&page=${page}&limit=50`);
-        const result = await res.json();
+        // Wywołanie Akcji Serwerowej zamiast pobierania przez Route Handler
+        const result = await getDriverRatingHistoryAction(guids, page, 50);
 
         if (!isCurrent) return;
 
-        if (result.success) {
-          const incomingDrivers: DriverGroup[] = result.data;
+        const incomingDrivers: DriverRatingHistoryGroupDto[] = result.data;
 
-          const meta = incomingDrivers.map((d, index) => ({
-            guid: d.guid,
-            name: d.name,
-            color: DRIVER_COLORS[index % DRIVER_COLORS.length],
-          }));
-          setDriversMeta(meta);
+        const meta = incomingDrivers.map((d, index) => ({
+          guid: d.guid,
+          name: d.name,
+          color: DRIVER_COLORS[index % DRIVER_COLORS.length],
+        }));
+        setDriversMeta(meta);
 
-          const sampleDriver = incomingDrivers[0];
-          if (!sampleDriver) return;
+        const sampleDriver = incomingDrivers[0];
+        if (!sampleDriver) return;
 
-          const pagePointsCount = sampleDriver.data.length;
-          const localPageData: any[] = [];
+        const pagePointsCount = sampleDriver.data.length;
+        const localPageData: any[] = [];
 
-          for (let i = 0; i < pagePointsCount; i++) {
-            const point: any = {
-              eventId: sampleDriver.data[i].eventId,
-              eventDate: sampleDriver.data[i].eventDate,
-              eventName: sampleDriver.data[i].eventName,
+        for (let i = 0; i < pagePointsCount; i++) {
+          const point: any = {
+            eventId: sampleDriver.data[i].eventId,
+            eventDate: sampleDriver.data[i].eventDate,
+            eventName: sampleDriver.data[i].eventName,
+          };
+
+          incomingDrivers.forEach((driver, idx) => {
+            const driverRace = driver.data[i];
+            if (!driverRace) return;
+
+            const color = DRIVER_COLORS[idx % DRIVER_COLORS.length];
+
+            point[`elo_${driver.guid}`] = driverRace.elo;
+            point[`meta_${driver.guid}`] = {
+              hasRaced: driverRace.hasRaced,
+              eloChange: driverRace.eloChange,
+              combo: driverRace.combo,
+              erosion: driverRace.erosion ?? 0,
+              driverName: driver.name,
+              color: color,
             };
-
-            incomingDrivers.forEach((driver, idx) => {
-              const driverRace = driver.data[i];
-              if (!driverRace) return;
-
-              const color = DRIVER_COLORS[idx % DRIVER_COLORS.length];
-
-              point[`elo_${driver.guid}`] = driverRace.elo;
-              point[`meta_${driver.guid}`] = {
-                hasRaced: driverRace.hasRaced,
-                eloChange: driverRace.eloChange,
-                combo: driverRace.combo,
-                driverName: driver.name,
-                color: color,
-              };
-            });
-
-            localPageData.push(point);
-          }
-
-          const container = scrollContainerRef.current;
-          const previousScrollWidth = container ? container.scrollWidth : 0;
-          const previousScrollLeft = container ? container.scrollLeft : 0;
-
-          setChartData((prev) => {
-            const newData = [...prev, ...localPageData];
-            if (isFirstLoad.current) {
-              setFocusedIndex(newData.length - 1);
-            }
-            return newData;
           });
-          setHasMore(result.hasMore);
 
-          setTimeout(() => {
-            if (!isCurrent) return;
-            const el = scrollContainerRef.current;
-            if (!el) return;
-
-            if (isFirstLoad.current) {
-              isFirstLoad.current = false;
-              setIsInitialLoading(false);
-              setLoading(false);
-              isResettingScroll.current = true;
-
-              el.scrollLeft = el.scrollWidth;
-              updateScrollMasks();
-              setTimeout(() => {
-                isResettingScroll.current = false;
-              }, 150);
-            } else {
-              const deltaWidth = el.scrollWidth - previousScrollWidth;
-              el.scrollLeft = previousScrollLeft + deltaWidth;
-              updateScrollMasks();
-            }
-          }, 50);
+          localPageData.push(point);
         }
+
+        const container = scrollContainerRef.current;
+        const previousScrollWidth = container ? container.scrollWidth : 0;
+        const previousScrollLeft = container ? container.scrollLeft : 0;
+
+        setChartData((prev) => {
+          const newData = [...prev, ...localPageData];
+          if (isFirstLoad.current) {
+            setFocusedIndex(newData.length - 1);
+          }
+          return newData;
+        });
+        setHasMore(result.hasMore);
+
+        setTimeout(() => {
+          if (!isCurrent) return;
+          const el = scrollContainerRef.current;
+          if (!el) return;
+
+          if (isFirstLoad.current) {
+            isFirstLoad.current = false;
+            setIsInitialLoading(false);
+            setLoading(false);
+            isResettingScroll.current = true;
+
+            el.scrollLeft = el.scrollWidth;
+            updateScrollMasks();
+            setTimeout(() => {
+              isResettingScroll.current = false;
+            }, 150);
+          } else {
+            const deltaWidth = el.scrollWidth - previousScrollWidth;
+            el.scrollLeft = previousScrollLeft + deltaWidth;
+            updateScrollMasks();
+          }
+        }, 50);
       } catch (err) {
-        console.error("Error searching ELO data:", err);
+        console.error("Błąd podczas pobierania historii ELO:", err);
       } finally {
         if (isCurrent) {
           isLoadingRef.current = false;
@@ -245,7 +230,7 @@ export default function EloChart({
     let foundDot: SVGCircleElement | null = null;
 
     for (let i = 0; i < guids.length; i++) {
-      const dotIndex = (i * pointsPerLine) + index;
+      const dotIndex = i * pointsPerLine + index;
       const dotEl = dots[dotIndex] as SVGCircleElement;
       if (dotEl) {
         foundDot = dotEl;
@@ -261,7 +246,7 @@ export default function EloChart({
       const paddingRight = 10;
       const availableWidth = calculatedWidth - paddingLeft - paddingRight;
       const stepsCount = chronologicalData.length - 1 || 1;
-      targetX = paddingLeft + (index * (availableWidth / stepsCount));
+      targetX = paddingLeft + index * (availableWidth / stepsCount);
     }
 
     const tooltipWidth = 280;
@@ -274,7 +259,7 @@ export default function EloChart({
       calculatedX = targetX - tooltipWidth - 25;
     }
 
-    let calculatedY = targetY - (tooltipHeight / 2);
+    let calculatedY = targetY - tooltipHeight / 2;
     calculatedY = Math.max(10, Math.min(calculatedY, chartHeight - tooltipHeight - 15));
 
     setTooltipPos({
@@ -297,7 +282,7 @@ export default function EloChart({
       const paddingLeft = 40;
       const paddingRight = 10;
       const availableWidth = calculatedWidth - paddingLeft - paddingRight;
-      pointX = paddingLeft + (index * (availableWidth / (chronologicalData.length - 1 || 1)));
+      pointX = paddingLeft + index * (availableWidth / (chronologicalData.length - 1 || 1));
     }
 
     const minVisible = container.scrollLeft + 80;
@@ -306,7 +291,7 @@ export default function EloChart({
     if (pointX < minVisible || pointX > maxVisible) {
       container.scrollTo({
         left: pointX - container.clientWidth / 2,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   };
@@ -413,7 +398,7 @@ export default function EloChart({
         backgroundColor: "var(--color-brand-navy-dark)",
         border: "1px solid var(--color-brand-navy-light)",
         borderRadius: "var(--radius-brand-card)",
-        "&:focus": { outline: "none" }
+        "&:focus": { outline: "none" },
       }}
     >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
@@ -421,7 +406,6 @@ export default function EloChart({
           <h2 id="chart-title" className="text-lg font-bold uppercase tracking-wider text-[var(--color-brand-text)]">
             {guids.length > 1 ? t("chart.comparisonTitle") : t("chart.performanceTitle")}
           </h2>
-          {/* POPRAWKA: Przejście z rozproszonych klas wielkości na token !text-btn-mono */}
           <p className="!text-btn-mono text-[var(--color-brand-text-muted)] opacity-70">
             {t("chart.scrollInstruction")}
           </p>
@@ -439,7 +423,6 @@ export default function EloChart({
               }}
             >
               {driversMeta.map((m) => (
-                /* POPRAWKA: Przypisanie spójnego tokenu !text-btn-mono dla legendy */
                 <div key={m.guid} className="flex items-center gap-2 !text-btn-mono">
                   <span className="w-3 h-3 rounded-full flex-shrink-0" aria-hidden="true" style={{ backgroundColor: m.color }} />
                   <span className="font-bold text-[var(--color-brand-text)]">{m.name}</span>
@@ -455,7 +438,6 @@ export default function EloChart({
               startIcon={<CompareArrowsIcon />}
               onClick={handleCompareClick}
               tabIndex={-1}
-              /* POPRAWKA: Przeniesienie surowych stylów inline / sx bezpośrednio do narzędziowego tokenu Tailwind v4 */
               className="!text-btn-mono"
               sx={{
                 borderColor: "var(--color-brand-navy-light)",
@@ -481,14 +463,18 @@ export default function EloChart({
           <thead>
             <tr>
               <th>{t("chart.tableEvent")}</th>
-              {driversMeta.map(m => <th key={m.guid}>{m.name} ELO</th>)}
+              {driversMeta.map((m) => (
+                <th key={m.guid}>{m.name} ELO</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {chronologicalData.map((point) => (
               <tr key={point.eventId}>
-                <td>{point.eventName} ({point.displayDate})</td>
-                {driversMeta.map(m => (
+                <td>
+                  {point.eventName} ({point.displayDate})
+                </td>
+                {driversMeta.map((m) => (
                   <td key={m.guid}>
                     {point[`elo_${m.guid}`] !== undefined
                       ? format.number(Math.round(point[`elo_${m.guid}`]))
@@ -501,7 +487,7 @@ export default function EloChart({
         </table>
       </div>
 
-      {/* GRAPHX WRAPPER */}
+      {/* GRAPH WRAPPER */}
       <Box
         ref={chartWrapperRef}
         role="img"
@@ -513,8 +499,9 @@ export default function EloChart({
         }}
       >
         <Box
-          className={`absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-brand-navy)]/80 backdrop-blur-[2px] fade-in-out ${(loading || isInitialLoading) ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+          className={`absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-brand-navy)]/80 backdrop-blur-[2px] fade-in-out ${
+            loading || isInitialLoading ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         >
           <LoadingSpinner text={t("chart.syncingTimeline")} />
         </Box>
@@ -529,15 +516,8 @@ export default function EloChart({
           <Box
             className="absolute top-0 bottom-0 right-0 z-30 pointer-events-none w-12"
             sx={{
-              background: "linear-gradient(to left, var(--color-brand-navy), transparent)"
+              background: "linear-gradient(to left, var(--color-brand-navy), transparent)",
             }}
-          />
-        )}
-
-        {scrollMasks.left && isAtInitialRight && (
-          <ScrollArrow
-            direction="left"
-            className="absolute left-14 top-1/2 -translate-y-1/2 z-10 pointer-events-none select-none !p-0"
           />
         )}
 
@@ -558,7 +538,6 @@ export default function EloChart({
                 domain={[yMin, yMax]}
                 width={40}
                 stroke="transparent"
-                /* POPRAWKA: Przekazanie zmiennej CSS czcionki brandowej mono bezpośrednio do właściwości wykresu */
                 tick={{ fontFamily: "var(--font-brand-mono)", fontSize: 10, fill: "var(--color-brand-text-muted)" }}
               />
               {guids.map((guid) => (
@@ -583,7 +562,6 @@ export default function EloChart({
           className="w-full min-w-0 overflow-x-auto overflow-y-hidden relative z-20"
         >
           <div style={{ width: `${calculatedWidth}px`, height: "340px" }} className="relative">
-
             {focusedIndex !== null && tooltipPos && (
               <div
                 style={{
@@ -592,7 +570,7 @@ export default function EloChart({
                   top: `${tooltipPos.y}px`,
                   zIndex: 9999,
                   pointerEvents: "none",
-                  transition: "left 0.08s ease-out, top 0.08s ease-out"
+                  transition: "left 0.08s ease-out, top 0.08s ease-out",
                 }}
               >
                 <EventTooltip
@@ -657,7 +635,6 @@ export default function EloChart({
                     const found = chronologicalData.find((p) => p.eventId === value);
                     return found ? found.displayDate : "";
                   }}
-                  /* POPRAWKA: Przekazanie zmiennej CSS czcionki brandowej mono bezpośrednio do właściwości wykresu */
                   tick={{ fontFamily: "var(--font-brand-mono)", fontSize: 10, fontWeight: "bold", fill: "var(--color-brand-text-muted)" }}
                   dy={10}
                 />

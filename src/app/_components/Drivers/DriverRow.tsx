@@ -1,21 +1,14 @@
 "use client";
 
 import React from 'react';
-import ComboBadge from '@/app/_components/Elo/ComboBadge';
+import ComboBadge from '@/app/_components/Rating/ComboBadge';
 import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
 import { useTranslations, useFormatter } from 'next-intl';
 import { motion, Transition } from 'framer-motion';
-import { DriverSortOption } from "@/lib/services/drivers.service";
+import { DriverListItemDto, DriverSortOption } from "@/lib/services/drivers.service";
 
-export interface FormattedDriver {
-  guid: string;
-  mainName: string;
-  altNames: string | null;
-  currentRating: number;
-  bestRating: number;
-  combo: number;
-  lastActive: Date | string | null;
+export interface FormattedDriver extends DriverListItemDto {
   position: number;
 }
 
@@ -95,7 +88,7 @@ export default function DriverRow({
           <span className="text-card-title text-[var(--color-brand-text)] group-hover:text-[var(--color-brand-yellow-hover)] leading-tight">
             {driver.mainName}
           </span>
-          <ComboBadge combo={driver.combo} />
+          <ComboBadge combo={driver.combo} erosion={driver.erosion}/>
         </div>
         {driver.altNames && driver.altNames !== driver.mainName && (
           <div className="text-xs text-[var(--color-brand-text-muted)] mt-0.5 truncate leading-none">

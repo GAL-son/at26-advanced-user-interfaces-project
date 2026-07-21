@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { TableCell, Box } from '@mui/material';
-import ComboBadge from '@/app/_components/Elo/ComboBadge';
+import ComboBadge from '@/app/_components/Rating/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';

@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, Suspense, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import GroupIcon from "@mui/icons-material/Group";
 
 // Import komponentów dedykowanych i globalnych
-import DriverSearchContainer from "@/app/_components/Elo/DriverSearchContainer";
+import DriverSearchContainer from "@/app/_components/Rating/DriverSearchContainer";
 import BackButton from "@/app/_components/Common/BackButton";
-
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
-import EloChart from "@/app/_components/Elo/EloChart";
-import { DriverBasicInfo } from "@/app/_components/Elo/SelectedDriverList";
+import RatingChart from "../_components/Rating/RatingChart";
+import { DriverBasicInfo } from "@/app/_components/Rating/SelectedDriverList";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import PageLoaderWrapper from "../_components/Common/PageLoaderWrapper";
@@ -21,7 +19,7 @@ const SECTION_ORDER = [
   "compare-back",
   "compare-search",
   "compare-chart",
-  "footer"
+  "footer",
 ];
 
 function CompareDriversContent() {
@@ -32,7 +30,7 @@ function CompareDriversContent() {
 
   useEffect(() => {
     document.title = t("tab");
-  }, [t])
+  }, [t]);
 
   const [selectedDrivers, setSelectedDrivers] = useState<DriverBasicInfo[]>([]);
 
@@ -112,13 +110,13 @@ function CompareDriversContent() {
     <Box
       className="pt-10 pb-4 px-4 sm:px-6 lg:px-8"
       sx={{
-        backgroundColor: 'var(--color-brand-navy)',
-        color: 'var(--color-brand-text)',
-        transition: 'background-color 0.3s ease, color 0.3s ease'
+        backgroundColor: "var(--color-brand-navy)",
+        color: "var(--color-brand-text)",
+        transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
       <div className="container mx-auto max-w-5xl">
-
+        
         {/* SEKCJA: Przycisk Powrotu */}
         <div
           data-section="compare-back"
@@ -145,18 +143,16 @@ function CompareDriversContent() {
             }}
           />
           <div>
-            {/* POPRAWKA: Przejście na czysty tag h1 + unifikacja tokenem !text-page-title */}
             <h1
               className="!text-page-title uppercase leading-tight shrink-0 flex items-center gap-3"
-              style={{ color: 'var(--color-brand-text)' }}
+              style={{ color: "var(--color-brand-text)" }}
             >
-              <GroupIcon className="!text-[1.15em]" sx={{ color: 'var(--color-brand-yellow-hover)' }} />{" "}
+              <GroupIcon className="!text-[1.15em]" sx={{ color: "var(--color-brand-yellow-hover)" }} />{" "}
               {t("title")}
             </h1>
-            {/* POPRAWKA: Podtytuł ujednolicony bazowym tokenem !font-sans */}
             <p
               className="text-xs mt-1 !font-sans"
-              style={{ color: 'var(--color-brand-text-muted)' }}
+              style={{ color: "var(--color-brand-text-muted)" }}
             >
               {t("subtitle")}
             </p>
@@ -175,34 +171,32 @@ function CompareDriversContent() {
           />
         </div>
 
-        {/* SEKCJA: Wykres ELO / Stan Pusty */}
+        {/* SEKCJA: Wykres Ratingu / Stan Pusty */}
         <div data-section="compare-chart">
           {selectedGuids.length === 0 ? (
             <Box
               className="h-64 flex flex-col items-center justify-center p-6 text-center"
               sx={{
-                border: '2px dashed var(--color-brand-navy-light)',
-                borderRadius: 'var(--radius-brand-card)',
-                backgroundColor: 'color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)',
+                border: "2px dashed var(--color-brand-navy-light)",
+                borderRadius: "var(--radius-brand-card)",
+                backgroundColor: "color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)",
               }}
             >
-              {/* POPRAWKA: Użycie tokenu technicznego !text-btn-mono dla komunikatu empty state */}
               <p
                 className="!text-btn-mono uppercase font-bold tracking-wider"
-                style={{ color: 'var(--color-brand-text-muted)' }}
+                style={{ color: "var(--color-brand-text-muted)" }}
               >
                 {t("emptyState.title")}
               </p>
-              {/* POPRAWKA: Opis pomocniczy sformatowany za pomocą !font-sans */}
               <p
                 className="text-xs mt-1 opacity-70 !font-sans"
-                style={{ color: 'var(--color-brand-text-muted)' }}
+                style={{ color: "var(--color-brand-text-muted)" }}
               >
                 {t("emptyState.description")}
               </p>
             </Box>
           ) : (
-            <EloChart
+            <RatingChart
               data-focus-order="compare-chart"
               guids={selectedGuids}
               isComparable={false}

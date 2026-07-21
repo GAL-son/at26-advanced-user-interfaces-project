@@ -3,7 +3,7 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import ComboBadge from "../Elo/ComboBadge";
+import ComboBadge from "../Rating/ComboBadge";
 import { DashboardDuels, VirtualDuel } from "@/lib/services/duels";
 import SwordsIcon from "@mui/icons-material/FlashOn";
 import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";

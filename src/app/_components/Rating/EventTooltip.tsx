@@ -20,12 +20,12 @@ export default function EventTooltip({ active, payload, guids, keyboardRawData }
   const format = useFormatter();
 
   const hasData = keyboardRawData || (active && payload && payload.length);
-  
+
   if (hasData) {
     const rawData = keyboardRawData ? keyboardRawData : payload![0].payload;
 
     return (
-      <Box 
+      <Box
         /* POPRAWKA: Pełny token monospaced dla zachowania wyścigowego HUD */
         className="p-3 shadow-2xl !text-btn-mono min-w-[230px] z-[100]"
         sx={{
@@ -36,9 +36,9 @@ export default function EventTooltip({ active, payload, guids, keyboardRawData }
         }}
       >
         {/* NAZWA WYDARZENIA */}
-        <p 
+        <p
           className="mb-2 font-bold text-center truncate max-w-[240px] uppercase pb-1"
-          style={{ 
+          style={{
             color: 'var(--color-brand-text-muted)',
             borderBottom: '1px solid var(--color-brand-navy-light)'
           }}
@@ -57,24 +57,25 @@ export default function EventTooltip({ active, payload, guids, keyboardRawData }
             const isGain = meta.eloChange >= 0;
 
             return (
-              <div 
-                key={guid} 
-                className="flex flex-col border-l-2 pl-2" 
+              <div
+                key={guid}
+                className="flex flex-col border-l-2 pl-2"
                 style={{ borderColor: meta.color }}
               >
                 {/* Górny wiersz: Nazwa i aktualne ELO */}
                 <div className="flex justify-between items-center gap-4">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span 
+                    <span
                       className="font-bold truncate max-w-[115px] uppercase"
                       style={{ color: 'var(--color-brand-text)' }}
                     >
                       {meta.driverName}
                     </span>
-                    {meta.combo > 1 && <ComboBadge combo={meta.combo} />}
+                    <ComboBadge combo={meta.combo} erosion={meta.erosion} />
+
                   </div>
-                  
-                  <span 
+
+                  <span
                     className="font-black text-right whitespace-nowrap"
                     style={{ color: 'var(--color-brand-text)' }}
                   >
@@ -84,9 +85,9 @@ export default function EventTooltip({ active, payload, guids, keyboardRawData }
 
                 {/* Dolny wiersz: Status obecności (Emoji) i Zmiana ELO (MUI Ikona dla WCAG) */}
                 <div className="flex justify-between items-center text-[11px] tracking-tight mt-0.5">
-                  <span 
+                  <span
                     className="flex items-center"
-                    style={{ 
+                    style={{
                       color: meta.hasRaced ? 'var(--color-brand-text-muted)' : 'var(--color-brand-yellow-text)',
                       fontWeight: meta.hasRaced ? 'normal' : 'bold',
                       opacity: meta.hasRaced ? 0.6 : 1
@@ -98,12 +99,12 @@ export default function EventTooltip({ active, payload, guids, keyboardRawData }
                     </span>
                     {meta.hasRaced ? tElo("chart.status.participated") : tElo("chart.status.skipped")}
                   </span>
-                  
+
                   {meta.hasRaced && (
-                    <span 
+                    <span
                       className="font-bold flex items-center gap-0.5"
-                      style={{ 
-                        color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)' 
+                      style={{
+                        color: isGain ? 'var(--color-elo-gain)' : 'var(--color-elo-loss)'
                       }}
                     >
                       {/* POPRAWKA WCAG: Zróżnicowane kształtem ikony MUI zamiast surowego tekstu */}
@@ -112,10 +113,10 @@ export default function EventTooltip({ active, payload, guids, keyboardRawData }
                       ) : (
                         <ArrowDropDownIcon className="!text-base -mr-1" aria-hidden="true" />
                       )}
-                      
+
                       <span>
-                        {isGain 
-                          ? `${format.number(meta.eloChange)}` 
+                        {isGain
+                          ? `${format.number(meta.eloChange)}`
                           : format.number(-1 * meta.eloChange)
                         }
                       </span>

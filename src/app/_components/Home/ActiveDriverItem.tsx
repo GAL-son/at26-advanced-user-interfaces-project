@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Link } from "@/i18n/routing";
-import ComboBadge from "../Elo/ComboBadge";
+import ComboBadge from "../Rating/ComboBadge";
 import { TickerDriver } from "@/lib/services/drivers";
 import { useFormatRelative } from "@/app/_hooks/useFormatRelative";
 

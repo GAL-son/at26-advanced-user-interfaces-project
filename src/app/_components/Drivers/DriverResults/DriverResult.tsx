@@ -3,7 +3,7 @@ import React from 'react';
 import { Box, TableCell } from '@mui/material';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { RaceResultExtended } from '@/app/_pages/EventResultPage';
-import ComboBadge from '@/app/_components/Elo/ComboBadge';
+import ComboBadge from '@/app/_components/Rating/ComboBadge';
 import PositionedTableRow from '@/app/_components/Drivers/PositionedTableRow';
 
 interface DriverResultProps {

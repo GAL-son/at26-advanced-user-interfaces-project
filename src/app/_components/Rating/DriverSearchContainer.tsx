@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Paper, Box } from "@mui/material";
 import UniversalSearch from "@/app/_components/UniversalSearch";
-import SearchDriverItem from "@/app/_components/Elo/SearchDriverItem";
-import SelectedDriversList, { DriverBasicInfo } from "@/app/_components/Elo/SelectedDriverList";
+import SearchDriverItem from "@/app/_components/Rating/SearchDriverItem";
+import SelectedDriversList, { DriverBasicInfo } from "@/app/_components/Rating/SelectedDriverList";
 import { useTranslations } from "next-intl";
 
 interface DriverSearchContainerProps {

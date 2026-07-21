@@ -3,7 +3,7 @@
   import React, { useRef } from "react";
   import { Link } from "@/i18n/routing";
   import { useTranslations } from "next-intl";
-  import ComboBadge from "../Elo/ComboBadge";
+  import ComboBadge from "../Rating/ComboBadge";
   import { ExtendedDriver } from "@/lib/services/drivers";
   import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 

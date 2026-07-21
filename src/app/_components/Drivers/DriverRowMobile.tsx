@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import ComboBadge from '@/app/_components/Elo/ComboBadge';
+import ComboBadge from '@/app/_components/Rating/ComboBadge';
 import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
 import { FormattedDriver } from './DriverRow';
