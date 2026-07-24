@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
-import { DriverEventSummaryDto } from "@/lib/services/events.service"; // Dostosuj ścieżkę do typów
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import PositionTableCell from "../Common/PositionTableCell";
+
+import PositionTableCell from "@/app/_components/Common/PositionTableCell";
+
+import { DriverEventSummaryDto } from "../events.types";
 
 interface EventSummaryTableProps {
     results: DriverEventSummaryDto[];

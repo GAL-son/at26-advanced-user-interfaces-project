@@ -1,17 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { EventDetailsDto } from "@/lib/services/events.service"; // Dostosuj ścieżkę do typów
 import { Timer, Car, Flag } from "lucide-react";
-import Tabs, { TabItem } from "../../Common/Tabs";
-import PositionTableCell from "../../Common/PositionTableCell";
+
+import Tabs, { TabItem } from "@/app/_components/Common/Tabs";
+import PositionTableCell from "@/app/_components/Common/PositionTableCell";
+
+import { EventDetailsDto } from "../../events.types";
 
 interface EventSessionsTabsProps {
   sessions: EventDetailsDto["sessions"];
   onNavigateVertical?: (direction: "up" | "down") => void;
 }
 
-// Pomocnicza funkcja formatująca czas ms do zapisu m:ss.ms
 function formatLapTime(ms: number | null): string {
     if (!ms || ms <= 0) return "-";
     const minutes = Math.floor(ms / 60000);
@@ -42,7 +43,6 @@ export default function EventSessionsTabs({ sessions, onNavigateVertical }: Even
                 onNavigateVertical={onNavigateVertical}
             />
 
-            {/* Tabela wyników wybranej sesji */}
             {currentSession && (
                 <div className="overflow-x-auto border border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)] bg-[var(--color-brand-navy-dark)]">
                     <table className="w-full text-left text-xs font-mono border-collapse">

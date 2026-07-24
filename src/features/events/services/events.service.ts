@@ -1,56 +1,7 @@
 "use server"
 
 import { prisma } from '@/lib/db/db';
-import type { AcsmRaceResult } from '@/lib/services/acsm/types';
-
-export interface RaceResultSummaryDto {
-    finish: number | null;
-    positionChange: number | null; // null for quali
-}
-
-export interface DriverEventSummaryDto {
-    driverGuid: string;
-    driverName: string;
-    car: string,
-    quali: {
-        finish: number | null;
-    } | null;
-    races: RaceResultSummaryDto[];
-    rating: {
-        after: number;
-        change: number;
-    } | null;
-}
-
-export interface EventDetailsDto {
-    id: string;
-    name: string;
-    championshipId: string | null;
-    track: string;
-    date: Date;
-    server: string;
-    stats: {
-        racesCount: number;
-        uniqueDriversCount: number;
-    };
-    results: DriverEventSummaryDto[];
-    sessions: {
-        date: Date;
-        type: string;
-        durationLaps: number | null;
-        durationMinutes: number | null;
-        results: {
-            driverGuid: string;
-            driverName: string;
-            start: number | null;
-            finish: number | null;
-            laps: number;
-            totalTime: number;
-            bestLap: number;
-            gap: number | null;
-        }[];
-    }[];
-}
+import { DriverEventSummaryDto, EventDetailsDto, EventDto, EventListDto, RaceResultSummaryDto } from '../events.types';
 
 export async function getEventDetails(id: string): Promise<EventDetailsDto | null> {
     const event = await prisma.event.findUnique({
@@ -198,46 +149,6 @@ export async function getEventDetails(id: string): Promise<EventDetailsDto | nul
     };
 }
 
-export interface EventDto {
-    name: string;
-    championshipId: string | null;
-    track: string;
-    date: Date;
-    server: string;
-    sessions: SessionDto[];
-}
-
-export interface SessionDto {
-    id: string;
-    date: Date;
-    type: string;
-    durationLaps: number | null;
-    durationMinutes: number | null;
-    results: ResultDto[];
-}
-
-export interface ResultDto {
-    driverGuid: string;
-    driverName: string; // Spłaszczone pole z Driver.mainName
-    start: number | null;
-    finish: number | null;
-    car: string;
-    laps: number;
-    totalTime: number;
-    bestLap: number;
-    gap: number | null;
-}
-
-export interface EventListDto {
-    id: string,
-    name: string;
-    championshipId: string | null;
-    track: string;
-    date: Date;
-    server: string;
-    sessions: SessionDto[];
-}
-
 export async function getEventById(id: string): Promise<EventDto | null> {
     const event = await prisma.event.findUnique({
         where: { id: id },
@@ -380,52 +291,4 @@ export async function getAllEventsChronologically(): Promise<EventListDto[]> {
     })) as unknown as EventListDto[];
 
     
-}
-
-// SYNC
-
-export interface Event {
-    name: string; 
-    id: string; 
-    championshipId: string | null; 
-    track: string; 
-    date: Date; 
-    server: string;
-}
-
-/**
- * 
- * @param id 
- * @param server 
- * @param acsmEvent 
- * @returns 
- */
-export async function syncEventFromAcsm(id: string, server: string, acsmEvent: AcsmRaceResult): Promise<Event> {
-    const newDate = new Date(acsmEvent.Date);
-
-    const existingEvent = await prisma.event.findUnique({
-        where: { id: id },
-        select: { date: true }
-    });
-
-    const resolvedDate = existingEvent 
-        ? new Date(Math.min(existingEvent.date.getTime(), newDate.getTime()))
-        : newDate;
-
-    return await prisma.event.upsert({
-        where: { id: id },
-        update: { 
-            date: resolvedDate 
-        }, 
-        create: { 
-            id: id,
-            championshipId: acsmEvent.ChampionshipID || null,
-            name: acsmEvent.EventName,
-            track: acsmEvent.TrackConfig 
-                ? `${acsmEvent.TrackName} (${acsmEvent.TrackConfig})` 
-                : acsmEvent.TrackName,
-            server: server,
-            date: resolvedDate,
-        }            
-    });
 }

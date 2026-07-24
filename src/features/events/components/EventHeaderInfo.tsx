@@ -3,7 +3,8 @@
 import React from "react";
 import { Flag, Calendar, Server, Trophy, Users } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
-import { EventDetailsDto } from "@/lib/services/events.service"; // Dostosuj ścieżkę do swoich typów
+
+import { EventDetailsDto } from "../events.types";
 
 interface EventHeaderInfoProps {
   event: EventDetailsDto;

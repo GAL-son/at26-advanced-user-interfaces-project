@@ -1,7 +1,7 @@
 "use client";
 
-import EventResultsPage from "@/app/_pages/EventResultPage";
+import EventView from "@/features/events/views/EventView";
 
 export default function Page() {
- return (<EventResultsPage></EventResultsPage>)
+ return (<EventView/>)
 }

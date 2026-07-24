@@ -1,18 +1,18 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import BackButton from "@/app/_components/Common/BackButton";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+
 import { focusFlatSection } from "@/app/_utils/navigation";
+import BackButton from "@/app/_components/Common/BackButton";
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 
-// Import akcji serwerowej oraz nowych komponentów widoku
-import { getEventDetailsAction } from "@/actions/event.actions"; // Lub @/app/_actions/event.actions
-import { EventDetailsDto } from "@/lib/services/events.service";
-import EventHeaderInfo from "@/app/_components/Events/EventHeaderInfo";
-import EventSummaryTable from "@/app/_components/Events/EventSummaryTable";
-import EventSessionsTabs from "@/app/_components/Events/Sessions/EventSessionsTabs";
+import { getEventDetailsAction } from "../events.actions";
+import { EventDetailsDto } from "../events.types";
+import EventHeaderInfo from "../components/EventHeaderInfo";
+import EventSummaryTable from "../components/EventSummaryTable";
+import EventSessionsTabs from "../components/sessions/EventSessionsTabs";
 
 const PAGE_SECTION_ORDER = [
   "menu",
@@ -23,7 +23,7 @@ const PAGE_SECTION_ORDER = [
   "footer",
 ];
 
-function EventResultsContent() {
+function EventViewContent() {
   const t = useTranslations("Results");
   const params = useParams();
   const id = params?.id as string;
@@ -157,12 +157,12 @@ function EventResultsContent() {
   );
 }
 
-export default function EventResultsPage() {
+export default function EventView() {
   const t = useTranslations("Results");
 
   return (
     <PageLoaderWrapper loadingText={t("metaLoading")}>
-      <EventResultsContent />
+      <EventViewContent />
     </PageLoaderWrapper>
   );
 }
