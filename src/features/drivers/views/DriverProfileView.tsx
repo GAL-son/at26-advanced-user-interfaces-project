@@ -116,16 +116,6 @@ function DriverProfileContent() {
             sectionName="driver-back"
             sectionOrder={SECTION_ORDER}
           />
-          <div>
-            <h1 className="text-page-title uppercase leading-tight shrink-0 text-[var(--color-brand-text)]">
-              {driver.mainName}
-            </h1>
-            {driver.altNames && driver.altNames !== driver.mainName && (
-              <p className="text-btn-mono mt-1 uppercase text-[var(--color-brand-text-muted)] opacity-70">
-                {t("list.aliases")}: {driver.altNames}
-              </p>
-            )}
-          </div>
         </div>
 
         {/* KOMPONENT KART STATYSTYK */}

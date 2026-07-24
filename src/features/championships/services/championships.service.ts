@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/db/db';
 import type { AcsmChampionshipInfo } from '@/lib/services/acsm/types';
-import type {ChampionshipListItemDto, ChampionshipEventDto, ChampionshipDto} from '@/features/championships/championships.types';
+import type { ChampionshipListItemDto, ChampionshipEventDto, ChampionshipDto } from '@/features/championships/championships.types';
 
 export async function getChampionship(championshipId: string): Promise<ChampionshipDto | null> {
   const championship = await prisma.championship.findUnique({
@@ -21,9 +21,12 @@ export async function getChampionship(championshipId: string): Promise<Champions
     }
   });
 
-  if(!championship || championship.events.length < 1) {
+  if (!championship || championship.events.length < 1) {
     return null;
   }
+
+  championship.events.forEach(
+    (val, id, arr) => !val.name ? arr[id].name = championship.name + " @ " + val.track.replaceAll("_", " ") : val.name);
 
   return {
     ...championship,
@@ -42,7 +45,7 @@ export async function getChampionshipsList(
   take: number,
   search?: string
 ): Promise<ChampionshipListItemDto[]> {
-  
+
   // Przygotowujemy bezpieczny parametr dla obu baz (z małych liter dla LOWER)
   const searchPattern = search ? `%${search.toLowerCase()}%` : null;
 
@@ -67,13 +70,13 @@ export async function getChampionshipsList(
 /**
  * Sync championship data from ACSM
  */
-export async function syncChampionshipFromAcsm(acsmChamp: AcsmChampionshipInfo): Promise<ChampionshipListItemDto>  {
+export async function syncChampionshipFromAcsm(acsmChamp: AcsmChampionshipInfo): Promise<ChampionshipListItemDto> {
   return await prisma.championship.upsert({
     where: { id: acsmChamp.id },
     update: { name: acsmChamp.name },
-    create: { 
-      id: acsmChamp.id, 
-      name: acsmChamp.name 
+    create: {
+      id: acsmChamp.id,
+      name: acsmChamp.name
     },
   });
 }

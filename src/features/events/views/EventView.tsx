@@ -119,7 +119,7 @@ function EventViewContent() {
           }}
         >
           <BackButton
-            fallbackHref="/events"
+            fallbackHref={`/championships/${eventData.championshipId}`}
             ariaLabel={t("backButton")}
             tabIndex={0}
             data-focus-order="primary"

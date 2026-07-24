@@ -18,6 +18,7 @@ import {
 import ComboBadge from "@/features/ratings/components/ComboBadge";
 
 import { DriverDetailsDto } from "../../drivers.types";
+import HeroCard from "@/components/common/HeroCard";
 
 interface DriverStatsCardsProps {
     driver: DriverDetailsDto;
@@ -52,44 +53,45 @@ export default function DriverStatsCards({ driver }: DriverStatsCardsProps) {
             : t("list.notAvailable");
 
     return (
-        <section aria-label={t("profile.statsSummary")} className="space-y-4 mb-8">
 
-            {/* HERO CARD: ELO & RATING (Najważniejsza statystyka) */}
-            <article className="relative overflow-hidden p-6 bg-gradient-to-br from-[var(--color-brand-navy-dark)] to-[color-mix(in_srgb,var(--color-brand-navy-dark)_80%,black)] border border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)] shadow-md">
+        <HeroCard aria-label={t("profile.statsSummary")} className="space-y-4">
+            <article className="flex flex-row items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-page-title uppercase leading-tight shrink-0 text-[var(--color-brand-text)]">
+                        {driver.mainName}
+                    </h1>
+                    {driver.altNames && driver.altNames !== driver.mainName && (
+                        <p className="text-btn-mono mt-1 uppercase text-[var(--color-brand-text-muted)] opacity-70">
+                            {t("list.aliases")}: {driver.altNames}
+                        </p>
+                    )}
+                </div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    
+
                     {/* Główny wynik ELO */}
                     <div className="flex items-center gap-4">
                         <div
                             aria-hidden="true"
                             className="p-4 rounded-xl shrink-0 bg-[color-mix(in_srgb,var(--color-brand-yellow-hover)_15%,transparent)] text-[var(--color-brand-yellow-hover)] border border-[color-mix(in_srgb,var(--color-brand-yellow-hover)_30%,transparent)]"
                         >
-                            <TrendingUp className="w-8 h-8" />
+                            <TrendingUp className="w-10 h-10" />
                         </div>
-                        <div>
+                        <div className="flex-col items-center gap-4">
                             <div className="flex items-center gap-2.5">
-                                <span className="text-btn-mono uppercase text-[var(--color-brand-text-muted)] text-xs tracking-wider">
-                                    {t("list.headers.elo")}
-                                </span>
+                                <p className="text-4xl font-extrabold tracking-tight text-[var(--color-brand-text)] mt-1 font-mono">
+                                    {format.number(Math.round(driver.currentRating || 0))}
+                                </p>
                                 <ComboBadge combo={driver.combo} erosion={driver.erosion} />
                             </div>
-                            <p className="text-4xl font-extrabold tracking-tight text-[var(--color-brand-text)] mt-1 font-mono">
-                                {format.number(Math.round(driver.currentRating || 0))}
-                            </p>
+
+                            <span className="text-xs text-[var(--color-brand-text-muted)] flex items-center gap-1.5 uppercase font-mono">
+                                <Award className="w-4 h-4 text-[var(--color-race-gold)]" />
+                                <span className="text-xl font-bold font-mono text-[var(--color-race-gold)] mt-0.5">
+                                    {format.number(Math.round(driver.bestRating || 0))}
+                                </span>
+                            </span>
                         </div>
                     </div>
-
-                    {/* Rekord ELO */}
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 sm:border-l border-[var(--color-brand-navy-light)] pt-3 sm:pt-0 sm:pl-6">
-                        <span className="text-xs text-[var(--color-brand-text-muted)] flex items-center gap-1.5 uppercase font-mono">
-                            <Award className="w-4 h-4 text-[var(--color-race-gold)]" />
-                            {t("profile.bestRating")}
-                        </span>
-                        <span className="text-xl font-bold font-mono text-[var(--color-race-gold)] mt-0.5">
-                            {format.number(Math.round(driver.bestRating || 0))}
-                        </span>
-                    </div>
-
                 </div>
             </article>
 
@@ -148,13 +150,12 @@ export default function DriverStatsCards({ driver }: DriverStatsCardsProps) {
                         )}
                         {t("profile.avgPositionsGained")}
                     </span>
-                    <p className={`text-2xl font-bold font-mono mt-2 ${
-                        avgPositionsGained && avgPositionsGained > 0
-                            ? "text-[var(--color-elo-gain)]"
-                            : avgPositionsGained && avgPositionsGained < 0
-                                ? "text-[var(--color-elo-loss)]"
-                                : "text-[var(--color-brand-text)]"
-                    }`}>
+                    <p className={`text-2xl font-bold font-mono mt-2 ${avgPositionsGained && avgPositionsGained > 0
+                        ? "text-[var(--color-elo-gain)]"
+                        : avgPositionsGained && avgPositionsGained < 0
+                            ? "text-[var(--color-elo-loss)]"
+                            : "text-[var(--color-brand-text)]"
+                        }`}>
                         {positionsGainedFormatted}
                     </p>
                 </article>
@@ -184,6 +185,6 @@ export default function DriverStatsCards({ driver }: DriverStatsCardsProps) {
                 </article>
             </div>
 
-        </section>
+        </HeroCard>
     );
 }

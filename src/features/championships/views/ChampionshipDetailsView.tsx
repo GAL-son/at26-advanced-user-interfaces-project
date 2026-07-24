@@ -32,6 +32,7 @@ export default async function ChampionshipDetailsView({ championship }: Props) {
           className="flex items-center gap-4 mb-6"
         >
           <BackButton
+            fallbackHref="/championships"
             ariaLabel={t("profile.backToChampionships")}
             sectionName="championship-back"
             sectionOrder={SECTION_ORDER}

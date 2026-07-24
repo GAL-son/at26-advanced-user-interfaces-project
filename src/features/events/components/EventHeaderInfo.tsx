@@ -5,7 +5,7 @@ import { Flag, Calendar, Server, Trophy, Users } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 
 import { EventDetailsDto } from "../events.types";
-import PrimaryCard from "@/components/common/PrimaryCard";
+import HeroCard from "@/components/common/HeroCard";
 
 interface EventHeaderInfoProps {
   event: EventDetailsDto;
@@ -42,7 +42,7 @@ export default function EventHeaderInfo({
   };
 
   return (
-    <PrimaryCard>
+    <HeroCard>
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         
         {/* LEWA STRONA: Nazwa wydarzenia i Tor */}
@@ -142,6 +142,6 @@ export default function EventHeaderInfo({
 
         </div>
       )}
-    </PrimaryCard>
+    </HeroCard>
   );
 }

@@ -7,6 +7,11 @@ export async function getEventDetails(id: string): Promise<EventDetailsDto | nul
     const event = await prisma.event.findUnique({
         where: { id },
         include: {
+            championship: {
+                select: {
+                    name: true
+                }
+            },
             ratings: {
                 select: {
                     driverGuid: true,
@@ -135,7 +140,7 @@ export async function getEventDetails(id: string): Promise<EventDetailsDto | nul
 
     return {
         id: event.id,
-        name: event.name,
+        name: event.name ? event.name : event.championship?.name + " @ " + event.track.replaceAll("_", " "),
         championshipId: event.championshipId,
         track: event.track,
         date: event.date,
