@@ -3,6 +3,68 @@ import { prisma } from '@/lib/db/db';
 import { Prisma } from '@prisma/client';
 
 import { RATING_CONFIG } from "@/lib/config/rating.config";
+import { CONFIG_FILES } from 'next/dist/shared/lib/constants';
+
+export interface DriverBasicDto {
+    guid: string;
+    mainName: string;
+    currentRating: number;
+}
+
+export async function searchDrivers(query: string, limit: number = 10): Promise<DriverBasicDto[]> {
+    if (!query || query.trim().length === 0) {
+        return [];
+    }
+
+    const cleanQuery = `%${query.trim().toLowerCase()}%`;
+
+    const drivers = await prisma.driver.findMany({
+        where: {
+            OR: [
+                { mainName: { contains: cleanQuery } },
+                { altNames: { contains: cleanQuery } }
+            ]
+        },
+        select: {
+            guid: true,
+            mainName: true,
+            currentRating: true
+        },
+        take: limit,
+        orderBy: {
+            currentRating: 'desc'
+        }
+    });
+
+    return drivers.map(d => ({
+        guid: d.guid,
+        mainName: d.mainName,
+        currentRating: d.currentRating
+    }));
+}
+
+export async function getDriversBasicInfoByGuids(guids: string[]): Promise<DriverBasicDto[]> {
+    if (!guids || guids.length === 0) {
+        return [];
+    }
+
+    const drivers = await prisma.driver.findMany({
+        where: {
+            guid: { in: guids }
+        },
+        select: {
+            guid: true,
+            mainName: true,
+            currentRating: true
+        }
+    });
+
+    return drivers.map(d => ({
+        guid: d.guid,
+        mainName: d.mainName,
+        currentRating: d.currentRating
+    }));
+}
 
 export interface Driver {
     guid: string;
@@ -75,7 +137,7 @@ export async function getDriverDetails(guid: string): Promise<DriverDetailsDto |
         currentRating: driver.currentRating,
         bestRating: driver.bestRating,
         combo: driver.combo,
-        erosion: driver.erosion,
+        erosion: Math.max(0, driver.erosion - RATING_CONFIG.erosionStart - 1),
         joined: driver.joined,
         lastActive,
         stats: {

@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Box } from "@mui/material";
-import GroupIcon from "@mui/icons-material/Group";
 
-// Import komponentów dedykowanych i globalnych
-import DriverSearchContainer from "@/app/_components/Rating/DriverSearchContainer";
+import PageLoaderWrapper from "../_components/Common/PageLoaderWrapper";
 import BackButton from "@/app/_components/Common/BackButton";
-import RatingChart from "../_components/Rating/RatingChart";
-import { DriverBasicInfo } from "@/app/_components/Rating/SelectedDriverList";
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
-import PageLoaderWrapper from "../_components/Common/PageLoaderWrapper";
+
+import DriverSearchContainer from "@/app/_components/Rating/Compare/DriverSearchContainer";
+import RatingChart from "../_components/Rating/RatingChart";
+
+import { getDriversBasicInfoAction } from "@/app/_actions/drivers.actions";
+import { DriverBasicDto } from "@/lib/services/drivers.service";
 
 const SECTION_ORDER = [
   "menu",
@@ -32,8 +32,7 @@ function CompareDriversContent() {
     document.title = t("tab");
   }, [t]);
 
-  const [selectedDrivers, setSelectedDrivers] = useState<DriverBasicInfo[]>([]);
-
+  const [selectedDrivers, setSelectedDrivers] = useState<DriverBasicDto[]>([]);
   const backButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
@@ -49,24 +48,24 @@ function CompareDriversContent() {
 
     async function fetchInitialDrivers() {
       try {
-        const promises = guids.map(async (guid) => {
-          const res = await fetch(`/api/drivers/${guid}`);
-          const data = await res.json();
-          if (data.success && data.driver) {
-            return {
-              guid: data.driver.guid,
-              mainName: data.driver.mainName,
-              currentElo: data.driver.currentElo,
-            };
-          }
-          return { guid, mainName: `${t("driverFallback")} (${guid.substring(0, 5)})` };
+        // Użycie nowej akcji serwerowej do zbiorczego pobrania danych kierowców
+        const driversInfo = await getDriversBasicInfoAction(guids);
+
+        if (!active) return;
+
+        // Mapowanie wyników – w przypadku braku danych dla podanego GUID tworzymy fallback
+        const loadedMap = new Map(driversInfo.map((d) => [d.guid, d]));
+        const finalDrivers: DriverBasicDto[] = guids.map((guid) => {
+          const found = loadedMap.get(guid);
+          if (found) return found;
+          return {
+            guid,
+            mainName: `${t("driverFallback")} (${guid.substring(0, 5)})`,
+            currentElo: 0,
+          };
         });
 
-        const drivers = await Promise.all(promises);
-
-        if (active) {
-          setSelectedDrivers(drivers);
-        }
+        setSelectedDrivers(finalDrivers);
       } catch (err) {
         console.error("Error fetching initial drivers for comparison:", err);
       }
@@ -79,7 +78,7 @@ function CompareDriversContent() {
     };
   }, [searchParams, t]);
 
-  const updateUrlParams = (drivers: DriverBasicInfo[]) => {
+  const updateUrlParams = (drivers: DriverBasicDto[]) => {
     const params = new URLSearchParams(searchParams.toString());
     if (drivers.length > 0) {
       const guids = drivers.map((d) => d.guid).join(",");
@@ -90,7 +89,7 @@ function CompareDriversContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const handleAddDriver = (driver: DriverBasicInfo) => {
+  const handleAddDriver = (driver: DriverBasicDto) => {
     if (selectedDrivers.some((d) => d.guid === driver.guid)) return;
 
     const updated = [...selectedDrivers, driver];
@@ -107,17 +106,10 @@ function CompareDriversContent() {
   const selectedGuids = selectedDrivers.map((d) => d.guid);
 
   return (
-    <Box
-      className="pt-10 pb-4 px-4 sm:px-6 lg:px-8"
-      sx={{
-        backgroundColor: "var(--color-brand-navy)",
-        color: "var(--color-brand-text)",
-        transition: "background-color 0.3s ease, color 0.3s ease",
-      }}
-    >
+    <div className="pt-10 pb-4 px-4 sm:px-6 lg:px-8 bg-[var(--color-brand-navy)] text-[var(--color-brand-text)] transition-colors duration-300">
       <div className="container mx-auto max-w-5xl">
         
-        {/* SEKCJA: Przycisk Powrotu */}
+        {/* SEKCJA: Przycisk Powrotu & Tytuł */}
         <div
           data-section="compare-back"
           data-section-page-start="true"
@@ -143,17 +135,25 @@ function CompareDriversContent() {
             }}
           />
           <div>
-            <h1
-              className="!text-page-title uppercase leading-tight shrink-0 flex items-center gap-3"
-              style={{ color: "var(--color-brand-text)" }}
-            >
-              <GroupIcon className="!text-[1.15em]" sx={{ color: "var(--color-brand-yellow-hover)" }} />{" "}
+            <h1 className="!text-page-title uppercase leading-tight shrink-0 flex items-center gap-3 text-[var(--color-brand-text)]">
+              {/* Natywna ikona SVG zastępująca MUI GroupIcon */}
+              <svg
+                className="w-[1.15em] h-[1.15em] text-[var(--color-brand-yellow-hover)]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
               {t("title")}
             </h1>
-            <p
-              className="text-xs mt-1 !font-sans"
-              style={{ color: "var(--color-brand-text-muted)" }}
-            >
+            <p className="text-xs mt-1 !font-sans text-[var(--color-brand-text-muted)]">
               {t("subtitle")}
             </p>
           </div>
@@ -174,27 +174,14 @@ function CompareDriversContent() {
         {/* SEKCJA: Wykres Ratingu / Stan Pusty */}
         <div data-section="compare-chart">
           {selectedGuids.length === 0 ? (
-            <Box
-              className="h-64 flex flex-col items-center justify-center p-6 text-center"
-              sx={{
-                border: "2px dashed var(--color-brand-navy-light)",
-                borderRadius: "var(--radius-brand-card)",
-                backgroundColor: "color-mix(in srgb, var(--color-brand-navy-dark) 40%, transparent)",
-              }}
-            >
-              <p
-                className="!text-btn-mono uppercase font-bold tracking-wider"
-                style={{ color: "var(--color-brand-text-muted)" }}
-              >
+            <div className="h-64 flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)] bg-[color-mix(in_srgb,var(--color-brand-navy-dark)_40%,transparent)]">
+              <p className="!text-btn-mono uppercase font-bold tracking-wider text-[var(--color-brand-text-muted)]">
                 {t("emptyState.title")}
               </p>
-              <p
-                className="text-xs mt-1 opacity-70 !font-sans"
-                style={{ color: "var(--color-brand-text-muted)" }}
-              >
+              <p className="text-xs mt-1 opacity-70 !font-sans text-[var(--color-brand-text-muted)]">
                 {t("emptyState.description")}
               </p>
-            </Box>
+            </div>
           ) : (
             <RatingChart
               data-focus-order="compare-chart"
@@ -208,7 +195,7 @@ function CompareDriversContent() {
         </div>
 
       </div>
-    </Box>
+    </div>
   );
 }
 

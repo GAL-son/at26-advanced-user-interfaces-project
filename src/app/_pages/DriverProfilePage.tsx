@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Box } from "@mui/material";
 import BackButton from "@/app/_components/Common/BackButton";
-import EloChart from "@/app/_components/Elo/EloChart";
+
 import { useTranslations } from "next-intl";
 import { focusFlatSection } from "@/app/_utils/navigation";
 

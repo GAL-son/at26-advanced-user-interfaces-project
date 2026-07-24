@@ -25,7 +25,6 @@ export default function EventCard({ event, id, onKeyDown }: EventCardProps) {
   const tEvents = useTranslations("Events");
   const tResults = useTranslations("Results.info");
 
-  // Formatowanie i czyszczenie danych wejściowych
   const readableName = event.name || tResults("unnamedEvent");
   const readableTrack = event.track.replace(/_/g, " ");
   const cleanServer = event.server.replace("https://", "");
@@ -59,12 +58,10 @@ export default function EventCard({ event, id, onKeyDown }: EventCardProps) {
         })}
       >
         <div className="flex flex-col gap-2 w-full min-w-0">
-          {/* Nazwa eventu */}
           <h2 className="text-card-title uppercase group-hover:text-[var(--color-brand-yellow-hover)] group-focus-visible:text-[var(--color-brand-yellow-hover)] transition-colors duration-200 text-[var(--color-brand-text)]">
             {readableName}
           </h2>
 
-          {/* Tor wyścigowy */}
           <div className="font-semibold tracking-normal text-xs sm:text-sm flex items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-[var(--color-brand-text-muted)]/90">
             <MapPin
               size={16}
@@ -74,7 +71,6 @@ export default function EventCard({ event, id, onKeyDown }: EventCardProps) {
             {readableTrack}
           </div>
 
-          {/* Data eventu */}
           <div className="flex items-center gap-1.5 mt-1 text-[var(--color-brand-text-muted)]/70 text-btn-mono">
             <Calendar size={14} aria-hidden="true" className="text-[var(--color-brand-text-muted)]/70" />
             <span className="sr-only">{tResults("raceDate")}: </span>
@@ -82,7 +78,6 @@ export default function EventCard({ event, id, onKeyDown }: EventCardProps) {
           </div>
         </div>
 
-        {/* Sekcja dolna z parametrami serwera */}
         <div className="w-full pt-3 border-t border-[var(--color-brand-navy-light)]/40 shrink-0">
           <div className="font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 w-fit max-w-full overflow-hidden text-ellipsis whitespace-nowrap bg-[var(--color-brand-navy)] border border-[var(--color-brand-navy-light)] text-[var(--color-brand-text-muted)] text-btn-mono">
             <Server size={14} aria-hidden="true" className="text-[var(--color-brand-text-muted)]" />

@@ -1,21 +1,39 @@
 "use server"
 
 import {
-    getPaginatedDriversList,
-    getDriverDetails,
-    DriverSortOption,
-    PaginatedDriversResult,
-    DriverDetailsDto
+  getDriversBasicInfoByGuids, 
+  searchDrivers,
+  getPaginatedDriversList,
+  getDriverDetails,
+  getDriverRatingHistory
 } from '@/lib/services/drivers.service';
 
-import { 
-    getDriverRatingHistory, 
-    DriverRatingHistoryResponseDto 
+import type {
+  DriverBasicDto,
+  DriverDetailsDto,
+  DriverSortOption,
+  PaginatedDriversResult,
+  DriverRatingHistoryResponseDto
 } from '@/lib/services/drivers.service';
 
-/**
- * Akcja wywoływana z komponentu klienta do Lazy Loadingu listy kierowców
- */
+export async function searchDriversAction(query: string): Promise<DriverBasicDto[]> {
+    try {
+        return await searchDrivers(query);
+    } catch (error) {
+        console.error("Błąd w akcji searchDriversAction:", error);
+        return [];
+    }
+}
+
+export async function getDriversBasicInfoAction(guids: string[]): Promise<DriverBasicDto[]> {
+    try {
+        return await getDriversBasicInfoByGuids(guids);
+    } catch (error) {
+        console.error("Błąd w akcji getDriversBasicInfoAction:", error);
+        return [];
+    }
+}
+
 export async function getDriversListAction(
     skip: number = 0,
     take: number = 20,
@@ -30,9 +48,6 @@ export async function getDriversListAction(
     }
 }
 
-/**
- * Akcja do pobierania szczegółowych danych i statystyk pojedynczego kierowcy
- */
 export async function getDriverDetailsAction(guid: string): Promise<DriverDetailsDto | null> {
     try {
         return await getDriverDetails(guid);
@@ -42,9 +57,6 @@ export async function getDriverDetailsAction(guid: string): Promise<DriverDetail
     }
 }
 
-/**
- * Akcja serwerowa pobierająca historię punktów ratingowych kierowcy/kierowców
- */
 export async function getDriverRatingHistoryAction(
     guids: string[],
     page: number = 0,

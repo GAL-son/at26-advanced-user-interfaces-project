@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Paper, Box } from "@mui/material";
-import UniversalSearch from "@/app/_components/UniversalSearch";
-import SearchDriverItem from "@/app/_components/Rating/SearchDriverItem";
-import SelectedDriversList, { DriverBasicInfo } from "@/app/_components/Rating/SelectedDriverList";
 import { useTranslations } from "next-intl";
 
+import UniversalSearch from "@/app/_components/UniversalSearch";
+import SearchDriverItem from "@/app/_components/Rating/Compare/SearchDriverItem";
+import SelectedDriversList from "@/app/_components/Rating/Compare/SelectedDriverList";
+import { searchDriversAction } from "@/app/_actions/drivers.actions";
+import { DriverBasicDto } from "@/lib/services/drivers.service";
+
 interface DriverSearchContainerProps {
-  selectedDrivers: DriverBasicInfo[];
-  onAddDriver: (driver: DriverBasicInfo) => void;
+  selectedDrivers: DriverBasicDto[];
+  onAddDriver: (driver: DriverBasicDto) => void;
   onRemoveDriver: (guid: string) => void;
   onNavigateVertical?: (direction: "up" | "down") => void;
 }
@@ -22,7 +24,7 @@ export default function DriverSearchContainer({
 }: DriverSearchContainerProps) {
   const t = useTranslations("CompareDrivers.search");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<DriverBasicInfo[]>([]);
+  const [searchResults, setSearchResults] = useState<DriverBasicDto[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
@@ -37,13 +39,11 @@ export default function DriverSearchContainer({
     setIsSearching(true);
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/drivers/search?q=${encodeURIComponent(searchQuery)}`,
-        );
-        const data = await res.json();
+        // Wywołanie akcji serwerowej zamiast wywołania API
+        const results = await searchDriversAction(searchQuery);
 
-        if (active && data.success && Array.isArray(data.results)) {
-          setSearchResults(data.results);
+        if (active) {
+          setSearchResults(results);
         }
       } catch (err) {
         console.error("Error searching drivers:", err);
@@ -60,7 +60,7 @@ export default function DriverSearchContainer({
     };
   }, [searchQuery]);
 
-  const handleSelect = (driver: DriverBasicInfo) => {
+  const handleSelect = (driver: DriverBasicDto) => {
     onAddDriver(driver);
     setSearchQuery("");
   };
@@ -97,30 +97,15 @@ export default function DriverSearchContainer({
   };
 
   return (
-    <Paper
-      elevation={0}
-      className="p-4 sm:p-6"
-      sx={{
-        backgroundImage: "none",
-        backgroundColor: "var(--color-brand-navy-dark)",
-        border: "1px solid var(--color-brand-navy-light)",
-        borderRadius: "var(--radius-brand-card)",
-        transition: "background-color 0.3s ease, border-color 0.3s ease",
-      }}
-    >
+    <div className="p-4 sm:p-6 bg-[var(--color-brand-navy-dark)] border border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)] transition-colors duration-300">
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {getSearchStatusMessage()}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-
         {/* LEWA STRONA: Wyszukiwarka */}
         <div className="w-full">
-          {/* POPRAWKA: Przejście z surowych klas rozmiaru na token !text-btn-mono z wagą czcionki i trackingiem */}
-          <p 
-            className="!text-btn-mono uppercase tracking-widest font-bold mb-2 opacity-80"
-            style={{ color: "var(--color-brand-text-muted)" }}
-          >
+          <p className="!text-btn-mono uppercase tracking-widest font-bold mb-2 opacity-80 text-[var(--color-brand-text-muted)]">
             {t("label")}
           </p>
 
@@ -146,8 +131,7 @@ export default function DriverSearchContainer({
             onNavigateVertical={onNavigateVertical}
           />
         </div>
-
       </div>
-    </Paper>
+    </div>
   );
 }
