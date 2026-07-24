@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
 import { Flame, ShieldAlert } from 'lucide-react';
 import { useTranslations, useFormatter } from 'next-intl';
+
 import { RATING_CONFIG } from '@/lib/config/rating.config';
 
 interface ComboBadgeProps {
@@ -14,7 +14,6 @@ export default function ComboBadge({ combo = 0, erosion = 0 }: ComboBadgeProps) 
   const t = useTranslations("Elo");
   const format = useFormatter();
 
-  // Ukrywamy badge jeśli brak serii oraz erozji
   if (combo <= 0 && erosion <= 0) return null;
 
   const isCombo = combo > 0;
@@ -40,7 +39,6 @@ export default function ComboBadge({ combo = 0, erosion = 0 }: ComboBadgeProps) 
     });
     Icon = ShieldAlert;
 
-    // Czerwony styl TYLKO wtedy, gdy erozja osiągnęła dokładnie wartość startową
     if (erosion === RATING_CONFIG.erosionStart) {
       badgeStyles = "bg-[var(--color-erosion-start-bg)] text-[var(--color-erosion-start-text)] border-[var(--color-erosion-start-border)] animate-pulse";
     } else {
@@ -50,7 +48,6 @@ export default function ComboBadge({ combo = 0, erosion = 0 }: ComboBadgeProps) 
 
   return (
     <div className="relative group inline-flex items-center">
-      {/* Badge */}
       <span 
         className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-btn-mono font-bold transition-colors ${badgeStyles}`}
       >
@@ -59,7 +56,6 @@ export default function ComboBadge({ combo = 0, erosion = 0 }: ComboBadgeProps) 
         <span className="sr-only">{fullDescription}</span>
       </span>
 
-      {/* Tooltip w czystym CSS */}
       <div 
         role="tooltip"
         aria-hidden="true"

@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import DriverRow, { FormattedDriver } from "./DriverRow";
-import DriverRowMobile from "./DriverRowMobile";
-import InfiniteScrollList, { FetchDataResponse } from "@/app/_components/Common/InfiniteScrollList";
-import { getDriversListAction } from "@/actions/drivers.actions";
-import { DriverSortOption } from "@/lib/services/drivers.service";
+
 import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
+import InfiniteScrollList, { FetchDataResponse } from "@/app/_components/Common/InfiniteScrollList";
+
+import { getDriversListAction } from "../../drivers.actions";
+import { FormattedDriver, DriverSortOption, DriverListItemDto } from "../../drivers.types";
+import DriverRow  from "./DriverRow";
+import DriverRowMobile from "./DriverRowMobile";
 
 interface DriverListProps {
   initialDrivers: FormattedDriver[];
@@ -48,7 +50,7 @@ export default function DriverList({
     try {
       const res = await getDriversListAction(skip, take, search, sortBy);
 
-      const formattedData: FormattedDriver[] = res.drivers.map((d, index) => ({
+      const formattedData: FormattedDriver[] = res.drivers.map((d: DriverListItemDto, index: number) => ({
         ...d,
         position: skip + index + 1,
       }));

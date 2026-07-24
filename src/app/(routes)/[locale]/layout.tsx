@@ -7,7 +7,7 @@ import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 
-import ClientLayoutView from "@/app/_components/ClientLayoutView";
+import MainLayout from "@/components/layout/MainLayout";
 import "@/app/globals.css";
 
 // 1. Ładowanie czcionek motorsportowych
@@ -53,7 +53,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full m-0 p-0 flex flex-col bg-[var(--color-brand-navy)] text-[var(--color-brand-text)]">
         <NextIntlClientProvider messages={messages}>
-          <ClientLayoutView>{children}</ClientLayoutView>
+          <MainLayout>{children}</MainLayout>
         </NextIntlClientProvider>
       </body>
     </html>

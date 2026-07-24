@@ -5,16 +5,14 @@ import {
   searchDrivers,
   getPaginatedDriversList,
   getDriverDetails,
-  getDriverRatingHistory
-} from '@/lib/services/drivers.service';
+} from './services/drivers.service';
 
 import type {
   DriverBasicDto,
   DriverDetailsDto,
   DriverSortOption,
   PaginatedDriversResult,
-  DriverRatingHistoryResponseDto
-} from '@/lib/services/drivers.service';
+} from './drivers.types';
 
 export async function searchDriversAction(query: string): Promise<DriverBasicDto[]> {
     try {
@@ -54,18 +52,5 @@ export async function getDriverDetailsAction(guid: string): Promise<DriverDetail
     } catch (error) {
         console.error(`Błąd w akcji getDriverDetailsAction dla GUID ${guid}:`, error);
         throw new Error("Nie udało się pobrać szczegółowych danych kierowcy.");
-    }
-}
-
-export async function getDriverRatingHistoryAction(
-    guids: string[],
-    page: number = 0,
-    limit: number = 50
-): Promise<DriverRatingHistoryResponseDto> {
-    try {
-        return await getDriverRatingHistory(guids, page, limit);
-    } catch (error) {
-        console.error("Błąd w akcji getDriverRatingHistoryAction:", error);
-        throw new Error("Nie udało się pobrać historii ratingu kierowców.");
     }
 }

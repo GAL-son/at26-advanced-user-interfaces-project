@@ -1,6 +1,7 @@
 "use client";
-import DriversComparePage from "@/app/_pages/DriverComparePage";
+
+import DriversComparisonView from "@/features/drivers/views/DriversComparisonView";
 
 export default function Page() {
-    return <DriversComparePage/>
+    return <DriversComparisonView/>
 }

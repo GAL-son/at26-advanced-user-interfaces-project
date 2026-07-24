@@ -1,16 +1,19 @@
 "use client";
 
 import React from "react";
-import { Box } from "@mui/material";
 import { useTranslations } from "next-intl";
-import UniversalSearch from "../UniversalSearch";
-import DriverOrderTabs, { SortOption } from "./DriverOrderTabs";
+
+import UniversalSearch from "@/app/_components/UniversalSearch";
+
+import { DriverSortOption } from "../../drivers.types";
+import DriverOrderTabs from "./DriverOrderTabs";
+
 
 interface DriverFilterBarProps {
   search: string;
   setSearch: (val: string) => void;
-  sortBy: SortOption;
-  setSortBy: (val: SortOption) => void;
+  sortBy: DriverSortOption;
+  setSortBy: (val: DriverSortOption) => void;
   onNavigateVertical: (direction: "up" | "down") => void;
 }
 
@@ -45,27 +48,21 @@ export default function DriverFilterBar({
   };
 
   return (
-    <Box
-      component="div"
+    <div
       role="search"
       aria-label={t("filter.barAriaLabel")}
-      className="flex flex-col lg:flex-row gap-4 mb-6 p-4 items-stretch lg:items-center shadow-sm"
-      sx={{
-        backgroundColor: "var(--color-brand-navy-dark)",
-        border: "1px solid var(--color-brand-navy-light)",
-        borderRadius: "var(--radius-brand-card)",
-      }}
+      className="flex flex-col lg:flex-row gap-4 mb-6 p-4 items-stretch lg:items-center shadow-sm bg-[var(--color-brand-navy-dark)] border border-[var(--color-brand-navy-light)] rounded-[var(--radius-brand-card)]"
     >
-      <Box className="flex-grow w-full">
-        <DriverOrderTabs 
-          sortBy={sortBy} 
-          setSortBy={setSortBy} 
+      <div className="flex-grow w-full">
+        <DriverOrderTabs
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           ariaLabel={t("filter.sortGroupLabel")}
           onNavigateVertical={onNavigateVertical}
         />
-      </Box>
-      
-      <Box 
+      </div>
+
+      <div
         id="driver-search-container"
         className="w-full lg:w-80 flex-shrink-0"
         onKeyDown={handleSearchKeyDown}
@@ -83,7 +80,7 @@ export default function DriverFilterBar({
         <span id="search-hint" className="sr-only">
           {t("filter.searchHint")}
         </span>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

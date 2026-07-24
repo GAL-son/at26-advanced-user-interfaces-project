@@ -5,7 +5,7 @@ import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Box, Drawer, Divider, List, ListItem, ListItemButton, ListItemText, Button } from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
-import ThemeToggle from "../Common/ThemeTogle";
+import ThemeToggle from "./ThemeTogle";
 import BrandLogo from "./BrandLogo"; // Import wspólnego komponentu logo
 
 interface NavItem {

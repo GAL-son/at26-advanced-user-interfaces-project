@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations, useFormatter } from "next-intl";
 import {
   ResponsiveContainer,
   LineChart,
@@ -9,16 +11,16 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import LoadingSpinner from "@/app/_components/LoadingSpinner";
-import EventDot from "@/app/_components/Rating/EventDot";
-import EventTooltip from "./EventTooltip";
-import ScrollArrow from "@/app/_components/Common/ScrollArrow";
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
-import { useRouter } from "next/navigation";
-import { useTranslations, useFormatter } from "next-intl";
-import {  getDriverRatingHistoryAction } from "@/actions/drivers.actions";
-import { DriverRatingHistoryGroupDto } from "@/lib/services/drivers.service";
+
+import LoadingSpinner from "@/app/_components/LoadingSpinner";
+import ScrollArrow from "@/app/_components/Common/ScrollArrow";
+
+import { getDriverRatingHistoryAction } from "../ratings.actions";
+import { DriverRatingHistoryGroupDto } from "../ratings.types";
+import EventDot from "./EventDot";
+import EventTooltip from "./EventTooltip";
 
 const DRIVER_COLORS = [
   "var(--color-brand-yellow-hover)",

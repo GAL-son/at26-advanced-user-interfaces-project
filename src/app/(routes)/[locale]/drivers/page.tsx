@@ -1,7 +1,7 @@
 "use client";
 
-import DriversPage from "@/app/_pages/DriversPage";
+import DriversListView from "@/features/drivers/views/DriversListView"
 
 export default function Page() {
-  return (<DriversPage></DriversPage>)
+  return (<DriversListView initialHasMore={true} initialDrivers={[]}/>)
 }

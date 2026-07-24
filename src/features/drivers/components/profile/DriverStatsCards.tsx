@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import {
     TrendingUp,
     Trophy,
@@ -13,9 +14,10 @@ import {
     Minus,
     Award
 } from "lucide-react";
-import { useTranslations, useFormatter } from "next-intl";
-import { DriverDetailsDto } from "@/lib/services/drivers.service";
-import ComboBadge from "@/app/_components/Rating/ComboBadge";
+
+import ComboBadge from "@/features/ratings/components/ComboBadge";
+
+import { DriverDetailsDto } from "../../drivers.types";
 
 interface DriverStatsCardsProps {
     driver: DriverDetailsDto;

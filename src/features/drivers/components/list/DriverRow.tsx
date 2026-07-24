@@ -1,16 +1,14 @@
 "use client";
 
 import React from 'react';
-import ComboBadge from '@/app/_components/Rating/ComboBadge';
-import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
 import { useTranslations, useFormatter } from 'next-intl';
 import { motion, Transition } from 'framer-motion';
-import { DriverListItemDto, DriverSortOption } from "@/lib/services/drivers.service";
 
-export interface FormattedDriver extends DriverListItemDto {
-  position: number;
-}
+import ComboBadge from '@/features/ratings/components/ComboBadge';
+import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
+
+import type { FormattedDriver, DriverSortOption } from "../../drivers.types";
 
 interface DriverRowProps {
   driver: FormattedDriver;

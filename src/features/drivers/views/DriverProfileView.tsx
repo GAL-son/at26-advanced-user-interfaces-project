@@ -2,18 +2,16 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Box } from "@mui/material";
-import BackButton from "@/app/_components/Common/BackButton";
-
 import { useTranslations } from "next-intl";
-import { focusFlatSection } from "@/app/_utils/navigation";
 
-// Importy nowych typów i akcji
-import { DriverDetailsDto } from "@/lib/services/drivers.service";
-import { getDriverDetailsAction } from "@/actions/drivers.actions"; // Dostosuj ścieżkę do akcji
-import DriverStatsCards from "@/app/_components/Drivers/Profile/DriverStatsCards"; // Dostosuj ścieżkę do komponentu kart
+import { focusFlatSection } from "@/app/_utils/navigation";
+import BackButton from "@/app/_components/Common/BackButton";
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
-import RatingChart from "../_components/Rating/RatingChart";
+import RatingChart from "@/features/ratings/components/RatingChart";
+
+import { DriverDetailsDto } from "../drivers.types";
+import { getDriverDetailsAction } from "../drivers.actions";
+import DriverStatsCards from "../components/profile/DriverStatsCards";
 
 const SECTION_ORDER = [
   "menu",
@@ -32,7 +30,6 @@ function DriverProfileContent() {
   const backButtonRef = useRef<HTMLButtonElement | null>(null);
   const chartSectionRef = useRef<HTMLDivElement | null>(null);
 
-  // Pobieranie danych kierowcy za pomocą Akcji Serwerowej
   useEffect(() => {
     async function fetchDriverProfile() {
       try {
@@ -47,7 +44,6 @@ function DriverProfileContent() {
     fetchDriverProfile();
   }, [guid]);
 
-  // Dynamiczny tytuł karty w przeglądarce
   useEffect(() => {
     if (driver?.mainName) {
       document.title = `${t("profile.metaTitle") || "Profil"} - ${driver.mainName}`;
@@ -58,7 +54,6 @@ function DriverProfileContent() {
     }
   }, [driver, loadingProfile, t]);
 
-  // Nawigacja klawiaturą dla wykresu
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -81,46 +76,35 @@ function DriverProfileContent() {
 
   if (loadingProfile) {
     return (
-      <Box 
-        component="div"
+      <div 
         role="status"
         aria-live="polite"
-        className="min-h-screen flex flex-col items-center justify-center gap-3"
-        sx={{ backgroundColor: 'var(--color-brand-navy)' }}
+        className="min-h-screen flex flex-col items-center justify-center gap-3 bg-[var(--color-brand-navy)]"
       >
-        <div className="animate-pulse text-sm uppercase tracking-wider text-center" style={{ color: 'var(--color-brand-text-muted)' }}>
+        <div className="animate-pulse text-sm uppercase tracking-wider text-center text-[var(--color-brand-text-muted)]">
           {t("profile.loadingTelemetry")}
         </div>
-      </Box>
+      </div>
     );
   }
 
   if (!driver) {
     return (
-      <Box 
+      <div 
         role="alert"
-        className="min-h-screen flex items-center justify-center !text-btn-mono uppercase"
-        sx={{ backgroundColor: 'var(--color-brand-navy)', color: 'var(--color-brand-text-muted)' }}
+        className="min-h-screen flex items-center justify-center text-btn-mono uppercase bg-[var(--color-brand-navy)] text-[var(--color-brand-text-muted)]"
       >
         {t("profile.connectionError")}
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box 
-      component="main"
+    <main 
       id="main-content"
-      className="pt-10 pb-4 px-4 sm:px-6 lg:px-8"
-      sx={{
-        backgroundColor: 'var(--color-brand-navy)',
-        color: 'var(--color-brand-text)',
-        transition: 'background-color 0.3s ease, color 0.3s ease'
-      }}
+      className="pt-10 pb-4 px-4 sm:px-6 lg:px-8 bg-[var(--color-brand-navy)] text-[var(--color-brand-text)] transition-colors duration-300 ease-in-out"
     >
       <div className="container mx-auto max-w-5xl">
-        
-        {/* SEKCJA: Przycisk powrotu + Nagłówek */}
         <div 
           data-section="driver-back"
           data-section-page-start="true"
@@ -141,24 +125,18 @@ function DriverProfileContent() {
             }}
           />
           <div>
-            <h1 
-              className="!text-page-title uppercase leading-tight shrink-0"
-              style={{ color: 'var(--color-brand-text)' }}
-            >
+            <h1 className="text-page-title uppercase leading-tight shrink-0 text-[var(--color-brand-text)]">
               {driver.mainName}
             </h1>
             {driver.altNames && driver.altNames !== driver.mainName && (
-              <p 
-                className="!text-btn-mono mt-1 uppercase"
-                style={{ color: 'var(--color-brand-text-muted)', opacity: 0.7 }}
-              >
+              <p className="text-btn-mono mt-1 uppercase text-[var(--color-brand-text-muted)] opacity-70">
                 {t("list.aliases")}: {driver.altNames}
               </p>
             )}
           </div>
         </div>
 
-        {/* UŻYCIE TWOJEGO NOWEGO KOMPONENTU KART */}
+        {/* KOMPONENT KART STATYSTYK */}
         <DriverStatsCards driver={driver} />
 
         {/* SEKCJA: Wykres ELO */}
@@ -173,12 +151,11 @@ function DriverProfileContent() {
           />
         </div>
       </div>
-    </Box>
+    </main>
   );
 }
 
-// Główny wrapper komponentu
-export default function DriverProfilePage() {
+export default function DriverProfileView() {
   const t = useTranslations("Drivers");
 
   return (

@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
 import { useTranslations } from "next-intl";
 import { Trophy, Award, ArrowDownAZ, Clock } from "lucide-react";
+
 import Tabs, { TabItem } from "@/app/_components/Common/Tabs";
-import { DriverSortOption } from "@/lib/services/drivers.service";
+
+import { DriverSortOption } from "../../drivers.types";
 
 interface DriverOrderTabsProps {
   sortBy: DriverSortOption;

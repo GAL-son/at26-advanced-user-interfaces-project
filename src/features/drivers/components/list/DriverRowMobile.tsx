@@ -1,13 +1,14 @@
 "use client";
 
 import React from 'react';
-import ComboBadge from '@/app/_components/Rating/ComboBadge';
-import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
 import { useRouter } from 'next/navigation'; 
-import { FormattedDriver } from './DriverRow';
 import { useTranslations, useFormatter } from 'next-intl';
 import { motion, Transition } from 'framer-motion';
-import { DriverSortOption } from "@/lib/services/drivers.service";
+
+import ComboBadge from '@/features/ratings/components/ComboBadge';
+import PositionTableCell from '@/app/_components/Common/PositionTableCell'; 
+
+import { FormattedDriver, DriverSortOption } from '../../drivers.types';
 
 interface DriverRowMobileProps {
   driver: FormattedDriver;

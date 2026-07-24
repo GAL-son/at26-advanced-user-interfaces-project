@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 import UniversalSearch from "@/app/_components/UniversalSearch";
-import SearchDriverItem from "@/app/_components/Rating/Compare/SearchDriverItem";
-import SelectedDriversList from "@/app/_components/Rating/Compare/SelectedDriverList";
-import { searchDriversAction } from "@/actions/drivers.actions";
-import { DriverBasicDto } from "@/lib/services/drivers.service";
+import SearchDriverItem from "./SearchDriverItem";
+import SelectedDriversList from "./SelectedDriverList";
+import { searchDriversAction } from "../../drivers.actions";
+import { DriverBasicDto } from "../../drivers.types";
 
 interface DriverSearchContainerProps {
   selectedDrivers: DriverBasicDto[];

@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-
-import PageLoaderWrapper from "../_components/Common/PageLoaderWrapper";
-import BackButton from "@/app/_components/Common/BackButton";
 import { useTranslations } from "next-intl";
+
 import { focusFlatSection } from "@/app/_utils/navigation";
+import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
+import BackButton from "@/app/_components/Common/BackButton";
+import RatingChart from "@/features/ratings/components/RatingChart";
 
-import DriverSearchContainer from "@/app/_components/Rating/Compare/DriverSearchContainer";
-import RatingChart from "../_components/Rating/RatingChart";
 
-import { getDriversBasicInfoAction } from "@/actions/drivers.actions";
-import { DriverBasicDto } from "@/lib/services/drivers.service";
+import { getDriversBasicInfoAction } from "../drivers.actions";
+import { DriverBasicDto } from "../drivers.types";
+import DriverSearchContainer from "../components/compare/DriverSearchContainer";
 
 const SECTION_ORDER = [
   "menu",
@@ -199,7 +199,7 @@ function CompareDriversContent() {
   );
 }
 
-export default function CompareDriversPage() {
+export default function DriversComparisonView() {
   const t = useTranslations("CompareDrivers");
 
   return (

@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import DriverFilterBar from "@/app/_components/Drivers/DriverFilterBar";
-import DriverList from "@/app/_components/Drivers/DriverList";
-import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
+
 import { focusFlatSection } from "@/app/_utils/navigation";
-import { usePageInitialFocus } from "../../hooks/usePageInitialFocus";
-import { DriverSortOption } from "@/lib/services/drivers.service";
+import { usePageInitialFocus } from "@/hooks/usePageInitialFocus";
+
+
+import { FormattedDriver, DriverSortOption } from "../drivers.types";
+import DriverFilterBar from "../components/list/DriverFilterBar";
+import DriverList from "../components/list/DriverList";
 
 const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list", "footer"];
 
@@ -16,7 +18,7 @@ interface DriversPageProps {
   initialHasMore: boolean;
 }
 
-export default function DriversPage({
+export default function DriversListView({
   initialDrivers = [],
   initialHasMore = true,
 }: DriversPageProps) {

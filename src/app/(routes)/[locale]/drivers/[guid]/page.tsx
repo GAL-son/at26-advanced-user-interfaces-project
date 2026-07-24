@@ -1,7 +1,7 @@
 "use client";
 
-import DriverProfilePage from "@/app/_pages/DriverProfilePage";
+import DriverProfileView from "@/features/drivers/views/DriverProfileView";
 
 export default function Page() {
-  return (<DriverProfilePage></DriverProfilePage>)
+  return (<DriverProfileView/>)
 }
