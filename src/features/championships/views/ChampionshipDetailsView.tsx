@@ -1,17 +1,16 @@
-// Sprawdź, czy na samej górze tego pliku NIE MA dyrektywy "use client"
-import React from "react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import type { ChampionshipDto } from "@/lib/services/championships.service";
-import EventCard from "@/app/_components/Championships/EventCard";
 import DynamicGrid from "@/app/_components/Common/DynamicGrid";
+
+import type { ChampionshipDto } from "../championships.types";
+import EventCard from "../components/EventCard";
 
 interface Props {
   championship: ChampionshipDto;
   searchParams: { search?: string };
 }
 
-export default async function ChampionshipDetailsPage({ championship, searchParams }: Props) {
+export default async function ChampionshipDetailsView({ championship, searchParams }: Props) {
   const t = await getTranslations("Events");
 
   return (

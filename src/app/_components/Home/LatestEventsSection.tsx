@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import EventRow from '../Events/EventRow';
 import { FormattedEvent } from '@/lib/services/events';
-import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 
 interface LatestEventsSectionProps {
   events: FormattedEvent[];

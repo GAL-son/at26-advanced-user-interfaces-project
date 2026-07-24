@@ -1,17 +1,14 @@
-import React from "react";
 import { getTranslations } from "next-intl/server";
-import { fetchChampionshipsAction } from "@/app/_actions/championship.actions";
-import ChampionshipList from "@/app/_components/Championships/ChampionshipList"; // Upewnij się, że ścieżka do Twojego komponentu się zgadza
+
+import { fetchChampionshipsAction } from "@/features/championships/championships.actions";
+import ChampionshipList from "../components/ChampionshipList";
 
 interface Props {
-  // Zmieniamy z: searchParams: Promise<{ search?: string }>;
   searchParams: { search?: string }; 
 }
 
-export default async function ChampionshipsPage({ searchParams }: Props) {
+export default async function ChampionshipsListView({ searchParams }: Props) {
   const t = await getTranslations("Events");
-  
-  // Skoro searchParams jest już zwykłym obiektem, nie musisz tu robić `await searchParams`
   const searchQuery = searchParams.search || "";
   const LIMIT = 12;
 

@@ -10,7 +10,7 @@ import { focusFlatSection } from "@/app/_utils/navigation";
 
 // Importy nowych typów i akcji
 import { DriverDetailsDto } from "@/lib/services/drivers.service";
-import { getDriverDetailsAction } from "@/app/_actions/drivers.actions"; // Dostosuj ścieżkę do akcji
+import { getDriverDetailsAction } from "@/actions/drivers.actions"; // Dostosuj ścieżkę do akcji
 import DriverStatsCards from "@/app/_components/Drivers/Profile/DriverStatsCards"; // Dostosuj ścieżkę do komponentu kart
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 import RatingChart from "../_components/Rating/RatingChart";

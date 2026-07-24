@@ -17,7 +17,7 @@ import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import { useRouter } from "next/navigation";
 import { useTranslations, useFormatter } from "next-intl";
-import {  getDriverRatingHistoryAction } from "@/app/_actions/drivers.actions";
+import {  getDriverRatingHistoryAction } from "@/actions/drivers.actions";
 import { DriverRatingHistoryGroupDto } from "@/lib/services/drivers.service";
 
 const DRIVER_COLORS = [

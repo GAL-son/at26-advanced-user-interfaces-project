@@ -1,7 +1,7 @@
 "use server";
 
-import { getChampionshipsList } from "@/lib/services/championships.service"
-import type { ChampionshipListItemDto } from "@/lib/services/championships.service";
+import { getChampionshipsList } from "@/features/championships/services/championships.service"
+import type { ChampionshipListItemDto } from "@/features/championships/championships.types";
 
 interface FetchChampionshipsResponse {
   success: boolean;

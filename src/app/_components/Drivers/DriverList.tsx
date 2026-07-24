@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import DriverRow, { FormattedDriver } from "./DriverRow";
 import DriverRowMobile from "./DriverRowMobile";
 import InfiniteScrollList, { FetchDataResponse } from "@/app/_components/Common/InfiniteScrollList";
-import { getDriversListAction } from "@/app/_actions/drivers.actions";
+import { getDriversListAction } from "@/actions/drivers.actions";
 import { DriverSortOption } from "@/lib/services/drivers.service";
-import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 
 interface DriverListProps {
   initialDrivers: FormattedDriver[];

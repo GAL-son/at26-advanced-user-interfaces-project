@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ChampionshipListItemDto, getAllChampionships, getChampionshipsList } from '@/lib/services/championships.service';
+import { ChampionshipListItemDto } from '@/features/championships/championships.types';
+import { getAllChampionships, getChampionshipsList } from '@/features/championships/services/championships.service';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);

@@ -3,13 +3,199 @@
 import { prisma } from '@/lib/db/db';
 import type { AcsmRaceResult } from '@/lib/services/acsm/types';
 
-export interface Event {
-    name: string; 
-    id: string; 
-    championshipId: string | null; 
-    track: string; 
-    date: Date; 
+export interface RaceResultSummaryDto {
+    finish: number | null;
+    positionChange: number | null; // null for quali
+}
+
+export interface DriverEventSummaryDto {
+    driverGuid: string;
+    driverName: string;
+    car: string,
+    quali: {
+        finish: number | null;
+    } | null;
+    races: RaceResultSummaryDto[];
+    rating: {
+        after: number;
+        change: number;
+    } | null;
+}
+
+export interface EventDetailsDto {
+    id: string;
+    name: string;
+    championshipId: string | null;
+    track: string;
+    date: Date;
     server: string;
+    stats: {
+        racesCount: number;
+        uniqueDriversCount: number;
+    };
+    results: DriverEventSummaryDto[];
+    sessions: {
+        date: Date;
+        type: string;
+        durationLaps: number | null;
+        durationMinutes: number | null;
+        results: {
+            driverGuid: string;
+            driverName: string;
+            start: number | null;
+            finish: number | null;
+            laps: number;
+            totalTime: number;
+            bestLap: number;
+            gap: number | null;
+        }[];
+    }[];
+}
+
+export async function getEventDetails(id: string): Promise<EventDetailsDto | null> {
+    const event = await prisma.event.findUnique({
+        where: { id },
+        include: {
+            ratings: {
+                select: {
+                    driverGuid: true,
+                    current: true,
+                    previous: true,
+                    tookPart: true
+                }
+            },
+            sessions: {
+                orderBy: { date: 'asc' },
+                include: {
+                    results: {
+                        orderBy: {finish: "asc"},
+                        include: {
+                            driver: {
+                                select: { mainName: true }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!event) {
+        return null;
+    }
+
+    const raceSessions = event.sessions.filter(s => s.type === 'RACE');
+    const racesCount = raceSessions.length;
+
+    const uniqueDriverGuids = new Set<string>();
+    event.sessions.forEach(session => {
+        session.results.forEach(res => uniqueDriverGuids.add(res.driverGuid));
+    });
+
+    const driverResultsMap = new Map<string, DriverEventSummaryDto>();
+
+    // Mapy pomocnicze
+    const driverNamesMap = new Map<string, string>();
+    const driverCarsMap = new Map<string, Set<string>>();
+
+    // Zbieramy nazwy oraz unikalne auta dla każdego kierowcy ze wszystkich sesji
+    event.sessions.forEach(session => {
+        session.results.forEach(res => {
+            if (!driverNamesMap.has(res.driverGuid)) {
+                driverNamesMap.set(res.driverGuid, res.driver.mainName);
+            }
+
+            if (res.car) {
+                if (!driverCarsMap.has(res.driverGuid)) {
+                    driverCarsMap.set(res.driverGuid, new Set());
+                }
+                driverCarsMap.get(res.driverGuid)!.add(res.car);
+            }
+        });
+    });
+
+    const qualiSession = event.sessions.find(s => s.type === 'QUALIFY');
+
+    uniqueDriverGuids.forEach(guid => {
+        // Składamy unikalne auta w jeden ciąg tekstowy (rozdzielony przecinkami)
+        const driverCarsSet = driverCarsMap.get(guid);
+        const carString = driverCarsSet && driverCarsSet.size > 0
+            ? Array.from(driverCarsSet).join(', ')
+            : 'Unknown';
+
+        let qualiData: { finish: number | null } | null = null;
+        if (qualiSession) {
+            const qualiRes = qualiSession.results.find(r => r.driverGuid === guid);
+            qualiData = { finish: qualiRes?.finish ?? null };
+        }
+
+        const racesData: RaceResultSummaryDto[] = raceSessions.map(raceSession => {
+            const raceRes = raceSession.results.find(r => r.driverGuid === guid);
+
+            if (!raceRes) {
+                return { finish: null, positionChange: null };
+            }
+
+            const positionChange = (raceRes.start !== null && raceRes.finish !== null)
+                ? raceRes.start - raceRes.finish
+                : null;
+
+            return {
+                finish: raceRes.finish,
+                positionChange
+            };
+        });
+
+        const driverRating = event.ratings.find(r => r.driverGuid === guid && r.tookPart);
+        const ratingData = driverRating ? {
+            after: driverRating.current,
+            change: driverRating.current - driverRating.previous
+        } : null;
+
+        driverResultsMap.set(guid, {
+            driverGuid: guid,
+            driverName: driverNamesMap.get(guid) || 'Unknown Driver',
+            car: carString, // Zwracamy auto/auta w ogólnych wynikach
+            quali: qualiData,
+            races: racesData,
+            rating: ratingData
+        });
+    });
+
+    const summaryResults = Array.from(driverResultsMap.values());
+
+    // W poszczególnych wynikach sesji nie przekazujemy już pola `car`
+    const formattedSessions = event.sessions.map(session => ({
+        date: session.date,
+        type: session.type,
+        durationLaps: session.durationLaps,
+        durationMinutes: session.durationMinutes,
+        results: session.results.map(res => ({
+            driverGuid: res.driverGuid,
+            driverName: res.driver.mainName,
+            start: res.start,
+            finish: res.finish,
+            laps: res.laps,
+            totalTime: res.totalTime,
+            bestLap: res.bestLap,
+            gap: res.gap
+        }))
+    }));
+
+    return {
+        id: event.id,
+        name: event.name,
+        championshipId: event.championshipId,
+        track: event.track,
+        date: event.date,
+        server: event.server,
+        stats: {
+            racesCount,
+            uniqueDriversCount: uniqueDriverGuids.size
+        },
+        results: summaryResults,
+        sessions: formattedSessions
+    };
 }
 
 export interface EventDto {
@@ -31,7 +217,6 @@ export interface SessionDto {
 }
 
 export interface ResultDto {
-    id: string;
     driverGuid: string;
     driverName: string; // Spłaszczone pole z Driver.mainName
     start: number | null;
@@ -99,7 +284,6 @@ export async function getEventById(id: string): Promise<EventDto | null> {
         sessions: event.sessions.map(session => ({
             ...session,
             results: session.results.map(result => ({
-                id: result.id,
                 driverGuid: result.driverGuid,
                 driverName: result.driver.mainName, // Używamy pobranego mainName
                 start: result.start,
@@ -114,40 +298,14 @@ export async function getEventById(id: string): Promise<EventDto | null> {
     } as unknown as EventDto;
 }
 
-export async function syncEventFromAcsm(id: string, server: string, acsmEvent: AcsmRaceResult): Promise<Event> {
-    const newDate = new Date(acsmEvent.Date);
-
-    const existingEvent = await prisma.event.findUnique({
-        where: { id: id },
-        select: { date: true }
-    });
-
-    const resolvedDate = existingEvent 
-        ? new Date(Math.min(existingEvent.date.getTime(), newDate.getTime()))
-        : newDate;
-
-    return await prisma.event.upsert({
-        where: { id: id },
-        update: { 
-            date: resolvedDate 
-        }, 
-        create: { 
-            id: id,
-            championshipId: acsmEvent.ChampionshipID || null,
-            name: acsmEvent.EventName,
-            track: acsmEvent.TrackConfig 
-                ? `${acsmEvent.TrackName} (${acsmEvent.TrackConfig})` 
-                : acsmEvent.TrackName,
-            server: server,
-            date: resolvedDate,
-        }            
-    });
-}
-
+/**
+ * 
+ * @returns 
+ */
 export async function getAllEventsChronologically(): Promise<EventListDto[]> {
     const events = await prisma.event.findMany({
         orderBy: {
-            date: 'asc' // Od najstarszego do najnowszego
+            date: 'asc' 
         },
         select: {
             id: true,
@@ -158,7 +316,7 @@ export async function getAllEventsChronologically(): Promise<EventListDto[]> {
             server: true,
             sessions: {
                 orderBy: {
-                    date: 'asc' // Sesje wewnątrz wydarzenia również chronologicznie
+                    date: 'asc' 
                 },
                 select: {
                     id: true,
@@ -193,7 +351,6 @@ export async function getAllEventsChronologically(): Promise<EventListDto[]> {
         }
     });
 
-    // Mapujemy strukturę dokładnie tak samo jak w getEventById, spłaszczając driver.mainName
     return events.map(event => ({
         id: event.id,
         name: event.name,
@@ -221,4 +378,54 @@ export async function getAllEventsChronologically(): Promise<EventListDto[]> {
             }))
         }))
     })) as unknown as EventListDto[];
+
+    
+}
+
+// SYNC
+
+export interface Event {
+    name: string; 
+    id: string; 
+    championshipId: string | null; 
+    track: string; 
+    date: Date; 
+    server: string;
+}
+
+/**
+ * 
+ * @param id 
+ * @param server 
+ * @param acsmEvent 
+ * @returns 
+ */
+export async function syncEventFromAcsm(id: string, server: string, acsmEvent: AcsmRaceResult): Promise<Event> {
+    const newDate = new Date(acsmEvent.Date);
+
+    const existingEvent = await prisma.event.findUnique({
+        where: { id: id },
+        select: { date: true }
+    });
+
+    const resolvedDate = existingEvent 
+        ? new Date(Math.min(existingEvent.date.getTime(), newDate.getTime()))
+        : newDate;
+
+    return await prisma.event.upsert({
+        where: { id: id },
+        update: { 
+            date: resolvedDate 
+        }, 
+        create: { 
+            id: id,
+            championshipId: acsmEvent.ChampionshipID || null,
+            name: acsmEvent.EventName,
+            track: acsmEvent.TrackConfig 
+                ? `${acsmEvent.TrackName} (${acsmEvent.TrackConfig})` 
+                : acsmEvent.TrackName,
+            server: server,
+            date: resolvedDate,
+        }            
+    });
 }

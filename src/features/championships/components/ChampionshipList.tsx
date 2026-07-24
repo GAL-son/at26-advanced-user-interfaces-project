@@ -3,7 +3,7 @@
 import React from "react";
 import InfiniteScrollList from "@/app/_components/Common/InfiniteScrollList";
 import ChampionshipCard from "./ChampionshipCard";
-import { fetchChampionshipsAction } from "@/app/_actions/championship.actions";
+import { fetchChampionshipsAction } from "@/features/championships/championships.actions";
 import type { ChampionshipListItemDto } from "@/lib/services/championships.service";
 
 interface InfiniteChampionshipListProps {

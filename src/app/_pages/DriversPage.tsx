@@ -6,7 +6,7 @@ import DriverFilterBar from "@/app/_components/Drivers/DriverFilterBar";
 import DriverList from "@/app/_components/Drivers/DriverList";
 import { FormattedDriver } from "@/app/_components/Drivers/DriverRow";
 import { focusFlatSection } from "@/app/_utils/navigation";
-import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
+import { usePageInitialFocus } from "../../hooks/usePageInitialFocus";
 import { DriverSortOption } from "@/lib/services/drivers.service";
 
 const SECTION_ORDER = ["menu", "drivers-filters", "drivers-list", "footer"];

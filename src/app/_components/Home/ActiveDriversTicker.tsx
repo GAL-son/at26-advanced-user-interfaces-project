@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { TickerDriver } from "@/lib/services/drivers";
-import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { IconButton } from "@mui/material";

@@ -14,7 +14,7 @@ import { ExtendedDriver, TickerDriver } from "@/lib/services/drivers";
 import { FormattedEvent } from "@/lib/services/events";
 import { DashboardDuels } from "@/lib/services/duels";
 import { GlobalStats } from "@/lib/services/stats";
-import { usePageInitialFocus } from "../_hooks/usePageInitialFocus";
+import { usePageInitialFocus } from "../../hooks/usePageInitialFocus";
 import { useTranslations } from "next-intl";
 
 interface HomePageProps {

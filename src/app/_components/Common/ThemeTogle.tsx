@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { IconButton, Box } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import { useThemeSwitch } from '@/app/_hooks/useThemeSwitch';
+import { useThemeSwitch } from '@/hooks/useThemeSwitch';
 
 interface ThemeToggleProps {
   focusableRef?: (el: HTMLElement | null) => void;

@@ -8,7 +8,7 @@ import { RaceResultExtended } from '@/app/_pages/EventResultPage';
 import ResultListItem from './ResultListItem';
 import ResultListItemMobile from './ResultListItemMobile';
 import { useTranslations } from 'next-intl';
-import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import { AnimatePresence } from 'framer-motion';
 
 interface ResultListProps {

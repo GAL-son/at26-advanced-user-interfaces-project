@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getChampionship } from '@/lib/services/championships.service';
+import { getChampionship } from '@/features/championships/services/championships.service';
 
 interface PathParams {
     params: {id: string;};

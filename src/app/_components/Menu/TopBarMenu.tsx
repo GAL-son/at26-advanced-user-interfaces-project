@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { AppBar, Box, Toolbar, IconButton, Button, Container } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import { focusFlatSection } from "@/app/_utils/navigation";
 import ThemeToggle from "../Common/ThemeTogle";
 import BrandLogo from "./BrandLogo"; // Import nowego komponentu

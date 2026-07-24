@@ -1,7 +1,6 @@
-import React from "react";
 import { notFound } from "next/navigation";
-import { getChampionship } from "@/lib/services/championships.service";
-import ChampionshipDetailsPage from "@/app/_pages/ChampionshipDetailsPage";
+import { getChampionship } from "@/features/championships/services/championships.service"
+import ChampionshipDetailsView from "@/features/championships/views/ChampionshipDetailsView"
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -19,7 +18,7 @@ export default async function Page({ params, searchParams }: PageProps) {
   }
 
   return (
-    <ChampionshipDetailsPage 
+    <ChampionshipDetailsView 
       championship={championship} 
       searchParams={resolvedSearchParams} 
     />

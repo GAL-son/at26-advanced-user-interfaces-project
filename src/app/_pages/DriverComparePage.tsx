@@ -11,7 +11,7 @@ import { focusFlatSection } from "@/app/_utils/navigation";
 import DriverSearchContainer from "@/app/_components/Rating/Compare/DriverSearchContainer";
 import RatingChart from "../_components/Rating/RatingChart";
 
-import { getDriversBasicInfoAction } from "@/app/_actions/drivers.actions";
+import { getDriversBasicInfoAction } from "@/actions/drivers.actions";
 import { DriverBasicDto } from "@/lib/services/drivers.service";
 
 const SECTION_ORDER = [
@@ -61,7 +61,7 @@ function CompareDriversContent() {
           return {
             guid,
             mainName: `${t("driverFallback")} (${guid.substring(0, 5)})`,
-            currentElo: 0,
+            currentRating: 0,
           };
         });
 

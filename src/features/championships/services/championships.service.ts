@@ -2,27 +2,7 @@
 
 import { prisma } from '@/lib/db/db';
 import type { AcsmChampionshipInfo } from '@/lib/services/acsm/types';
-
-export interface ChampionshipListItemDto {
-  id: string;
-  name: string;
-}
-
-export interface ChampionshipEventDto {
-    id: string; 
-    name: string;
-    track: string; 
-    date: Date; 
-    server: string;
-}
-
-export interface ChampionshipDto {
-  name: string,
-  events: ChampionshipEventDto[];
-  from: Date,
-  to:Date
-}
-
+import type {ChampionshipListItemDto, ChampionshipEventDto, ChampionshipDto} from '@/features/championships/championships.types';
 
 export async function getChampionship(championshipId: string): Promise<ChampionshipDto | null> {
   const championship = await prisma.championship.findUnique({

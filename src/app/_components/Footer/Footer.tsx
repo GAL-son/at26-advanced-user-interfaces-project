@@ -4,7 +4,7 @@ import React from "react";
 import { useTranslations } from "next-intl";
 import MessageIcon from "@mui/icons-material/Message";
 import DnsIcon from "@mui/icons-material/Dns";
-import { useKeyboardNavigation } from "@/app/_hooks/useKeyboardNavigation";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import { focusFlatSection } from "@/app/_utils/navigation";
 
 const PAGE_ORDER = ["menu", "tournament-registration", "footer"]; // Upewnij się, że "footer" jest w Twojej tablicy podstrony
