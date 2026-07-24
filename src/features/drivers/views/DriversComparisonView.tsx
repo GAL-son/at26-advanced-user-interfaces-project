@@ -6,9 +6,8 @@ import { useTranslations } from "next-intl";
 
 import { focusFlatSection } from "@/app/_utils/navigation";
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
-import BackButton from "@/app/_components/Common/BackButton";
+import BackButton from "@/components/common/BackButton";
 import RatingChart from "@/features/ratings/components/RatingChart";
-
 
 import { getDriversBasicInfoAction } from "../drivers.actions";
 import { DriverBasicDto } from "../drivers.types";
@@ -115,24 +114,11 @@ function CompareDriversContent() {
           data-section-page-start="true"
           className="flex items-center gap-4 mb-8"
         >
-          <BackButton
+          <BackButton 
             ref={backButtonRef}
-            ariaLabel={t("backButtonAria")}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                const searchInput = document.getElementById("driver-search-input");
-                if (searchInput) {
-                  searchInput.focus();
-                } else {
-                  focusFlatSection("compare-back", "next", SECTION_ORDER);
-                }
-              }
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
-                focusFlatSection("compare-back", "prev", SECTION_ORDER);
-              }
-            }}
+            ariaLabel={t("profile.backToLeaderboard")} 
+            sectionName="compare-back"
+            sectionOrder={SECTION_ORDER}
           />
           <div>
             <h1 className="!text-page-title uppercase leading-tight shrink-0 flex items-center gap-3 text-[var(--color-brand-text)]">

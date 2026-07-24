@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { focusFlatSection } from "@/app/_utils/navigation";
-import BackButton from "@/app/_components/Common/BackButton";
+import BackButton from "@/components/common/BackButton";
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 import RatingChart from "@/features/ratings/components/RatingChart";
 
@@ -113,16 +113,8 @@ function DriverProfileContent() {
           <BackButton 
             ref={backButtonRef}
             ariaLabel={t("profile.backToLeaderboard")} 
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                focusFlatSection("driver-back", "next", SECTION_ORDER);
-              }
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
-                focusFlatSection("driver-back", "prev", SECTION_ORDER);
-              }
-            }}
+            sectionName="driver-back"
+            sectionOrder={SECTION_ORDER}
           />
           <div>
             <h1 className="text-page-title uppercase leading-tight shrink-0 text-[var(--color-brand-text)]">

@@ -5,6 +5,7 @@ import { Flag, Calendar, Server, Trophy, Users } from "lucide-react";
 import { useTranslations, useFormatter } from "next-intl";
 
 import { EventDetailsDto } from "../events.types";
+import PrimaryCard from "@/components/common/PrimaryCard";
 
 interface EventHeaderInfoProps {
   event: EventDetailsDto;
@@ -41,10 +42,7 @@ export default function EventHeaderInfo({
   };
 
   return (
-    <section
-      aria-labelledby="event-title"
-      className="mb-8 p-6 sm:p-8 bg-gradient-to-br from-[var(--color-brand-navy-dark)] to-[color-mix(in_srgb,var(--color-brand-navy-dark)_80%,black)] border-l-4 border-l-[var(--color-brand-yellow)] border-t border-r border-b border-[var(--color-brand-navy-light)] rounded-r-xl rounded-l-sm shadow-xl"
-    >
+    <PrimaryCard>
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         
         {/* LEWA STRONA: Nazwa wydarzenia i Tor */}
@@ -144,6 +142,6 @@ export default function EventHeaderInfo({
 
         </div>
       )}
-    </section>
+    </PrimaryCard>
   );
 }

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { focusFlatSection } from "@/app/_utils/navigation";
-import BackButton from "@/app/_components/Common/BackButton";
+import BackButton from "@/components/common/BackButton";
 import PageLoaderWrapper from "@/app/_components/Common/PageLoaderWrapper";
 
 import { getEventDetailsAction } from "../events.actions";
